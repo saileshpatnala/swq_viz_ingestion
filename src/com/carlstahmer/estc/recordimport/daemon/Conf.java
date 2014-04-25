@@ -13,6 +13,12 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.yaml.snakeyaml.Yaml;
 
+/**
+ * <p>A configuration class that contains code for processing a .yml configuration file
+ * and loading all configuration variables into class objects.  By creating a local
+ * instance of this class or being passed an instance, other classes and functions gain
+ * access to configuration variable values.</p>
+ */
 public class Conf {
 
 	String listenDir;
@@ -23,6 +29,8 @@ public class Conf {
 	String dbname;
 	String dbuser;
 	String dbpass;
+	boolean debug;
+	boolean console;
 	
 	public Conf() {
 		listenDir = "";
@@ -33,8 +41,16 @@ public class Conf {
 		dbname = "";
 		dbuser = "";
 		dbpass = "";
+		debug = false;
+		console = false;
 	}
 	
+	/**
+	 * <p>An initialization class that tells the object to read the .yml configuration file
+	 * and load all values.  Must be called before trying to access any class properties.</p>
+	 * 
+	 * @return      			a boolean value indicating whether the configuration .yml has been successfully loaded.
+	 */
 	public boolean loadConf() {
 			
 		boolean loaded = false;
@@ -67,6 +83,14 @@ public class Conf {
 	
 	// checks the command line arguments sting and replaces values from the conf yaml
 	// as appropriate.
+	
+	/**
+	 * <p>Checks for passed command line arguments and replaces .yml loaded values with those
+	 * entered at the command line as appropriate.</p>
+	 *
+	 * @param  args    	command line String[] args array
+	 * @return      	a boolean value indicate whether or not method executed successfully
+	 */
 	public boolean checkArgs(String[] args) {
 		
 		boolean loaded = false;
@@ -81,6 +105,8 @@ public class Conf {
 			options.addOption("dbname", true, "the sql server database name");
 			options.addOption("dbuser", true, "the sql user");
 			options.addOption("dbpass", true, "the sql user");
+			options.addOption("debug", false, "run in debug mode - verbose logging");
+			options.addOption("console", false, "write log to console instead of database");
 			options.addOption("help", false, "get help");
 							
 			
@@ -134,7 +160,13 @@ public class Conf {
 				if(dbpassVal != null) {
 					dbpass = dbpassVal;
 				}
-			}				
+			}
+			if (cmd.hasOption("debug")) {
+				debug = true;
+			}
+			if (cmd.hasOption("console")) {
+				console = true;
+			}
 			if (cmd.hasOption("help")) {
 					String HelpString = "Requires the presence of a config.yml in the application root to run correcly. ";
 					HelpString = HelpString + "Values in the config can be overwritten at runtime via command line ";
@@ -146,7 +178,10 @@ public class Conf {
 					HelpString = HelpString + "-dbserver [the sql database server]\n";
 					HelpString = HelpString + "-dbname [the sql database name]\n";
 					HelpString = HelpString + "-dbuser [the sql database user]\n";
-					HelpString = HelpString + "-dbpass [the sql database password]\n\n";
+					HelpString = HelpString + "-dbpass [the sql database password]\n";
+					HelpString = HelpString + "-debug [runs application in debug mode - verbose logging]\n";
+					HelpString = HelpString + "-console [writes log output to console instead of database]\n";
+					HelpString = HelpString + "-help [runs this help message]\n\n";
 					HelpString = HelpString + "Config.yml file must be in place even if you are supplying information ";
 					HelpString = HelpString + "via the command line.";
 					System.out.println(HelpString);
@@ -156,20 +191,12 @@ public class Conf {
 			loaded = true;
 			
 		}  catch (ParseException e) {
-			System.err.println("Command Line Argument Error: " + e.getMessage());
+			System.err.println("ERROR:\tCommand Line Argument Error: " + e.getMessage());
 			loaded = false;
 		}
 			
 		return loaded;	
 			
 	}
-	
-	
-	
-	
-	
-	
-	
-	
 	
 }
