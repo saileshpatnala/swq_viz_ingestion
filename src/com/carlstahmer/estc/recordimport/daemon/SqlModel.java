@@ -140,7 +140,7 @@ public class SqlModel {
 		String strSql = "SELECT id FROM files" +
 				" WHERE institution_code LIKE '" + currCode +
 				"' AND filename LIKE '" + fileName + 
-				"' AND modification_date LIKE '" + String.valueOf(modDate) + "';";
+				"' AND modification_date >= " + String.valueOf(modDate) + ";";
 		
 		// run query
 		try {
