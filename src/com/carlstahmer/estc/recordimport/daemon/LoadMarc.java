@@ -45,7 +45,7 @@ public class LoadMarc {
 	 */
 	public void loadMarcFile(String strFile, String curCode) {
 		
-		try {
+		//try {
 			
 			// instantiate file objects
 			File fileInfo = new File(strFile);
@@ -59,13 +59,17 @@ public class LoadMarc {
 			sqlObj.openConnection();
 			if (sqlObj.connOpen) {
 				logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Sql connection opened");
-				int fileRecordId = sqlObj.selectFileRecord(curCode, fileName, fileModDate);
+				int fileRecordId = sqlObj.selectFileRecord(curCode, fileName);	
+				boolean newFile = false;
 				if (fileRecordId == 0) {
+					newFile = true;
 					fileRecordId = sqlObj.insertFileRecord(curCode, fileName, fileModDate, 1);
 					logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "New file entered in system with ID " + fileRecordId);
 				} else {
 					logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "File already exists in system with ID " + fileRecordId );
-				}
+				}				
+				
+				/*
 				
 				
 				InputStream input = new FileInputStream(strFile);
@@ -190,6 +194,19 @@ public class LoadMarc {
 		            }
 
 		        }
+		        */
+		        
+		        if (!newFile) {
+		        	// update file modification date for file in db so that it reflects
+		        	// the latest mod date on system correctly
+		        	boolean dateUpdated = sqlObj.updateFileModDate(fileRecordId, fileModDate);
+		        	if (dateUpdated) {
+		        		logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Updated modification date of file "+fileRecordId+" to "+fileModDate);
+		        	} else {
+		        		logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Unable to update modification date of file "+fileRecordId+" with system modification date of "+fileModDate);
+		        	}
+	
+		        }
 				
 				sqlObj.closeConnection();
 				if (!sqlObj.connOpen) {
@@ -201,9 +218,9 @@ public class LoadMarc {
 				logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "SQL connection not open");
 			}
 			
-		} catch (FileNotFoundException e) {
-			logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Failed to load MARC file");
-		}
+		//} catch (FileNotFoundException e) {
+		//	logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Failed to load MARC file");
+		//}
 		
 	}
 	

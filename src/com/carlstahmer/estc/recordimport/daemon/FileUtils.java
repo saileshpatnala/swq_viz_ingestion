@@ -121,6 +121,7 @@ public class FileUtils {
 			if (sqlObj.connOpen) {
 				logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "SQL connection opened");
 				intRet = sqlObj.selectFileTypeID(fileSuffix);
+				logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Retrieving File Type");
 				boolean connClosed = sqlObj.closeConnection();
 				if (connClosed) {
 					logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "SQL connection closed");

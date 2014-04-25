@@ -129,7 +129,7 @@ public class SqlModel {
 	 * @param	modDate		the system last modified time stamp of the file
 	 * @return				A file ID if found or 0 if not found
 	 */
-	public int selectFileRecord(String currCode, String fileName, long modDate) {
+	public int selectFileRecordStrict(String currCode, String fileName, long modDate) {
 		
 		// initialize required objects
 		int recordId = 0;
@@ -141,6 +141,55 @@ public class SqlModel {
 				" WHERE institution_code LIKE '" + currCode +
 				"' AND filename LIKE '" + fileName + 
 				"' AND modification_date LIKE '" + String.valueOf(modDate) + "';";
+		
+		// run query
+		try {
+			
+			stmt = conn.createStatement();
+	        resultSet = stmt.executeQuery(strSql);
+	        if (resultSet.next()) {
+	        	recordId = resultSet.getInt("id");
+	        }
+	        try {
+	        	resultSet.close();
+	        } catch (SQLException sqlEx) { } // ignore
+		    
+		
+		} catch (SQLException ex){
+		    // handle any errors
+		    System.out.println("SQLException SqlModel.java selectFileRecordStrict: " + ex.getMessage());
+		    System.out.println("SQLState: " + ex.getSQLState());
+		    System.out.println("VendorError: " + ex.getErrorCode());
+		} finally {
+		    try {
+		    	stmt.close();
+		    } catch (SQLException sqlEx) { } // ignore
+
+		}		
+		return recordId;
+	}
+	
+	/**
+	 * <p>Selects a "file" record from the database.  Checks the institutional code
+	 * and filename only to see if this is a file that is already in the system.  Ignores
+	 * file modification date.  Simply a check of filename and institution.  If it does 
+	 * not find the file in the database it returns 0.</p>
+	 *
+	 * @param  	currCode	the MARC institutional code for the creator of the file
+	 * @param  	fileName  	the filename of the file
+	 * @return				A file ID if found or 0 if not found
+	 */
+	public int selectFileRecord(String currCode, String fileName) {
+		
+		// initialize required objects
+		int recordId = 0;
+		Statement stmt = null;
+		ResultSet resultSet = null;
+		
+		// define query
+		String strSql = "SELECT id FROM files" +
+				" WHERE institution_code LIKE '" + currCode +
+				"' AND filename LIKE '" + fileName + "';";
 		
 		// run query
 		try {
@@ -221,7 +270,48 @@ public class SqlModel {
 		return recordId;
 	}
 	
-	
+	/**
+	 * <p>Updates the system last modified date of a file record.</p>
+	 *
+	 * @param  	strFileId		the file id to update
+	 * @param  	fileModDate  	the new mod date
+	 * @return				1 = success, 0 = failure
+	 */
+	public boolean updateFileModDate(int intFileId, long fileModDate) {
+		
+		// initialize required objects
+		boolean retFlag = false;
+		Statement stmt = null;
+		
+		// define query
+		String strSql = "UPDATE files " +
+				"SET modification_date = " + fileModDate +
+				" WHERE id = " + intFileId+ ";";
+
+		try {
+
+		    stmt = conn.createStatement();
+		    stmt.executeUpdate(strSql);
+		    retFlag = true;
+		    
+		} catch (SQLException ex){
+			    // handle any errors
+			    System.out.println("SQLException SqlModel.java updateFileModDate: " + ex.getMessage());
+			    System.out.println("SQLState: " + ex.getSQLState());
+			    System.out.println("VendorError: " + ex.getErrorCode());
+
+		} finally {
+
+		    if (stmt != null) {
+		        try {
+		            stmt.close();
+		        } catch (SQLException ex) {
+		            // ignore
+		        }
+		    }
+		}
+		return retFlag;
+	}	
 	
 	/**
 	 * <p>Selects a record from the records table and returns the id.  Records are
