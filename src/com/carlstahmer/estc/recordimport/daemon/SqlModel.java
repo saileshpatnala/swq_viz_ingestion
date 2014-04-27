@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+
 /**
  * <p>A class that acts as the SQL query model for the application.  All SQL queries 
  * for the entire application are constructed here.  There should be no SQL anywhere 
@@ -34,6 +35,10 @@ public class SqlModel {
 		dbuser = config.dbuser;
 		dbpass = config.dbpass;
 	}
+	
+////////////////////////////
+// Open and Close Methods //
+////////////////////////////
 	
 	/**
 	 * <p>Opens a SQL Connection.</p>
@@ -71,6 +76,9 @@ public class SqlModel {
 		
 	}
 	
+/////////////////////////
+// Data Model Methods //
+////////////////////////
 	
 	/**
 	 * <p>Returns a file type id based upon a filename suffix 
@@ -796,16 +804,10 @@ public class SqlModel {
 	}
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+//////////////////////
+// Logging  methods //
+//////////////////////
+		
 	/**
 	 * <p>Writes a new log message to the database runlog table.</p>
 	 *
@@ -826,6 +828,207 @@ public class SqlModel {
 				"(type, file, line, message)" +
 				" VALUES" + 
 				" (" + messageType + ", '" + fileName + "', " + lineNumber + ", '" + messageText + "');";
+
+		try {
+
+		    stmt = conn.createStatement();
+		    stmt.executeUpdate(strSql);
+		    rs = stmt.executeQuery("SELECT LAST_INSERT_ID()");
+		    if (rs.next()) {
+		    	insertId = rs.getInt(1);
+		    }
+		    rs.close();
+		    
+		} catch (SQLException ex){
+			    // handle any errors
+			    System.out.println("SQLException SqlModel.java insertLogMessage: " + ex.getMessage());
+			    System.out.println("SQLState: " + ex.getSQLState());
+			    System.out.println("VendorError: " + ex.getErrorCode());
+
+		} finally {
+
+		    if (stmt != null) {
+		        try {
+		            stmt.close();
+		        } catch (SQLException ex) {
+		            // ignore
+		        }
+		    }
+		}
+		return insertId;
+	}
+	
+			
+///////////////////////////////	
+// Generic SQL query methods //
+///////////////////////////////
+	
+	/**
+	 * <p>A genreic object for querying the db for a single numeric
+	 * value such as an id field, etc.  Field select list must
+	 * contain only a single field.</p>
+	 *
+	 * @param  	strSql	A well formed SQL SELECT query with a single SELECT field of type INTEGER
+	 * @return			The integer value of the return column
+	 */	
+	private int qSelectInt(String strSql) {
+		// initialize required objects
+		Statement stmt = null;
+		ResultSet resultSet = null;
+		int retId = 0;
+
+		
+		// run query
+		try {
+			stmt = conn.createStatement();
+	        resultSet = stmt.executeQuery(strSql);
+	        if (resultSet.next()) {
+	        	retId = resultSet.getInt(1);
+	        }
+	        try {
+	        	resultSet.close();
+	        } catch (SQLException sqlEx) { } // ignore
+		    
+		
+		} catch (SQLException ex){
+		    // handle any errors
+		    System.out.println("SQLException SqlModel.java qGetSingleNumericValue: " + ex.getMessage());
+		    System.out.println("SQLState: " + ex.getSQLState());
+		    System.out.println("VendorError: " + ex.getErrorCode());
+		} finally {
+		    try {
+		    	stmt.close();
+		    } catch (SQLException sqlEx) { } // ignore
+
+		}	
+		
+		return retId;
+	}
+	
+	/**
+	 * <p>A genreic object for querying the db for a single String
+	 * value. Field select list must contain only a single field.</p>
+	 *
+	 * @param  	strSql	A well formed SQL SELECT query with a single SELECT field of type STRING
+	 * @return			The string value of the return column
+	 */		
+	private String qSelectString(String strSql) {
+		// initialize required objects
+		Statement stmt = null;
+		ResultSet resultSet = null;
+		String retString = "";
+
+		
+		// run query
+		try {
+			stmt = conn.createStatement();
+	        resultSet = stmt.executeQuery(strSql);
+	        if (resultSet.next()) {
+	        	retString = resultSet.getString(1);
+	        }
+	        try {
+	        	resultSet.close();
+	        } catch (SQLException sqlEx) { } // ignore
+		    
+		
+		} catch (SQLException ex){
+		    // handle any errors
+		    System.out.println("SQLException SqlModel.java qGetSingleStringValue: " + ex.getMessage());
+		    System.out.println("SQLState: " + ex.getSQLState());
+		    System.out.println("VendorError: " + ex.getErrorCode());
+		} finally {
+		    try {
+		    	stmt.close();
+		    } catch (SQLException sqlEx) { } // ignore
+
+		}	
+		
+		return retString;
+	}
+	
+	/**
+	 * <p>A generic object for executing a SELECT querying 
+	 * against the db.</p>
+	 *
+	 * @param  	strSql	A well formed SQL SELECT query
+	 * @return			A resultSet object containing the result of the query
+	 */	
+	private ResultSet qSelectGeneric(String strSql) {
+		// initialize required objects
+		Statement stmt = null;
+		ResultSet resultSet = null;
+
+		
+		// run query
+		try {
+			stmt = conn.createStatement();
+	        resultSet = stmt.executeQuery(strSql);		
+		} catch (SQLException ex){
+		    // handle any errors
+		    System.out.println("SQLException SqlModel.java qGetRecords: " + ex.getMessage());
+		    System.out.println("SQLState: " + ex.getSQLState());
+		    System.out.println("VendorError: " + ex.getErrorCode());
+		} finally {
+		    try {
+		    	stmt.close();
+		    } catch (SQLException sqlEx) { } // ignore
+
+		}	
+		
+		return resultSet;
+	}
+	
+	/**
+	 * <p>A generic object for executing an UPDATE 
+	 * against the db.</p>
+	 *
+	 * @param  	strSql	A well formed SQL SELECT query
+	 * @return			A boolean value indicating success or failure
+	 */		
+	public boolean qUpdate(String strSql) {
+		
+		// initialize required objects
+		boolean success = false;
+		Statement stmt = null;
+		
+		try {
+
+		    stmt = conn.createStatement();
+		    stmt.executeUpdate(strSql);
+		    success = true;   
+		} catch (SQLException ex){
+			    // handle any errors
+			    System.out.println("SQLException SqlModel.java qInsert: " + ex.getMessage());
+			    System.out.println("SQLState: " + ex.getSQLState());
+			    System.out.println("VendorError: " + ex.getErrorCode());
+
+		} finally {
+
+		    if (stmt != null) {
+		        try {
+		            stmt.close();
+		        } catch (SQLException ex) {
+		            // ignore
+		        }
+		    }
+		}
+		return success;
+	}
+	
+	
+	/**
+	 * <p>A generic object for executing an INSERT 
+	 * against the db.</p>
+	 *
+	 * @param  	strSql	A well formed SQL SELECT query
+	 * @return			A boolean value indicating success or failure
+	 */
+	public int qInsert(String strSql) {
+		
+		// initialize required objects
+		Statement stmt = null;
+		ResultSet rs = null;
+		int insertId = 0;
 
 		try {
 
