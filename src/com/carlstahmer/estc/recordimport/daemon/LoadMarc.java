@@ -45,7 +45,7 @@ public class LoadMarc {
 	 */
 	public void loadMarcFile(String strFile, String curCode) {
 		
-		//try {
+		try {
 			
 			// instantiate file objects
 			File fileInfo = new File(strFile);
@@ -69,7 +69,7 @@ public class LoadMarc {
 					logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "File already exists in system with ID " + fileRecordId );
 				}				
 				
-				/*
+				
 				
 				
 				InputStream input = new FileInputStream(strFile);
@@ -112,9 +112,9 @@ public class LoadMarc {
 		            		for (int fieldId : assocFields) {
 		            			boolean subfielddel = sqlObj.deleteSubFields(fieldId);
 		            			if (subfielddel) {
-		            				logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Subfield deltion successfull"); 
+		            				logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Subfield deletion successfull"); 
 		            			} else {
-		            				logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Subfield deltion successfull"); 
+		            				logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Subfield deletion faild"); 
 		            			}
 		            		}
 		            		
@@ -194,7 +194,7 @@ public class LoadMarc {
 		            }
 
 		        }
-		        */
+		        
 		        
 		        if (!newFile) {
 		        	// update file modification date for file in db so that it reflects
@@ -218,9 +218,9 @@ public class LoadMarc {
 				logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "SQL connection not open");
 			}
 			
-		//} catch (FileNotFoundException e) {
-		//	logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Failed to load MARC file");
-		//}
+		} catch (FileNotFoundException e) {
+			logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Failed to load MARC file");
+		}
 		
 	}
 	

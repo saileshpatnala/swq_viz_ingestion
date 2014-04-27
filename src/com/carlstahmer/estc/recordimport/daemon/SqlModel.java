@@ -88,40 +88,8 @@ public class SqlModel {
 	 * @return				A file_types ID from the db.  Returns 0 if not found.
 	 */
 	public int selectFileTypeID(String suffix) {
-		
-		
-		// initialize required objects
-		Statement stmt = null;
-		ResultSet resultSet = null;
-		int fileTypeID = 0;
-
-		// define query
-		String strSql = "SELECT file_type_id FROM file_type_suffixes" +
-				" WHERE suffix LIKE '" + suffix + "'";
-		
-		// run query
-		try {
-			stmt = conn.createStatement();
-	        resultSet = stmt.executeQuery(strSql);
-	        if (resultSet.next()) {
-	        	fileTypeID = resultSet.getInt("file_type_id");
-	        }
-	        try {
-	        	resultSet.close();
-	        } catch (SQLException sqlEx) { } // ignore
-		    
-		
-		} catch (SQLException ex){
-		    // handle any errors
-		    System.out.println("SQLException SqlModel.java selectFileTypeID: " + ex.getMessage());
-		    System.out.println("SQLState: " + ex.getSQLState());
-		    System.out.println("VendorError: " + ex.getErrorCode());
-		} finally {
-		    try {
-		    	stmt.close();
-		    } catch (SQLException sqlEx) { } // ignore
-
-		}		
+		String strSql = "SELECT file_type_id FROM file_type_suffixes WHERE suffix LIKE '" + suffix + "'";
+		int fileTypeID = qSelectInt(strSql);
 		return fileTypeID;
 	}
 	
@@ -138,42 +106,11 @@ public class SqlModel {
 	 * @return				A file ID if found or 0 if not found
 	 */
 	public int selectFileRecordStrict(String currCode, String fileName, long modDate) {
-		
-		// initialize required objects
-		int recordId = 0;
-		Statement stmt = null;
-		ResultSet resultSet = null;
-		
-		// define query
 		String strSql = "SELECT id FROM files" +
 				" WHERE institution_code LIKE '" + currCode +
 				"' AND filename LIKE '" + fileName + 
 				"' AND modification_date >= " + String.valueOf(modDate) + ";";
-		
-		// run query
-		try {
-			
-			stmt = conn.createStatement();
-	        resultSet = stmt.executeQuery(strSql);
-	        if (resultSet.next()) {
-	        	recordId = resultSet.getInt("id");
-	        }
-	        try {
-	        	resultSet.close();
-	        } catch (SQLException sqlEx) { } // ignore
-		    
-		
-		} catch (SQLException ex){
-		    // handle any errors
-		    System.out.println("SQLException SqlModel.java selectFileRecordStrict: " + ex.getMessage());
-		    System.out.println("SQLState: " + ex.getSQLState());
-		    System.out.println("VendorError: " + ex.getErrorCode());
-		} finally {
-		    try {
-		    	stmt.close();
-		    } catch (SQLException sqlEx) { } // ignore
-
-		}		
+		int recordId = qSelectInt(strSql);	
 		return recordId;
 	}
 	
@@ -188,41 +125,10 @@ public class SqlModel {
 	 * @return				A file ID if found or 0 if not found
 	 */
 	public int selectFileRecord(String currCode, String fileName) {
-		
-		// initialize required objects
-		int recordId = 0;
-		Statement stmt = null;
-		ResultSet resultSet = null;
-		
-		// define query
 		String strSql = "SELECT id FROM files" +
 				" WHERE institution_code LIKE '" + currCode +
 				"' AND filename LIKE '" + fileName + "';";
-		
-		// run query
-		try {
-			
-			stmt = conn.createStatement();
-	        resultSet = stmt.executeQuery(strSql);
-	        if (resultSet.next()) {
-	        	recordId = resultSet.getInt("id");
-	        }
-	        try {
-	        	resultSet.close();
-	        } catch (SQLException sqlEx) { } // ignore
-		    
-		
-		} catch (SQLException ex){
-		    // handle any errors
-		    System.out.println("SQLException SqlModel.java selectFileRecord: " + ex.getMessage());
-		    System.out.println("SQLState: " + ex.getSQLState());
-		    System.out.println("VendorError: " + ex.getErrorCode());
-		} finally {
-		    try {
-		    	stmt.close();
-		    } catch (SQLException sqlEx) { } // ignore
-
-		}		
+		int recordId = qSelectInt(strSql);	
 		return recordId;
 	}
 	
@@ -237,44 +143,12 @@ public class SqlModel {
 	 * @return				A file ID if found or 0 if not found
 	 */
 	public int insertFileRecord(String currCode, String fileName, long modDate, int fileType) {
-		
-		// initialize required objects
-		int recordId = 0;
-		Statement stmt = null;
-		ResultSet rs = null;
-		
 		// define query
 		String strSql = "INSERT INTO files " +
 				"(institution_code, filename, modification_date, type)" +
 				" VALUES" + 
 				" ('" + currCode + "', '" + fileName + "', " + modDate + ", " + fileType + ");";
-
-		try {
-
-		    stmt = conn.createStatement();
-		    stmt.executeUpdate(strSql);
-		    rs = stmt.executeQuery("SELECT LAST_INSERT_ID()");
-		    if (rs.next()) {
-		    	recordId = rs.getInt(1);
-		    }
-		    rs.close();
-		    
-		} catch (SQLException ex){
-			    // handle any errors
-			    System.out.println("SQLException SqlModel.java insertFileRecord: " + ex.getMessage());
-			    System.out.println("SQLState: " + ex.getSQLState());
-			    System.out.println("VendorError: " + ex.getErrorCode());
-
-		} finally {
-
-		    if (stmt != null) {
-		        try {
-		            stmt.close();
-		        } catch (SQLException ex) {
-		            // ignore
-		        }
-		    }
-		}
+		int recordId = qInsert(strSql);
 		return recordId;
 	}
 	
@@ -286,38 +160,10 @@ public class SqlModel {
 	 * @return				1 = success, 0 = failure
 	 */
 	public boolean updateFileModDate(int intFileId, long fileModDate) {
-		
-		// initialize required objects
-		boolean retFlag = false;
-		Statement stmt = null;
-		
-		// define query
 		String strSql = "UPDATE files " +
 				"SET modification_date = " + fileModDate +
 				" WHERE id = " + intFileId+ ";";
-
-		try {
-
-		    stmt = conn.createStatement();
-		    stmt.executeUpdate(strSql);
-		    retFlag = true;
-		    
-		} catch (SQLException ex){
-			    // handle any errors
-			    System.out.println("SQLException SqlModel.java updateFileModDate: " + ex.getMessage());
-			    System.out.println("SQLState: " + ex.getSQLState());
-			    System.out.println("VendorError: " + ex.getErrorCode());
-
-		} finally {
-
-		    if (stmt != null) {
-		        try {
-		            stmt.close();
-		        } catch (SQLException ex) {
-		            // ignore
-		        }
-		    }
-		}
+		boolean retFlag = qUpdate(strSql);
 		return retFlag;
 	}	
 	
@@ -331,43 +177,12 @@ public class SqlModel {
 	 * @return						A record id.  Returns 0 if no match found.
 	 */
 	public int selectRecordRecord(String currCode, int recType, String controlIdentifier) {
-		
-		// initialize required objects
-		int recordId = 0;
-		Statement stmt = null;
-		ResultSet resultSet = null;
-		
-		// define query
 		String strSql = "SELECT records.id FROM records" +
 				" JOIN files ON files.id = records.file_id" +
 				" WHERE files.institution_code LIKE '" + currCode +
 				"' AND records.control_identifier LIKE '" + controlIdentifier + 
 				"' AND records.type LIKE '" + String.valueOf(recType) + "';";
-		
-		// run query
-		try {
-			
-			stmt = conn.createStatement();
-	        resultSet = stmt.executeQuery(strSql);
-	        if (resultSet.next()) {
-	        	recordId = resultSet.getInt("id");
-	        }
-	        try {
-	        	resultSet.close();
-	        } catch (SQLException sqlEx) { } // ignore
-		    
-		
-		} catch (SQLException ex){
-		    // handle any errors
-		    System.out.println("SQLException SqlModel.java selectRecordRecord: " + ex.getMessage());
-		    System.out.println("SQLState: " + ex.getSQLState());
-		    System.out.println("VendorError: " + ex.getErrorCode());
-		} finally {
-		    try {
-		    	stmt.close();
-		    } catch (SQLException sqlEx) { } // ignore
-
-		}		
+		int recordId = qSelectInt(strSql);		
 		return recordId;
 	}	
 	
@@ -380,44 +195,11 @@ public class SqlModel {
 	 * @return						The record if of the inserted record.  Returns 0 on failure.
 	 */
 	public int insertRecordRecord(int fileId, int recType, String controlIdentifier) {
-		
-		// initialize required objects
-		int recordId = 0;
-		Statement stmt = null;
-		ResultSet rs = null;
-		
-		// define query
 		String strSql = "INSERT INTO records " +
 				"(file_id, control_identifier, type)" +
 				" VALUES" + 
 				" (" + fileId + ", '" + controlIdentifier + "', " + recType + ");";
-
-		try {
-
-		    stmt = conn.createStatement();
-		    stmt.executeUpdate(strSql);
-		    rs = stmt.executeQuery("SELECT LAST_INSERT_ID()");
-		    if (rs.next()) {
-		    	recordId = rs.getInt(1);
-		    }
-		    rs.close();
-		    
-		} catch (SQLException ex){
-			    // handle any errors
-			    System.out.println("SQLException SqlModel.java insertRecordRecord: " + ex.getMessage());
-			    System.out.println("SQLState: " + ex.getSQLState());
-			    System.out.println("VendorError: " + ex.getErrorCode());
-
-		} finally {
-
-		    if (stmt != null) {
-		        try {
-		            stmt.close();
-		        } catch (SQLException ex) {
-		            // ignore
-		        }
-		    }
-		}
+		int recordId = qInsert(strSql);
 		return recordId;
 	}
 	
@@ -432,37 +214,10 @@ public class SqlModel {
 	 * @return				true on success, false on failure
 	 */
 	public boolean setRecordRecordProcessed(int recordId) {
-		
-		// initialize required objects
-		boolean marked = false;
-		Statement stmt = null;
-		
-		// define query
 		String strSql = "UPDATE records" +
 				" SET processed = 1" +
 				" WHERE id = " + recordId;
-		
-		try {
-
-		    stmt = conn.createStatement();
-		    stmt.executeUpdate(strSql);
-		    marked = true;   
-		} catch (SQLException ex){
-			    // handle any errors
-			    System.out.println("SQLException SqlModel.java setRecordRecordProcessed: " + ex.getMessage());
-			    System.out.println("SQLState: " + ex.getSQLState());
-			    System.out.println("VendorError: " + ex.getErrorCode());
-
-		} finally {
-
-		    if (stmt != null) {
-		        try {
-		            stmt.close();
-		        } catch (SQLException ex) {
-		            // ignore
-		        }
-		    }
-		}
+		boolean marked = qUpdate(strSql);
 		return marked;
 	}	
 	
@@ -477,37 +232,10 @@ public class SqlModel {
 	 * @return				true on success, false on failure
 	 */
 	public boolean setRecordRecordUnProcessed(int recordId) {
-		
-		// initialize required objects
-		boolean marked = false;
-		Statement stmt = null;
-		
-		// define query
 		String strSql = "UPDATE records" +
 				" SET processed = 0" +
 				" WHERE id = " + recordId;
-		
-		try {
-
-		    stmt = conn.createStatement();
-		    stmt.executeUpdate(strSql);
-		    marked = true;   
-		} catch (SQLException ex){
-			    // handle any errors
-			    System.out.println("SQLException SqlModel.java setRecordRecordUnProcessed: " + ex.getMessage());
-			    System.out.println("SQLState: " + ex.getSQLState());
-			    System.out.println("VendorError: " + ex.getErrorCode());
-
-		} finally {
-
-		    if (stmt != null) {
-		        try {
-		            stmt.close();
-		        } catch (SQLException ex) {
-		            // ignore
-		        }
-		    }
-		}
+		boolean marked = qUpdate(strSql);
 		return marked;
 	}
 	
@@ -519,11 +247,9 @@ public class SqlModel {
 	 * @param  	recordId	the id of the record whose fields you want
 	 * @return				an Array of field ids
 	 */
-	public ArrayList<Integer> selectAssocfieldIds(int recordId) {
-		
+	public ArrayList<Integer> selectAssocfieldIds(int recordId) {		
 		
 		// initialize required objects
-		Statement stmt = null;
 		ResultSet resultSet = null;
 		ArrayList<Integer> recordRows = new ArrayList<Integer>();
 		
@@ -531,31 +257,19 @@ public class SqlModel {
 		String strSql = "SELECT id FROM records_has_fields" +
 				" WHERE record_id = " + recordId;
 		
-		
-		// run query
-		try {
-			
-			stmt = conn.createStatement();
-	        resultSet = stmt.executeQuery(strSql);
-	        if (resultSet.next()) {
-	    		recordRows.add(resultSet.getInt("id"));
-	        }
-	        try {
-	        	resultSet.close();
-	        } catch (SQLException sqlEx) { } // ignore
-		    
-		
-		} catch (SQLException ex){
-		    // handle any errors
-		    System.out.println("SQLException SqlModelJava selectAssocfieldIds: " + ex.getMessage());
-		    System.out.println("SQLState: " + ex.getSQLState());
-		    System.out.println("VendorError: " + ex.getErrorCode());
-		} finally {
-		    try {
-		    	stmt.close();
-		    } catch (SQLException sqlEx) { } // ignore
-
-		}		
+		// run query and process results
+		resultSet = qSelectGeneric(strSql);
+        try {
+			if (resultSet.next()) {
+				recordRows.add(resultSet.getInt("id"));
+			}
+		} catch (SQLException e) {
+		    System.out.println("SQLException SqlModelJava selectAssocfieldIds: " + e.getMessage());
+		    System.out.println("SQLState: " + e.getSQLState());
+		    System.out.println("VendorError: " + e.getErrorCode());
+		}
+        
+        // return results
 		return recordRows;
 	}
 	
@@ -569,10 +283,8 @@ public class SqlModel {
 	 * @return				an ArrayList of Hashes. For each hash slice [0] = the field tag and slice [1] = the string value.
 	 */
 	public ArrayList<HashMap<String,String>> selectRecordFields(int recordId) {
-		
-		
+				
 		// initialize required objects
-		Statement stmt = null;
 		ResultSet resultSet = null;
 		ArrayList<HashMap<String,String>> recordRows = new ArrayList<HashMap<String,String>>();
 		HashMap<String,String> recordColumns = new HashMap<String, String>();
@@ -582,34 +294,22 @@ public class SqlModel {
 				" WHERE records_has_fields.record_id = " + recordId +
 				" ORDER BY records_has_fields.field";
 		
-		
-		// run query
-		try {
-			
-			stmt = conn.createStatement();
-	        resultSet = stmt.executeQuery(strSql);
+		// run query and process results
+		resultSet = qSelectGeneric(strSql);
+        try {
 	        if (resultSet.next()) {
 	    		recordColumns.put("field", resultSet.getString("field"));
 	    		recordColumns.put("subfield", resultSet.getString("subfield"));
 	    		recordColumns.put("value", resultSet.getString("value"));
 	    		recordRows.add(recordColumns);
 	        }
-	        try {
-	        	resultSet.close();
-	        } catch (SQLException sqlEx) { } // ignore
-		    
-		
-		} catch (SQLException ex){
-		    // handle any errors
-		    System.out.println("SQLException SqlModel.java selectRecordFileds: " + ex.getMessage());
-		    System.out.println("SQLState: " + ex.getSQLState());
-		    System.out.println("VendorError: " + ex.getErrorCode());
-		} finally {
-		    try {
-		    	stmt.close();
-		    } catch (SQLException sqlEx) { } // ignore
-
+		} catch (SQLException e) {
+		    System.out.println("SQLException SqlModelJava selectRecordFields: " + e.getMessage());
+		    System.out.println("SQLState: " + e.getSQLState());
+		    System.out.println("VendorError: " + e.getErrorCode());
 		}		
+		
+        // return result
 		return recordRows;
 	}	
 	
@@ -624,46 +324,12 @@ public class SqlModel {
 	 * @return				the id of the inserted field
 	 */
 	public int insertFieldRecord(int recordId, String fieldVal, String valueVal, int fieldType) {
-		
-		// initialize required objects
-		int insertId = 0;
-		Statement stmt = null;
-		ResultSet rs = null;
-		
 		valueVal = valueVal.replace("'", "''");
-		
-		// define query
 		String strSql = "INSERT INTO records_has_fields " +
 				"(record_id, field, value, type)" +
 				" VALUES" + 
 				" (" + recordId + ", '" + fieldVal + "', '" + valueVal + "', " + fieldType + ");";
-
-		try {
-
-		    stmt = conn.createStatement();
-		    stmt.executeUpdate(strSql);
-		    rs = stmt.executeQuery("SELECT LAST_INSERT_ID()");
-		    if (rs.next()) {
-		    	insertId = rs.getInt(1);
-		    }
-		    rs.close();
-		    
-		} catch (SQLException ex){
-			    // handle any errors
-			    System.out.println("SQLException SqlModel.java insertFieldRecord: " + ex.getMessage());
-			    System.out.println("SQLState: " + ex.getSQLState());
-			    System.out.println("VendorError: " + ex.getErrorCode());
-
-		} finally {
-
-		    if (stmt != null) {
-		        try {
-		            stmt.close();
-		        } catch (SQLException ex) {
-		            // ignore
-		        }
-		    }
-		}
+		int insertId = qInsert(strSql);
 		return insertId;
 	}	
 	
@@ -675,36 +341,9 @@ public class SqlModel {
 	 * @return				true on success, false on failure
 	 */
 	public boolean deleteRecordFields(int recordId) {
-		
-		// initialize required objects
-		boolean success = false;
-		Statement stmt = null;
-		
-		// define query
 		String strSql = "DELETE FROM records_has_fields" +
 				" WHERE record_id = " + recordId;
-		
-		try {
-
-		    stmt = conn.createStatement();
-		    stmt.executeUpdate(strSql);
-		    success = true;   
-		} catch (SQLException ex){
-			    // handle any errors
-			    System.out.println("SQLException SqlModel.java deleteRecordFields: " + ex.getMessage());
-			    System.out.println("SQLState: " + ex.getSQLState());
-			    System.out.println("VendorError: " + ex.getErrorCode());
-
-		} finally {
-
-		    if (stmt != null) {
-		        try {
-		            stmt.close();
-		        } catch (SQLException ex) {
-		            // ignore
-		        }
-		    }
-		}
+		boolean success = qUpdate(strSql);
 		return success;
 	}
 
@@ -719,46 +358,12 @@ public class SqlModel {
 	 * @return					the id of the inserted sub-field
 	 */
 	public int insertSubfieldRecord(int fieldId, String subfieldTag, String subfieldVal) {
-		
-		// initialize required objects
-		int insertId = 0;
-		Statement stmt = null;
-		ResultSet rs = null;
-		
 		subfieldVal = subfieldVal.replace("'", "''");
-		
-		// define query
 		String strSql = "INSERT INTO fields_has_subfields " +
 				"(field_id, subfield, value)" +
 				" VALUES" + 
 				" (" + fieldId + ", '" + subfieldTag + "', '" + subfieldVal + "');";
-
-		try {
-
-		    stmt = conn.createStatement();
-		    stmt.executeUpdate(strSql);
-		    rs = stmt.executeQuery("SELECT LAST_INSERT_ID()");
-		    if (rs.next()) {
-		    	insertId = rs.getInt(1);
-		    }
-		    rs.close();
-		    
-		} catch (SQLException ex){
-			    // handle any errors
-			    System.out.println("SQLException SqlModel.java insertSubfieldRecord: " + ex.getMessage());
-			    System.out.println("SQLState: " + ex.getSQLState());
-			    System.out.println("VendorError: " + ex.getErrorCode());
-
-		} finally {
-
-		    if (stmt != null) {
-		        try {
-		            stmt.close();
-		        } catch (SQLException ex) {
-		            // ignore
-		        }
-		    }
-		}
+		int insertId = qInsert(strSql);
 		return insertId;
 	}
 	
@@ -770,36 +375,9 @@ public class SqlModel {
 	 * @return				true on success, false on failure
 	 */
 	public boolean deleteSubFields(int fieldId) {
-		
-		// initialize required objects
-		boolean success = false;
-		Statement stmt = null;
-		
-		// define query
 		String strSql = "DELETE FROM fields_has_subfields" +
 				" WHERE field_id = " + fieldId;
-		
-		try {
-
-		    stmt = conn.createStatement();
-		    stmt.executeUpdate(strSql);
-		    success = true;   
-		} catch (SQLException ex){
-			    // handle any errors
-			    System.out.println("SQLException SqlModel.java deleteSubFields: " + ex.getMessage());
-			    System.out.println("SQLState: " + ex.getSQLState());
-			    System.out.println("VendorError: " + ex.getErrorCode());
-
-		} finally {
-
-		    if (stmt != null) {
-		        try {
-		            stmt.close();
-		        } catch (SQLException ex) {
-		            // ignore
-		        }
-		    }
-		}
+		boolean success = qUpdate(strSql);
 		return success;
 	}
 	
@@ -817,44 +395,11 @@ public class SqlModel {
 	 * @param	messageText	the message
 	 */
 	public int insertLogMessage(int messageType, String fileName, int lineNumber, String messageText) {
-		
-		// initialize required objects
-		Statement stmt = null;
-		ResultSet rs = null;
-		int insertId = 0;
-		
-		// define query
 		String strSql = "INSERT INTO runlog " +
 				"(type, file, line, message)" +
 				" VALUES" + 
 				" (" + messageType + ", '" + fileName + "', " + lineNumber + ", '" + messageText + "');";
-
-		try {
-
-		    stmt = conn.createStatement();
-		    stmt.executeUpdate(strSql);
-		    rs = stmt.executeQuery("SELECT LAST_INSERT_ID()");
-		    if (rs.next()) {
-		    	insertId = rs.getInt(1);
-		    }
-		    rs.close();
-		    
-		} catch (SQLException ex){
-			    // handle any errors
-			    System.out.println("SQLException SqlModel.java insertLogMessage: " + ex.getMessage());
-			    System.out.println("SQLState: " + ex.getSQLState());
-			    System.out.println("VendorError: " + ex.getErrorCode());
-
-		} finally {
-
-		    if (stmt != null) {
-		        try {
-		            stmt.close();
-		        } catch (SQLException ex) {
-		            // ignore
-		        }
-		    }
-		}
+		int insertId = qInsert(strSql);
 		return insertId;
 	}
 	
@@ -985,7 +530,7 @@ public class SqlModel {
 	 * @param  	strSql	A well formed SQL SELECT query
 	 * @return			A boolean value indicating success or failure
 	 */		
-	public boolean qUpdate(String strSql) {
+	private boolean qUpdate(String strSql) {
 		
 		// initialize required objects
 		boolean success = false;
@@ -1023,7 +568,7 @@ public class SqlModel {
 	 * @param  	strSql	A well formed SQL SELECT query
 	 * @return			A boolean value indicating success or failure
 	 */
-	public int qInsert(String strSql) {
+	private int qInsert(String strSql) {
 		
 		// initialize required objects
 		Statement stmt = null;
