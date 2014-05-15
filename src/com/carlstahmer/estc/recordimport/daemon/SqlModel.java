@@ -2,6 +2,7 @@ package com.carlstahmer.estc.recordimport.daemon;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -184,6 +185,21 @@ public class SqlModel {
 				"' AND records.type LIKE '" + String.valueOf(recType) + "';";
 		int recordId = qSelectInt(strSql);		
 		return recordId;
+	}
+	
+	
+	/**
+	 * <p>Get the last modified datetimestamp for a record</p>
+	 *
+	 * @param  	recordId	The record id	
+	 * @return				The moddate for the record.
+	 */
+	public double selectRecordMod(int recordId) {
+		String strSql = "SELECT moddate FROM records" +
+				" WHERE id = " + recordId + ";";
+		
+		double stamp = qSelectDouble(strSql);		
+		return stamp;
 	}	
 	
 	/**
@@ -194,11 +210,24 @@ public class SqlModel {
 	 * @param	controlIdentifier	the record control identifier
 	 * @return						The record if of the inserted record.  Returns 0 on failure.
 	 */
-	public int insertRecordRecord(int fileId, int recType, String controlIdentifier) {
-		String strSql = "INSERT INTO records " +
-				"(file_id, control_identifier, type)" +
-				" VALUES" + 
-				" (" + fileId + ", '" + controlIdentifier + "', " + recType + ");";
+	public int insertRecordRecord(int fileId, int recType, String controlIdentifier, double moddate) {
+		String strSql;
+		// first check to see if there is a recycled record ID available
+		String recycleSql = "SELECT foreign_key FROM recycled_fields WHERE type = 1";
+		int useId = qSelectInt(recycleSql);	
+		if (useId > 0) {
+			strSql = "INSERT INTO records " +
+					"(id, file_id, control_identifier, type, moddate)" +
+					" VALUES" + 
+					" (" + useId + ", " + fileId + ", '" + controlIdentifier + "', " + recType + ", " + moddate + ");";
+			String strDeleteRecycleSql = "DELETE from recycled_fields WHERE type = 1 AND foreign_key = " + useId + ";";
+			qUpdate(strDeleteRecycleSql);
+		} else {
+			strSql = "INSERT INTO records " +
+					"(file_id, control_identifier, type, moddate)" +
+					" VALUES" + 
+					" (" + fileId + ", '" + controlIdentifier + "', " + recType + ", " + moddate + ");";
+		}
 		int recordId = qInsert(strSql);
 		return recordId;
 	}
@@ -239,6 +268,21 @@ public class SqlModel {
 		return marked;
 	}
 	
+	/**
+	 * <p>Update the last modified date on a record.</p>
+	 *
+	 * @param  	recordId	the id of the record to flag
+	 * @param	moddate		the last modified date
+	 * @return				true on success, false on failure
+	 */
+	public boolean updateRecordRecordModdate(int recordId, double moddate) {
+		String strSql = "UPDATE records" +
+				" SET moddate = " + String.valueOf(moddate) +
+				" WHERE id = " + String.valueOf(recordId);
+		boolean marked = qUpdate(strSql);
+		return marked;
+	}
+	
 	
 	/**
 	 * <p>Select all fields in the records_has_fields table that are associated 
@@ -250,7 +294,7 @@ public class SqlModel {
 	public ArrayList<Integer> selectAssocfieldIds(int recordId) {		
 		
 		// initialize required objects
-		ResultSet resultSet = null;
+		ArrayList<HashMap<String,String>> resultSet = new ArrayList<HashMap<String,String>>();
 		ArrayList<Integer> recordRows = new ArrayList<Integer>();
 		
 		// define query
@@ -259,14 +303,11 @@ public class SqlModel {
 		
 		// run query and process results
 		resultSet = qSelectGeneric(strSql);
-        try {
-			if (resultSet.next()) {
-				recordRows.add(resultSet.getInt("id"));
-			}
-		} catch (SQLException e) {
-		    System.out.println("SQLException SqlModelJava selectAssocfieldIds: " + e.getMessage());
-		    System.out.println("SQLState: " + e.getSQLState());
-		    System.out.println("VendorError: " + e.getErrorCode());
+		
+		for (int i=0; i < resultSet.size(); i++) {
+			HashMap<String,String> thisRecord = new HashMap<String,String>();
+			thisRecord = resultSet.get(i);
+			recordRows.add(Integer.valueOf(thisRecord.get("id")));
 		}
         
         // return results
@@ -285,9 +326,10 @@ public class SqlModel {
 	public ArrayList<HashMap<String,String>> selectRecordFields(int recordId) {
 				
 		// initialize required objects
-		ResultSet resultSet = null;
 		ArrayList<HashMap<String,String>> recordRows = new ArrayList<HashMap<String,String>>();
 		HashMap<String,String> recordColumns = new HashMap<String, String>();
+		ArrayList<HashMap<String,String>> resultSet = new ArrayList<HashMap<String,String>>();
+		
 		
 		// define query
 		String strSql = "SELECT records_has_fields.* FROM records_has_fields" +
@@ -296,23 +338,53 @@ public class SqlModel {
 		
 		// run query and process results
 		resultSet = qSelectGeneric(strSql);
-        try {
-	        if (resultSet.next()) {
-	    		recordColumns.put("field", resultSet.getString("field"));
-	    		recordColumns.put("subfield", resultSet.getString("subfield"));
-	    		recordColumns.put("value", resultSet.getString("value"));
-	    		recordRows.add(recordColumns);
-	        }
-		} catch (SQLException e) {
-		    System.out.println("SQLException SqlModelJava selectRecordFields: " + e.getMessage());
-		    System.out.println("SQLState: " + e.getSQLState());
-		    System.out.println("VendorError: " + e.getErrorCode());
-		}		
 		
+		for (int i=0; i < resultSet.size(); i++) {
+			HashMap<String,String> thisRecord = new HashMap<String,String>();
+			thisRecord = resultSet.get(i);
+    		recordColumns.put("field", thisRecord.get("field"));
+    		recordColumns.put("subfield", thisRecord.get("subfield"));
+    		recordColumns.put("value", thisRecord.get("value"));			
+    		recordRows.add(recordColumns);	
+		}
+
         // return result
 		return recordRows;
 	}	
 	
+	
+	
+	/**
+	 * <p>Select the ids of all fields in the records_has_fields table that are associated 
+	 * with a record from the records table.  The return is an ArrayList of ids.</p>
+	 *
+	 * @param  	recordId	the id of the record whose fields you want
+	 * @return				ArrayList of IDs
+	 */
+	public ArrayList<Integer> selectRecordFieldIds(int recordId) {
+				
+		// initialize required objects
+		ArrayList<HashMap<String,String>> resultSet = new ArrayList<HashMap<String,String>>();
+		ArrayList<Integer> fields = new ArrayList<Integer>();
+		
+		// define query
+		String strSql = "SELECT id FROM records_has_fields" +
+				" WHERE records_has_fields.record_id = " + recordId + ";";
+		
+		System.out.println("Dup Assoc Field SQL: [" + strSql + "]");
+		
+		// run query and process results
+		resultSet = qSelectGeneric(strSql);
+		
+		for (int i=0; i < resultSet.size(); i++) {
+			HashMap<String,String> thisRecord = new HashMap<String,String>();
+			thisRecord = resultSet.get(i);
+			fields.add(Integer.valueOf(thisRecord.get("id")));
+		}	
+		
+        // return result
+		return fields;
+	}	
 	
 	/**
 	 * <p>Insert a field associated with a record into the records_has_fields table.</p>
@@ -325,10 +397,23 @@ public class SqlModel {
 	 */
 	public int insertFieldRecord(int recordId, String fieldVal, String valueVal, int fieldType) {
 		valueVal = valueVal.replace("'", "''");
-		String strSql = "INSERT INTO records_has_fields " +
-				"(record_id, field, value, type)" +
-				" VALUES" + 
-				" (" + recordId + ", '" + fieldVal + "', '" + valueVal + "', " + fieldType + ");";
+		String strSql;
+		// first check to see if there is a recycled record ID available
+		String recycleSql = "SELECT foreign_key FROM recycled_fields WHERE type = 2";
+		int useId = qSelectInt(recycleSql);	
+		if (useId > 0) {
+			strSql = "INSERT INTO records_has_fields " +
+					"(id, record_id, field, value, type)" +
+					" VALUES" + 
+					" (" + useId + ", " + recordId + ", '" + fieldVal + "', '" + valueVal + "', " + fieldType + ");";
+			String strDeleteRecycleSql = "DELETE from recycled_fields WHERE type = 2 AND foreign_key = " + useId + ";";
+			qUpdate(strDeleteRecycleSql);
+		} else {
+			strSql = "INSERT INTO records_has_fields " +
+					"(record_id, field, value, type)" +
+					" VALUES" + 
+					" (" + recordId + ", '" + fieldVal + "', '" + valueVal + "', " + fieldType + ");";
+		}
 		int insertId = qInsert(strSql);
 		return insertId;
 	}	
@@ -341,6 +426,24 @@ public class SqlModel {
 	 * @return				true on success, false on failure
 	 */
 	public boolean deleteRecordFields(int recordId) {
+		
+		// initialize needed objects
+		ArrayList<HashMap<String,String>> resultSet = new ArrayList<HashMap<String,String>>();
+	
+		// first add all field ids to the recycle bin
+		String strSqlFields = "SELECT id FROM records_has_fields" +
+				" WHERE record_id = " + recordId;
+		
+		resultSet = qSelectGeneric(strSqlFields);
+
+		for (int i=0; i < resultSet.size(); i++) {
+			HashMap<String,String> thisRecord = new HashMap<String,String>();
+			thisRecord = resultSet.get(i);
+			String recycleSql = "INSERT into recycled_fields (foreign_key, type) VALUES (" + thisRecord.get("id") + ", 2)";
+			qInsert(recycleSql);
+		}	
+
+        // now delete the fields
 		String strSql = "DELETE FROM records_has_fields" +
 				" WHERE record_id = " + recordId;
 		boolean success = qUpdate(strSql);
@@ -359,10 +462,23 @@ public class SqlModel {
 	 */
 	public int insertSubfieldRecord(int fieldId, String subfieldTag, String subfieldVal) {
 		subfieldVal = subfieldVal.replace("'", "''");
-		String strSql = "INSERT INTO fields_has_subfields " +
-				"(field_id, subfield, value)" +
-				" VALUES" + 
-				" (" + fieldId + ", '" + subfieldTag + "', '" + subfieldVal + "');";
+		String strSql;
+		// first check to see if there is a recycled record ID available
+		String recycleSql = "SELECT foreign_key FROM recycled_fields WHERE type = 3";
+		int useId = qSelectInt(recycleSql);	
+		if (useId > 0) {
+			strSql = "INSERT INTO fields_has_subfields " +
+					"(id, field_id, subfield, value)" +
+					" VALUES" + 
+					" (" + useId + ", " + fieldId + ", '" + subfieldTag + "', '" + subfieldVal + "');";
+			String strDeleteRecycleSql = "DELETE from recycled_fields WHERE type = 3 AND foreign_key = " + useId + ";";
+			qUpdate(strDeleteRecycleSql);
+		} else {
+			strSql = "INSERT INTO fields_has_subfields " +
+					"(field_id, subfield, value)" +
+					" VALUES" + 
+					" (" + fieldId + ", '" + subfieldTag + "', '" + subfieldVal + "');";
+		}
 		int insertId = qInsert(strSql);
 		return insertId;
 	}
@@ -375,13 +491,56 @@ public class SqlModel {
 	 * @return				true on success, false on failure
 	 */
 	public boolean deleteSubFields(int fieldId) {
-		String strSql = "DELETE FROM fields_has_subfields" +
+		
+		// initialize objects
+		ArrayList<HashMap<String,String>> resultSet = new ArrayList<HashMap<String,String>>();
+		boolean success = false;
+		
+		// first add all subfield ids to the recycle bin
+		String strSqlFields = "SELECT id FROM fields_has_subfields" +
 				" WHERE field_id = " + fieldId;
-		boolean success = qUpdate(strSql);
+		
+		System.out.println("Getting Subfields");
+		resultSet = qSelectGeneric(strSqlFields);
+		System.out.println("Got Subfields");
+		
+		if (resultSet.size() > 0) {
+		
+			for (int i=0; i < resultSet.size(); i++) {
+				HashMap<String,String> thisRecord = new HashMap<String,String>();
+				thisRecord = resultSet.get(i);
+				System.out.println("Adding Subfield with ID " + thisRecord.get("id") + " to the recycle bin");
+				String recycleSql = "INSERT into recycled_fields (foreign_key, type) VALUES (" + thisRecord.get("id") + ", 3)";
+				System.out.println("DebugRecycleSQL: " + recycleSql);
+				int intRecycle = qInsert(recycleSql);
+				if (intRecycle > 0) {
+					System.out.println("Successfuylly Added Subfield " + thisRecord.get("id") + " to recycle bin with id " + intRecycle);
+				} else {
+					System.out.println("Failed to add subfield " + thisRecord.get("id") + " to recycle bin.");
+				}
+			}
+			
+			
+			
+			// now delete the subfield
+			String strSql = "DELETE FROM fields_has_subfields" +
+					" WHERE field_id = " + fieldId;
+			System.out.println("Deleting all Subfields");
+			success = qUpdate(strSql);
+			if (success) {
+				System.out.println("Subfields Deleted");
+			} else {
+				System.out.println("Failed to delete subfields for field " + fieldId);
+			}
+			
+		} else {
+			System.out.println("No Subfields for this field");
+			success = true;
+		}
+		
 		return success;
 	}
-	
-	
+
 //////////////////////
 // Logging  methods //
 //////////////////////
@@ -417,6 +576,11 @@ public class SqlModel {
 	 * @return			The integer value of the return column
 	 */	
 	private int qSelectInt(String strSql) {
+		
+		if (!connOpen) {
+			this.openConnection();
+		}
+		
 		// initialize required objects
 		Statement stmt = null;
 		ResultSet resultSet = null;
@@ -432,12 +596,65 @@ public class SqlModel {
 	        }
 	        try {
 	        	resultSet.close();
+	        } catch (SQLException sqlEx) { 
+			    // handle any errors
+			    System.out.println("SQLException SqlModel.java qSelectInt-A: " + sqlEx.getMessage());
+			    System.out.println("SQLState: " + sqlEx.getSQLState());
+			    System.out.println("VendorError: " + sqlEx.getErrorCode());	        	
+	        } 
+		    
+		
+		} catch (SQLException ex){
+		    // handle any errors
+		    System.out.println("SQLException SqlModel.java qSelectInt: " + ex.getMessage());
+		    System.out.println("SQLState: " + ex.getSQLState());
+		    System.out.println("VendorError: " + ex.getErrorCode());
+		}	
+		
+		if (connOpen) {
+			this.closeConnection();
+		}
+		
+		return retId;
+	}
+	
+	
+	
+	/**
+	 * <p>A genreic object for querying the db for a single numeric
+	 * value such as an id field, etc.  Field select list must
+	 * contain only a single field.</p>
+	 *
+	 * @param  	strSql	A well formed SQL SELECT query with a single SELECT field of type INTEGER
+	 * @return			The integer value of the return column
+	 */	
+	private double qSelectDouble(String strSql) {
+		
+		if (!connOpen) {
+			this.openConnection();
+		}
+		
+		// initialize required objects
+		Statement stmt = null;
+		ResultSet resultSet = null;
+		double retVal = 0;
+
+		
+		// run query
+		try {
+			stmt = conn.createStatement();
+	        resultSet = stmt.executeQuery(strSql);
+	        if (resultSet.next()) {
+	        	retVal = resultSet.getLong(1);
+	        }
+	        try {
+	        	resultSet.close();
 	        } catch (SQLException sqlEx) { } // ignore
 		    
 		
 		} catch (SQLException ex){
 		    // handle any errors
-		    System.out.println("SQLException SqlModel.java qGetSingleNumericValue: " + ex.getMessage());
+		    System.out.println("SQLException SqlModel.java qSelectLong: " + ex.getMessage());
 		    System.out.println("SQLState: " + ex.getSQLState());
 		    System.out.println("VendorError: " + ex.getErrorCode());
 		} finally {
@@ -445,10 +662,17 @@ public class SqlModel {
 		    	stmt.close();
 		    } catch (SQLException sqlEx) { } // ignore
 
-		}	
+		}
 		
-		return retId;
+		if (connOpen) {
+			this.closeConnection();
+		}
+		
+		return retVal;
 	}
+	
+	
+	
 	
 	/**
 	 * <p>A genreic object for querying the db for a single String
@@ -458,6 +682,11 @@ public class SqlModel {
 	 * @return			The string value of the return column
 	 */		
 	private String qSelectString(String strSql) {
+		
+		if (!connOpen) {
+			this.openConnection();
+		}
+		
 		// initialize required objects
 		Statement stmt = null;
 		ResultSet resultSet = null;
@@ -478,7 +707,7 @@ public class SqlModel {
 		
 		} catch (SQLException ex){
 		    // handle any errors
-		    System.out.println("SQLException SqlModel.java qGetSingleStringValue: " + ex.getMessage());
+		    System.out.println("SQLException SqlModel.java qSelectString: " + ex.getMessage());
 		    System.out.println("SQLState: " + ex.getSQLState());
 		    System.out.println("VendorError: " + ex.getErrorCode());
 		} finally {
@@ -486,7 +715,11 @@ public class SqlModel {
 		    	stmt.close();
 		    } catch (SQLException sqlEx) { } // ignore
 
-		}	
+		}
+		
+		if (connOpen) {
+			this.closeConnection();
+		}
 		
 		return retString;
 	}
@@ -498,29 +731,60 @@ public class SqlModel {
 	 * @param  	strSql	A well formed SQL SELECT query
 	 * @return			A resultSet object containing the result of the query
 	 */	
-	private ResultSet qSelectGeneric(String strSql) {
+	private ArrayList<HashMap<String,String>> qSelectGeneric(String strSql) {
+		
+		
+		ArrayList<HashMap<String,String>> retList = new ArrayList<HashMap<String,String>>();
+		
+		if (!connOpen) {
+			this.openConnection();
+		}
+		
 		// initialize required objects
 		Statement stmt = null;
 		ResultSet resultSet = null;
+		ResultSetMetaData rsmd = null;
 
 		
 		// run query
 		try {
 			stmt = conn.createStatement();
-	        resultSet = stmt.executeQuery(strSql);		
+	        resultSet = stmt.executeQuery(strSql);	
+	        rsmd = resultSet.getMetaData();
+	        int colCount = rsmd.getColumnCount();
+	        if (resultSet.next()) {
+	        	System.out.println("Got Records for sql [" + strSql + "]");
+	        	while (resultSet.next()) {
+			        for (int i=1; i < (colCount + 1); i++) {
+			        	HashMap<String, String> fieldHash = new HashMap<String, String>();
+			        	System.out.println("Processing a field return record");
+			        	System.out.println("Column Name: " + rsmd.getColumnName(i));
+			        	System.out.println("Column Value: " + resultSet.getString(i));
+			            fieldHash.put(rsmd.getColumnName(i), resultSet.getString(i));
+			            System.out.println("Added Column Name and Value to the Hash");
+			            retList.add(fieldHash);
+			            System.out.println("Added the Hash to the Return Array");
+			        }
+	        	}
+		        System.out.println("Finished Building the Return Array");
+	        } else {
+	        	System.out.println("Failed to get records for sql [" + strSql + "]");
+	        }
+	        try {
+	        	resultSet.close();
+	        } catch (SQLException sqlEx) { } // ignore
 		} catch (SQLException ex){
 		    // handle any errors
-		    System.out.println("SQLException SqlModel.java qGetRecords: " + ex.getMessage());
+		    System.out.println("SQLException SqlModel.java qSelectGeneric: " + ex.getMessage());
 		    System.out.println("SQLState: " + ex.getSQLState());
 		    System.out.println("VendorError: " + ex.getErrorCode());
-		} finally {
-		    try {
-		    	stmt.close();
-		    } catch (SQLException sqlEx) { } // ignore
-
 		}	
 		
-		return resultSet;
+		if (connOpen) {
+			this.closeConnection();
+		}
+		
+		return retList;
 	}
 	
 	/**
@@ -531,6 +795,10 @@ public class SqlModel {
 	 * @return			A boolean value indicating success or failure
 	 */		
 	private boolean qUpdate(String strSql) {
+		
+		if (!connOpen) {
+			this.openConnection();
+		}
 		
 		// initialize required objects
 		boolean success = false;
@@ -543,7 +811,7 @@ public class SqlModel {
 		    success = true;   
 		} catch (SQLException ex){
 			    // handle any errors
-			    System.out.println("SQLException SqlModel.java qInsert: " + ex.getMessage());
+			    System.out.println("SQLException SqlModel.java qUpdate: " + ex.getMessage());
 			    System.out.println("SQLState: " + ex.getSQLState());
 			    System.out.println("VendorError: " + ex.getErrorCode());
 
@@ -557,6 +825,11 @@ public class SqlModel {
 		        }
 		    }
 		}
+		
+		if (connOpen) {
+			this.closeConnection();
+		}
+		
 		return success;
 	}
 	
@@ -574,6 +847,10 @@ public class SqlModel {
 		Statement stmt = null;
 		ResultSet rs = null;
 		int insertId = 0;
+		
+		if (!connOpen) {
+			this.openConnection();
+		}
 
 		try {
 
@@ -587,7 +864,7 @@ public class SqlModel {
 		    
 		} catch (SQLException ex){
 			    // handle any errors
-			    System.out.println("SQLException SqlModel.java insertLogMessage: " + ex.getMessage());
+			    System.out.println("SQLException SqlModel.java qInsert: " + ex.getMessage());
 			    System.out.println("SQLState: " + ex.getSQLState());
 			    System.out.println("VendorError: " + ex.getErrorCode());
 
@@ -601,6 +878,11 @@ public class SqlModel {
 		        }
 		    }
 		}
+		
+		if (connOpen) {
+			this.closeConnection();
+		}
+		
 		return insertId;
 	}
 	

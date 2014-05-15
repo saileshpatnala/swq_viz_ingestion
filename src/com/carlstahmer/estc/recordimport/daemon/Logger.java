@@ -79,13 +79,9 @@ public class Logger {
 	 */
 	private void printToSql(int messagetype, String filename, int linenumber, String message) {
 		boolean submitSuccess = false;
-		sqlObj.openConnection();
-		if (sqlObj.connOpen) {
-			int retID = sqlObj.insertLogMessage(messagetype, filename, linenumber, message);
-			if (retID > 0) {
-				submitSuccess = true;
-			}
-			sqlObj.closeConnection();
+		int retID = sqlObj.insertLogMessage(messagetype, filename, linenumber, message);
+		if (retID > 0) {
+			submitSuccess = true;
 		}
 		if (!submitSuccess) {
 			printToConsole(1, filename, linenumber, "Logger has no active SQL connection.  Original message ["+message+"]");

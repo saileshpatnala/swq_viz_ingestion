@@ -1,7 +1,6 @@
 package com.carlstahmer.estc.recordimport.daemon;
 
 import java.io.FileInputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.*;
@@ -21,6 +20,7 @@ public class LoadMarc {
 	
 	Conf config;
 	SqlModel sqlObj;
+	RecordUtils recs;
 	Logger logger;
 
 	/**
@@ -33,6 +33,7 @@ public class LoadMarc {
 	public LoadMarc(Conf configObj, SqlModel sqlModObj) {
 		config = configObj;
 		sqlObj = sqlModObj;
+		recs = new RecordUtils(config, sqlObj);
 		logger = new Logger(config);
 	}
 	
@@ -43,104 +44,60 @@ public class LoadMarc {
 	 * @param  strFile    	The full file path to the marc file to load
 	 * @param  curCode  	The MARC institutional code for the organization that created the record
 	 */
-	public void loadMarcFile(String strFile, String curCode) {
+	public void loadMarcFile(String strFile, String curCode, int fileRecordId) {
 		
-		try {
+		try {			
 			
-			// instantiate file objects
-			File fileInfo = new File(strFile);
-			long fileModDate = fileInfo.lastModified();
-			String fileName = fileInfo.getName();
-			logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Processing File "+fileName+" Last Modified "+fileModDate);
-			logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Current Institutional Code "+curCode);
-			
-			// create or load SQL file record
-			// selectFileRecord(curCode, fileName, fileModDate)
-			sqlObj.openConnection();
-			if (sqlObj.connOpen) {
-				logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Sql connection opened");
-				int fileRecordId = sqlObj.selectFileRecord(curCode, fileName);	
-				boolean newFile = false;
-				if (fileRecordId == 0) {
-					newFile = true;
-					fileRecordId = sqlObj.insertFileRecord(curCode, fileName, fileModDate, 1);
-					logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "New file entered in system with ID " + fileRecordId);
-				} else {
-					logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "File already exists in system with ID " + fileRecordId );
-				}				
-				
-				
-				
-				
-				InputStream input = new FileInputStream(strFile);
-				MarcReader reader = new MarcStreamReader(input);
-				boolean blnHasControlIdent = false;
-		        while (reader.hasNext()) {
-		            Record record = reader.next();
-		            List<ControlField> controlFields = record.getControlFields();
-		            String strControlNumKey = "";
-		            int recType = 1;
-		            for (int i=0;i<controlFields.size();i++) {
-		            	ControlField thisControl = controlFields.get(i);
-		            	if (thisControl.getTag().equals("004")) {
-		            		recType = 2;
-		            	}
-		            	if (thisControl.getTag().equals("001")) {
-		            		strControlNumKey = thisControl.getData();
-		            	}
-		            	if (thisControl.getTag().equals("003")) {
-		            		blnHasControlIdent = true;
-		            	}
-		            }
-		            
-		            // Now check and see if this record already exists if we got a control key
-		            if (strControlNumKey.length() > 0) {
-		            	int intRecordId = sqlObj.selectRecordRecord(curCode, recType, strControlNumKey);
-		            	if (intRecordId > 0) {
-		            		// this is an existing record
-		            		// if I'm here, I need to delete all the fields associated with this record
-		            		// and mark the record as unprocessed
-		            		
-		            		logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "This is an existing record--deleting all asssociated fields and subfields and marking record as unprocessed");
-		      
-		            		boolean setUnprocessed = false;
-		            		
-		            		// get all associated fields
-		            		ArrayList<Integer> assocFields = sqlObj.selectAssocfieldIds(intRecordId);
-		            		
-		            		// delete all subfields associated with each field
-		            		for (int fieldId : assocFields) {
-		            			boolean subfielddel = sqlObj.deleteSubFields(fieldId);
-		            			if (subfielddel) {
-		            				logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Subfield deletion successfull"); 
-		            			} else {
-		            				logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Subfield deletion faild"); 
-		            			}
-		            		}
-		            		
-		            		// now delete the associated fields
-		            		boolean delFields = sqlObj.deleteRecordFields(intRecordId);
-		            		if (delFields) {
-		            			setUnprocessed = sqlObj.setRecordRecordUnProcessed(intRecordId);
-		            		}
-		            		
-		            		if (setUnprocessed) {
-		            			logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Existing Record "+intRecordId+" Data Reset and Set as Unprocessed"); 
-		            		} else {
-		            			logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Error deleting record data for record "+intRecordId); 
-		            		}
-		            		
-		            		
-		            	} else {
-		            		//this is a new record so I need to insert it
-		            		
-		            		intRecordId = sqlObj.insertRecordRecord(fileRecordId, recType, strControlNumKey);
+			InputStream input = new FileInputStream(strFile);
+			MarcReader reader = new MarcStreamReader(input);
+			boolean blnHasControlIdent = false;
+	        while (reader.hasNext()) {
+	            Record record = reader.next();
+	            List<ControlField> controlFields = record.getControlFields();
+	            String strControlNumKey = "";
+	            String strLastChange = "";
+	            int recType = 1;
+	            for (int i=0;i<controlFields.size();i++) {
+	            	ControlField thisControl = controlFields.get(i);
+	            	if (thisControl.getTag().equals("004")) {
+	            		recType = 2;
+	            	}
+	            	if (thisControl.getTag().equals("001")) {
+	            		strControlNumKey = thisControl.getData();
+	            	}
+	            	if (thisControl.getTag().equals("003")) {
+	            		blnHasControlIdent = true;
+	            	}		            	
+	            	if (thisControl.getTag().equals("005")) {
+	            		strLastChange = thisControl.getData();
+	            	}
+	            }
+	            
+	            if (strLastChange.length() < 1) {
+	            	strLastChange = "0";
+	            }
+	            double moddate;
+	            moddate = Double.parseDouble(strLastChange);
+
+	            
+	            // Now check and see if this record already exists if we got a control key
+	            if (strControlNumKey.length() > 0) {
+	            	
+	            	int intRecordId = recs.duplicateRecordCheck(curCode, strControlNumKey, moddate, recType);
+	            	
+	            	if (intRecordId > -1) {
+	            	
+	            	
+		            	if (intRecordId == 0) {
+		            		intRecordId = sqlObj.insertRecordRecord(fileRecordId, recType, strControlNumKey, moddate);
 		            		logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Inserted New Record With Control Number "+strControlNumKey+" and System ID "+intRecordId); 
+		            	} else {
+		            		logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Modifying existing record with system ID "+intRecordId);
 		            	}
 		            	
 		            	// now here I write all of the field data for the record to the system
 		            	logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Writing new data for record "+intRecordId); 
-
+	
 		            	List<ControlField> controlFieldsAll = record.getControlFields();
 			            for (int ivf=0;ivf<controlFieldsAll.size();ivf++) {
 			            	ControlField thisControlField = controlFieldsAll.get(ivf);
@@ -149,7 +106,7 @@ public class LoadMarc {
 			            	int fieldId = sqlObj.insertFieldRecord(intRecordId, thisControlTag, thisControlData, 1);	
 	            			if (fieldId > 0) {
 	            				logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Successfully saved field with id "+fieldId); 
-
+	
 	            			} else {
 	            				logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Error saving field"); 
 	            			}
@@ -170,6 +127,11 @@ public class LoadMarc {
 			            	String thisDataTag = thisDataField.getTag();
 			            	String fieldToString = thisDataField.toString();
 			            	int datafieldId = sqlObj.insertFieldRecord(intRecordId, thisDataTag, fieldToString, 2);
+			            	if (datafieldId > 0) {
+			            		logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Successfully inserted Field " + thisDataTag + " into database with ID " + datafieldId); 
+			            	} else {
+			            		logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Failed to insert Field " + thisDataTag + " into database."); 
+			            	}
 			            	
 			            	// Handle Subfileds. 
 			            	List<Subfield> subFields = thisDataField.getSubfields();
@@ -187,43 +149,25 @@ public class LoadMarc {
 					            }
 			            	}
 			            }
-		            		
-		            	
-		            } else {
-		            	logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Unable to process record due to missing or blank conrole field [001]");
-		            }
+	            		
+	            	} else {
+	            		String skipRecType = "holding";
+	            		if (recType == 1) {
+	            			skipRecType = "bibliographic";
+	            		}
+	            		logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Skipping duplicate " + skipRecType + " record with control " + strControlNumKey + " and modification datetimestamp " + moddate);
+	            	}
+	            	
+	            } else {
+	            	logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Unable to process record due to missing or blank conrole field [001]");
+	            }
 
-		        }
-		        
-		        
-		        if (!newFile) {
-		        	// update file modification date for file in db so that it reflects
-		        	// the latest mod date on system correctly
-		        	boolean dateUpdated = sqlObj.updateFileModDate(fileRecordId, fileModDate);
-		        	if (dateUpdated) {
-		        		logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Updated modification date of file "+fileRecordId+" to "+fileModDate);
-		        	} else {
-		        		logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Unable to update modification date of file "+fileRecordId+" with system modification date of "+fileModDate);
-		        	}
-	
-		        }
-				
-				sqlObj.closeConnection();
-				if (!sqlObj.connOpen) {
-					logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Sql connection successfully closed");
-				} else {
-					logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Failed to close sql connection");
-				}
-			} else {
-				logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "SQL connection not open");
-			}
-			
+	        }
+	        	
 		} catch (FileNotFoundException e) {
 			logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Failed to load MARC file");
 		}
 		
 	}
-	
-	
-	
+
 }

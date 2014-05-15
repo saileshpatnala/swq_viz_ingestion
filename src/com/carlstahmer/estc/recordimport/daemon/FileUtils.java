@@ -33,7 +33,8 @@ public class FileUtils {
 	
 	
 	/**
-	 * <p>Traverses a designated directory recursively and returns a list of all files found in the directory path.</p>
+	 * <p>Traverses a designated directory recursively and returns a 
+	 * list of all files found in the directory path.</p>
 	 *
 	 * @param  folderDir    The directory to search
 	 */
@@ -117,20 +118,10 @@ public class FileUtils {
 		String fileSuffix = parts[(sizeParts - 1)];
 		if (fileSuffix.length() > 0) {
 			
-			sqlObj.openConnection();
-			if (sqlObj.connOpen) {
-				logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "SQL connection opened");
-				intRet = sqlObj.selectFileTypeID(fileSuffix);
-				logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Retrieving File Type");
-				boolean connClosed = sqlObj.closeConnection();
-				if (connClosed) {
-					logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "SQL connection closed");
-				} else {
-					logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Error closing SQL connection");
-				}
-			} else {
-				logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "No active SQL connection");
-			}
+			logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "SQL connection opened");
+			intRet = sqlObj.selectFileTypeID(fileSuffix);
+			logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Retrieving File Type");
+
 		}	
 	
 		return intRet;

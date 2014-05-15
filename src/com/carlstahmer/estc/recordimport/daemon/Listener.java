@@ -15,7 +15,7 @@ public class Listener {
 	/**
 	 * <p>The main class that launches the process.</p>
 	 * 
-	 * <p>Requires the presense of a config.yml file in the application root to run. 
+	 * <p>Requires the presence of a config.yml file in the application root to run. 
 	 * Values in config.yml can be overwritten at runtime via unix style command line
 	 * arguments as defined in the parameters section of this documentation.  The
 	 * config.yml file must be in place even if you supply other configuration 
