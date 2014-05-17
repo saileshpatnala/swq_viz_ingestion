@@ -110,6 +110,8 @@ public class RecordUtils {
 				}
 				
 				sqlObj.updateRecordRecordModdate(retDup, timeStamp);
+				sqlObj.setRecordRecordUnProcessed(retDup);
+				sqlObj.setRecordRecordUnScoped(retDup);
 			} else {
 				retDup = -1;
 				logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Skipping record beacause db version is the same or newer than file version: "+retDup);

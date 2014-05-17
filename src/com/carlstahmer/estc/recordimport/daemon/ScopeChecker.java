@@ -26,6 +26,8 @@
  */
 package com.carlstahmer.estc.recordimport.daemon;
 
+import java.util.ArrayList;
+
 /**
  * @author cstahmer
  * 
@@ -81,6 +83,29 @@ public class ScopeChecker {
 	public boolean applyScopeFilter() {
 		boolean ret = false;
 		
+		// first, do a select to get all records where processed = 0 and load the ID's
+		// into a list
+		ArrayList<Integer> recordsToCheck = sqlObj.selectRecordsToScope();
+		if (recordsToCheck.size() > 10) {
+			
+			// This for loop temprarily limits
+			// the number of records being tested.
+			// When testing is complete, remove the
+			// for (keeping all enclosed code)
+			// to run on all records that should be processed
+			for (int i=0;i<10;i++) {
+				
+				boolean languageCheck = languageScope(configObj.languageScope, recordsToCheck.get(i));
+				
+				if (languageCheck) {
+					System.out.println("Record " + recordsToCheck.get(i) + " passed record check.");
+				} else {
+					System.out.println("Record " + recordsToCheck.get(i) + " failed record check.");
+				}
+				
+			// end tem for loop bracket
+			}
+		}
 		return ret;
 	}
 	
@@ -118,11 +143,14 @@ public class ScopeChecker {
 	 * of the object being described to see if it is in scope. Fields to look in are:</p>
 	 * 
 	 * <p>008 (Bib=35-37, Hold=22-24), 041</p>
-	 *
-	 * @param  recordID    the records.id from the db for the record to check
+	 * 
+	 * @param	langCodes	a list of in-scope MARC language codes.  See http://www.loc.gov/marc/languages/language_code.html 
+	 * @param  	recordID    the records.id from the db for the record to check
 	 */
-	public boolean languageScope(int recordID) {
+	public boolean languageScope(ArrayList<String> langCodes, int recordID) {
 		boolean ret = false;
+		
+		// TODO: START WORKING HERE
 		
 		return ret;
 	}	

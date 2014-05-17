@@ -297,6 +297,37 @@ public class SqlModel {
 	}
 	
 	/**
+	 * <p>Flags a record entry in the records table as having been filtered for scope,
+	 * meaning that it passed all scope tests.</p>
+	 *
+	 * @param  	recordId	the id of the record to flag
+	 * @return				true on success, false on failure
+	 */
+	public boolean setRecordRecordScoped(int recordId) {
+		String strSql = "UPDATE records" +
+				" SET scoped = 1" +
+				" WHERE id = " + recordId;
+		boolean marked = qUpdate(strSql);
+		return marked;
+	}	
+	
+
+	/**
+	 * <p>Flags a record entry in the records table as having not been filtered for
+	 * scope, meaning it has yet to pass scope tests.</p>
+	 *
+	 * @param  	recordId	the id of the record to flag
+	 * @return				true on success, false on failure
+	 */
+	public boolean setRecordRecordUnScoped(int recordId) {
+		String strSql = "UPDATE records" +
+				" SET scoped = 0" +
+				" WHERE id = " + recordId;
+		boolean marked = qUpdate(strSql);
+		return marked;
+	}
+	
+	/**
 	 * <p>Update the last modified date on a record.</p>
 	 *
 	 * @param  	recordId	the id of the record to flag
@@ -568,6 +599,66 @@ public class SqlModel {
 		
 		return success;
 	}
+	
+	
+	/**
+	 * <p>Select all fields in the records table where records.processed == 0</p>
+	 *
+	 * @return	an ArrayList of record.id(s)
+	 */
+	public ArrayList<Integer> selectRecordsToScope() {
+				
+		// initialize required objects
+		ArrayList<Integer> resultSetList = new ArrayList<Integer>();
+		
+		
+		// define query
+		String strSql = "SELECT records.id FROM records" +
+				" WHERE records.scoped = 0" +
+				" ORDER BY records.id ASC";
+		
+		if (!connOpen) {
+			this.openConnection();
+		}
+		
+		// initialize required objects
+		Statement stmt = null;
+		ResultSet resultSet = null;
+	
+		// run query
+		try {
+			stmt = conn.createStatement();
+	        resultSet = stmt.executeQuery(strSql);
+
+	        while (resultSet.next()) {
+	        		resultSetList.add(resultSet.getInt(1));
+	        }
+
+	        try {
+	        	resultSet.close();
+	        } catch (SQLException sqlEx) { } // ignore
+		    
+		
+		} catch (SQLException ex){
+		    // handle any errors
+		    System.out.println("SQLException SqlModel.java qSelectString: " + ex.getMessage());
+		    System.out.println("SQLState: " + ex.getSQLState());
+		    System.out.println("VendorError: " + ex.getErrorCode());
+		} finally {
+		    try {
+		    	stmt.close();
+		    } catch (SQLException sqlEx) { } // ignore
+
+		}
+		
+		if (connOpen) {
+			this.closeConnection();
+		}
+
+        // return result
+		return resultSetList;
+	}
+	
 
 //////////////////////
 // Logging  methods //
@@ -780,24 +871,13 @@ public class SqlModel {
 	        resultSet = stmt.executeQuery(strSql);	
 	        rsmd = resultSet.getMetaData();
 	        int colCount = rsmd.getColumnCount();
-	        if (resultSet.next()) {
-	        	System.out.println("Got Records for sql [" + strSql + "]");
-	        	while (resultSet.next()) {
-			        for (int i=1; i < (colCount + 1); i++) {
-			        	HashMap<String, String> fieldHash = new HashMap<String, String>();
-			        	System.out.println("Processing a field return record");
-			        	System.out.println("Column Name: " + rsmd.getColumnName(i));
-			        	System.out.println("Column Value: " + resultSet.getString(i));
-			            fieldHash.put(rsmd.getColumnName(i), resultSet.getString(i));
-			            System.out.println("Added Column Name and Value to the Hash");
-			            retList.add(fieldHash);
-			            System.out.println("Added the Hash to the Return Array");
-			        }
-	        	}
-		        System.out.println("Finished Building the Return Array");
-	        } else {
-	        	System.out.println("Failed to get records for sql [" + strSql + "]");
-	        }
+        	while (resultSet.next()) {
+		        for (int i=1; i < (colCount + 1); i++) {
+		        	HashMap<String, String> fieldHash = new HashMap<String, String>();
+		            fieldHash.put(rsmd.getColumnName(i), resultSet.getString(i));
+		            retList.add(fieldHash);
+		        }
+        	}
 	        try {
 	        	resultSet.close();
 	        } catch (SQLException sqlEx) { } // ignore
@@ -912,6 +992,6 @@ public class SqlModel {
 		}
 		
 		return insertId;
-	}
+	}	
 	
 }

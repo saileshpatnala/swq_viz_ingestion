@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.apache.commons.cli.BasicParser;
@@ -57,6 +58,8 @@ public class Conf {
 	String dbname;
 	String dbuser;
 	String dbpass;
+	String langscope;
+	ArrayList<String> languageScope = new ArrayList<String>();
 	boolean debug;
 	boolean console;
 	
@@ -69,6 +72,7 @@ public class Conf {
 		dbname = "";
 		dbuser = "";
 		dbpass = "";
+		langscope = "eng,enm";
 		debug = false;
 		console = false;
 	}
@@ -98,19 +102,22 @@ public class Conf {
 			dbname = (String) map.get("dbname");
 			dbuser = (String) map.get("dbuser");
 			dbpass = (String) map.get("dbpass");
-			
+			String tempLangscope = (String) map.get("langscope");
+			if (tempLangscope.length() > 0) {
+				langscope = tempLangscope;
+			}
+			if (langscope.length() > 0) {
+				setLangCodes();
+			}
 			loaded = true;
 		
 		} catch (FileNotFoundException e) {
 		    System.err.println("Configuration FileNotFoundException: " + e.getMessage());
 		    loaded = false;
 		}
-			
+		
 		return loaded;
 	}
-	
-	// checks the command line arguments sting and replaces values from the conf yaml
-	// as appropriate.
 	
 	/**
 	 * <p>Checks for passed command line arguments and replaces .yml loaded values with those
@@ -133,6 +140,7 @@ public class Conf {
 			options.addOption("dbname", true, "the sql server database name");
 			options.addOption("dbuser", true, "the sql user");
 			options.addOption("dbpass", true, "the sql user");
+			options.addOption("langscope", true, "a csv list of MARC language codes for in-scope languages");
 			options.addOption("debug", false, "run in debug mode - verbose logging");
 			options.addOption("console", false, "write log to console instead of database");
 			options.addOption("help", false, "get help");
@@ -195,6 +203,12 @@ public class Conf {
 			if (cmd.hasOption("console")) {
 				console = true;
 			}
+			if (cmd.hasOption("langscope")) {
+				String langscopeVal = cmd.getOptionValue("langscope");
+				if(langscopeVal != null) {
+					langscope = langscopeVal;
+				}
+			}			
 			if (cmd.hasOption("help")) {
 					String HelpString = "Requires the presence of a config.yml in the application root to run correcly. ";
 					HelpString = HelpString + "Values in the config can be overwritten at runtime via command line ";
@@ -215,6 +229,10 @@ public class Conf {
 					System.out.println(HelpString);
 					System.exit(0);
 			}
+			
+			if (langscope.length() > 0) {
+				setLangCodes();
+			}
 
 			loaded = true;
 			
@@ -225,6 +243,22 @@ public class Conf {
 			
 		return loaded;	
 			
+	}
+
+	
+	/**
+	 * <p>A private method used by other Conf methods to convert the csv in-scope
+	 * language string (set by yml or command-line) to an ArrayList of acceptable
+	 * MARC language codes.</p>
+	 */
+	private void setLangCodes() {
+		languageScope.clear();
+		String[] languageScopeArray = langscope.split(",");
+		// String[] languageScope = langscope.split(",");
+		for (int i=0;i<languageScopeArray.length;i++) {
+			String langCode = languageScopeArray[i].toString();
+			languageScope.add(langCode);
+		}
 	}
 	
 }

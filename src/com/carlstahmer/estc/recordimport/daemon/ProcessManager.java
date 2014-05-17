@@ -69,7 +69,9 @@ public class ProcessManager {
 	 * <p>Launches the MARC import process a single time.</p>
 	 */	
 	public void runOnce() {
-		// see code in current_mac_working_folder/estc_java_oldcode.txt for rest of process code
+		
+/*	
+ * 	
 		FileUtils fileUts = new FileUtils(config, sqlObj);
 		fileUts.listFoldersRecursive();
 		if (fileUts.directoryList.size() > 0) {
@@ -186,20 +188,29 @@ public class ProcessManager {
 					}
 				} else {
 					logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "No files found in folder");
-				}
-			
-				// when I've gotten to here, I have broken down all the files from this directory,
-				// so now I can go ahead and write the good MARC out
-				//
-				// filter for date and language
-				// check for ESTC numbers
-				
+				}				
 			
 			}
 			
 		} else {
 			logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "No instituional folders found in read directory");
 		}
+		
+*/
+
+		// when I've gotten to here, I have broken down all the files from this directory,
+		// so now I can go ahead and write the good MARC out
+		//
+		// filter for date and language
+		// check for ESTC numbers
+		
+		System.out.println("I'm here");
+		
+		ScopeChecker myScopeCheck = new ScopeChecker(config, sqlObj);
+		boolean thisScopeCheck = myScopeCheck.applyScopeFilter();
+		
+		System.out.println("And now I'm here");
+		
 		
 	}
 	

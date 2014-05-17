@@ -74,7 +74,7 @@ public class Listener {
 			System.exit(0);
 		} else {
 			System.out.println("Configuration YML successfully loaded...");
-		}
+		}	
 		
 	    // Instantiate db object and model
 	    SqlModel sqlObj = new SqlModel(config);
@@ -109,10 +109,11 @@ public class Listener {
 	    ProcessManager pm = new ProcessManager(config, sqlObj);
 	    logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Listening at: "+config.listenDir);
 		pm.runOnce();
-		
+	    		
 		sqlObj.closeConnection();
 		logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Process Completed");
 		System.out.println("Goodby World!");	
+		
 	}
 
 }
