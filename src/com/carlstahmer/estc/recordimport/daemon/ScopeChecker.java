@@ -68,7 +68,7 @@ public class ScopeChecker {
 	 * <p>Create a controller method applyScopeFilter(int recordId) 
 	 * method on FilterRecords.java class. When called, this will do the following:</p>
 	 * 
-	 * <p>1. SELECT all records where processed = 0</p>
+	 * <p>1. SELECT all records where scoped = 0</p>
 	 * 
 	 * <p>2. For each record, run the date scope test. If not pass, delete, if pass, then continue.</p>
 	 * 
@@ -83,7 +83,7 @@ public class ScopeChecker {
 	public boolean applyScopeFilter() {
 		boolean ret = false;
 		
-		// first, do a select to get all records where processed = 0 and load the ID's
+		// first, do a select to get all records where scoped = 0 and load the ID's
 		// into a list
 		ArrayList<Integer> recordsToCheck = sqlObj.selectRecordsToScope();
 		if (recordsToCheck.size() > 10) {
