@@ -151,7 +151,31 @@ public class ScopeChecker {
 		boolean ret = false;
 		
 		// TODO: START WORKING HERE
-		
+		String langString;
+		String zeroZeroEight = sqlObj.getZeroZeroEight(recordID);
+		int recordType = sqlObj.getRecordType(recordID);
+		if (recordType == 1) {
+			if (zeroZeroEight.length() > 36) {
+				langString = extractCharacters(zeroZeroEight, 35, 37);
+				ret = matchLangScope(langCodes, langString);
+				System.out.println("Bib Language: " + langString);
+			}		
+		} else if (recordType ==2) {
+			if (zeroZeroEight.length() > 23) {
+				langString = extractCharacters(zeroZeroEight, 22, 24);
+				ret = matchLangScope(langCodes, langString);
+				System.out.println("Holding Language: " + langString);
+			}
+		} else {
+			if (configObj.liberal) {
+				ret = true;
+			}
+		}
+		if (ret) {
+			System.out.println("This is a match!");
+		} else {
+			System.out.println("This is not a match!");
+		}
 		return ret;
 	}	
 	
@@ -170,5 +194,39 @@ public class ScopeChecker {
 		
 		return ret;
 	}	
+	
+	/**
+	 * <p>Retrieve a subsection of a string between designated positions.
+	 * 1 = first character in string.</p>
+	 *
+	 * @param  	haystack    the string to search
+	 * @param	startIndex	the position of the first character to include
+	 * @param	endIndex	the position of the last character to include
+	 */	
+	public String extractCharacters(String haystack, int startIndex, int endIndex) {
+		String ret = "";
+		for (int i=startIndex;i<(endIndex + 1);i++) {
+			ret = ret + haystack.charAt(i);
+		}
+		return ret;
+	}	
+	
+	
+	/**
+	 * <p>Retrieve a subsection of a string between designated positions.
+	 * 1 = first character in string.</p>
+	 *
+	 * @param  	langCodes   the array of language codes that are in scope
+	 * @param	langcode	the language code from the record
+	 */	
+	private boolean matchLangScope(ArrayList<String> langCodes, String langcode) {
+		boolean retVal = false;
+		for (int i=0;i<langCodes.size();i++) {
+			if (langcode.toLowerCase().equals(langCodes.get(i).toLowerCase())) {
+				retVal = true;
+			}
+		}
+		return retVal;
+	}
 
 }

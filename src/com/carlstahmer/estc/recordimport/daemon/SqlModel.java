@@ -659,6 +659,30 @@ public class SqlModel {
 		return resultSetList;
 	}
 	
+	/**
+	 * <p>Get the 008 string for a record</p>
+	 *
+	 * @return	a String containing the value of the 008 field
+	 */	
+	public String getZeroZeroEight(int intRecordId) {
+		String retString = "";
+		String strSQL = "SELECT value FROM records_has_fields WHERE record_id = " + intRecordId + " AND field LIKE '008'";
+		retString = qSelectString(strSQL);
+		return retString;
+	}
+	
+	/**
+	 * <p>Get the record type</p>
+	 *
+	 * @return	an ArrayList of record.id(s)
+	 */	
+	public int getRecordType(int intRecordId) {
+		int retInt = 0;
+		String strSQL = "SELECT type FROM records WHERE id = " + intRecordId;
+		retInt = qSelectInt(strSQL);
+		return retInt;
+	}	
+	
 
 //////////////////////
 // Logging  methods //

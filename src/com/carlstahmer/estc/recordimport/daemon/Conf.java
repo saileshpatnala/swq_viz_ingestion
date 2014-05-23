@@ -62,6 +62,7 @@ public class Conf {
 	ArrayList<String> languageScope = new ArrayList<String>();
 	boolean debug;
 	boolean console;
+	boolean liberal;
 	
 	public Conf() {
 		listenDir = "";
@@ -75,6 +76,7 @@ public class Conf {
 		langscope = "eng,enm";
 		debug = false;
 		console = false;
+		liberal = true;
 	}
 	
 	/**
@@ -108,6 +110,10 @@ public class Conf {
 			}
 			if (langscope.length() > 0) {
 				setLangCodes();
+			}
+			int liberalvalue = (Integer) map.get("liberal");
+			if (liberalvalue == 1) {
+				liberal = true;
 			}
 			loaded = true;
 		
@@ -143,6 +149,7 @@ public class Conf {
 			options.addOption("langscope", true, "a csv list of MARC language codes for in-scope languages");
 			options.addOption("debug", false, "run in debug mode - verbose logging");
 			options.addOption("console", false, "write log to console instead of database");
+			options.addOption("liberal", false, "keep records with missing control data");
 			options.addOption("help", false, "get help");
 							
 			
@@ -202,6 +209,9 @@ public class Conf {
 			}
 			if (cmd.hasOption("console")) {
 				console = true;
+			}
+			if (cmd.hasOption("liberal")) {
+				liberal = true;
 			}
 			if (cmd.hasOption("langscope")) {
 				String langscopeVal = cmd.getOptionValue("langscope");

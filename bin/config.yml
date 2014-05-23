@@ -28,3 +28,6 @@ dbuser: root
 
 #	The SQL Password
 dbpass: password
+
+#	Marc Language codes for inScope languages - separated by commas with no spaces
+langscope: eng,enm
