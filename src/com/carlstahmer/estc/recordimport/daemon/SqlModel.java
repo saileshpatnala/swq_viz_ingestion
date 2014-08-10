@@ -328,6 +328,35 @@ public class SqlModel {
 	}
 	
 	/**
+	 * <p>Flags a record entry in the records table as having been exported.</p>
+	 *
+	 * @param  	recordId	the id of the record to flag
+	 * @return				true on success, false on failure
+	 */
+	public boolean setRecordRecordExported(int recordId) {
+		String strSql = "UPDATE records" +
+				" SET exported = 1" +
+				" WHERE id = " + recordId;
+		boolean marked = qUpdate(strSql);
+		return marked;
+	}	
+	
+
+	/**
+	 * <p>Flags a record entry in the records table as not having been exported.</p>
+	 *
+	 * @param  	recordId	the id of the record to flag
+	 * @return				true on success, false on failure
+	 */
+	public boolean setRecordRecordNotExported(int recordId) {
+		String strSql = "UPDATE records" +
+				" SET exported = 0" +
+				" WHERE id = " + recordId;
+		boolean marked = qUpdate(strSql);
+		return marked;
+	}	
+	
+	/**
 	 * <p>Update the last modified date on a record.</p>
 	 *
 	 * @param  	recordId	the id of the record to flag

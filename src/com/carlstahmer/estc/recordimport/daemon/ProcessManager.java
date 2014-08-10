@@ -26,7 +26,6 @@
  */
 package com.carlstahmer.estc.recordimport.daemon;
 
-import java.io.File;
 
 /**
  * @author cstahmer

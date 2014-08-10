@@ -53,7 +53,7 @@ public class ScopeChecker {
 	 * to local variables needed to communicate with the database.</p>
 	 *
 	 * @param  config    an instance of the Conf class
-	 * 	 * @param  sqlModObj  	an instance of the sqlModel class
+	 * @param  sqlModObj  	an instance of the sqlModel class
 	 */
 	public ScopeChecker(Conf config, SqlModel sqlModObj) {
 		configObj = config;
