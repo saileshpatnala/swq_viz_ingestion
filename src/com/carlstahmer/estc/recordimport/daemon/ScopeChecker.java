@@ -27,6 +27,11 @@
 package com.carlstahmer.estc.recordimport.daemon;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author cstahmer
@@ -90,20 +95,73 @@ public class ScopeChecker {
 			
 			// This for loop temprarily limits
 			// the number of records being tested.
-			// When testing is complete, remove the
-			// for (keeping all enclosed code)
+			// When testing is complete, alter this loop
 			// to run on all records that should be processed
-			for (int i=0;i<10;i++) {
+			for (int i=0;i<(recordsToCheck.size()-1);i++) {
+			//for (int i=0;i<10;i++) {
+				
+				String scopeFailMessage;
 				
 				boolean languageCheck = languageScope(configObj.languageScope, recordsToCheck.get(i));
-				
 				if (languageCheck) {
-					System.out.println("Record " + recordsToCheck.get(i) + " passed record check.");
+					System.out.println("Record " + recordsToCheck.get(i) + " passed language check.");
 				} else {
-					System.out.println("Record " + recordsToCheck.get(i) + " failed record check.");
+					
 				}
 				
-			// end tem for loop bracket
+				boolean dateCheck = dateScope(recordsToCheck.get(i));
+				if (dateCheck) {
+					System.out.println("Record " + recordsToCheck.get(i) + " passed date check.");
+				} else {
+					
+				}
+				
+				// get the information I need to write good log messages
+				String strRecordControlNumber = sqlObj.selectRecordControlId(recordsToCheck.get(i));
+				int recordFileId = sqlObj.selectRecordFileId(recordsToCheck.get(i));
+				ArrayList<HashMap<String,String>> fileInfo = sqlObj.selectFileInfoById(recordFileId);
+				HashMap<String,String> recordInfoRecord = fileInfo.get(0);
+				String instCode = recordInfoRecord.get("institution_code");
+				String recordFileName = recordInfoRecord.get("filename");
+				
+				String recordFileInfo = "Record with system ID " + recordsToCheck.get(i) +
+						" from file " + instCode + " " + recordFileName + " local control number " +
+						strRecordControlNumber + " ";
+				
+				
+				if (languageCheck && dateCheck) {
+					logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), recordFileInfo + " passed scope check for language and date.");
+					System.out.println("Record " + recordsToCheck.get(i) + " passed scope check.");
+				} else {
+					// This is where I should write out to the log that the record was
+					// rejected on scope
+					String failedScopeItem = "";
+					if (!languageCheck) {
+						failedScopeItem = "language";
+					}
+					if (!dateCheck) {
+						if (failedScopeItem.length() > 0) {
+							failedScopeItem = failedScopeItem + " and date";
+						} else {
+							failedScopeItem = "date";
+						}
+					}
+					
+					logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), recordFileInfo + " failed scope check for " + failedScopeItem + ".");
+					
+					
+				}
+				
+				
+				
+				
+				//if (configObj.liberal) {
+				//	ret = true;
+				//}
+				
+				
+				
+			// end temp for loop bracket
 			}
 		}
 		return ret;
@@ -114,22 +172,138 @@ public class ScopeChecker {
 	 * <p>EMI-7</p>
 	 * 
 	 * <p>Create a dateScope(int recordID) method that checks a record to see if it is in 
-	 * scope. MARC fields to check are:</p>
+	 * scope. The function is very robust.  It basically looks for anything sequence of 
+	 * four consecutive numbers that could be treated as a date range, extracts thes, and
+	 * the scopes the extracted potential dates.  MARC fields checked are:</p>
 	 * 
 	 * <p><ul>
 	 * <li>008</li>
-	 * <li>130</li>
 	 * <li>240</li>
-	 * <li>260</li>
-	 * <li>362</li>
-	 * <li>500 (this one will be a fuzzy search for anything imbedded in the note that looks 
-	 * like a date within the appropriate range. If it finds one, it will assume that the 
-	 * record is at least worth having a human look at.)</li>
+	 * <li>260 $c</li>
+	 * <li>264 $c</li>
+	 * <li>362 $c</li>
+	 * <li>500</li>
+	 * <li>501</li>
+	 * <li>504</li>
+	 * <li>518</li>
+	 * <li>520 $a</li>
+	 * <li>520 $b</li>
+	 * <li>524</li>
+	 * <li>534 $a</li>
+	 * <li>534 $c</li>
+	 * <li>545</li>
+	 * <li>561</li>
+	 * <li>590 - 599</li>
 	 *
-	 * @param  recordID    the records.id from the db for the record to check
+	 * @param  recordID    	the records.id from the db for the record to check
+	 * 
+	 * @return				Boolean true or false
 	 */
 	public boolean dateScope(int recordID) {
 		boolean ret = false;
+		
+		ArrayList<String> years = new ArrayList<String>();
+		ArrayList<String> returnedYears = new ArrayList<String>();
+		
+		int recordType = sqlObj.getRecordType(recordID);
+		if (recordType == 1) {
+			
+			// check 008 for header lookups bibs
+			String zeroZeroEight = sqlObj.getZeroZeroEight(recordID);
+			if (zeroZeroEight.length() > 36) {
+				System.out.println("008: " + zeroZeroEight);
+				String dateStringOne = extractCharacters(zeroZeroEight, 7, 10);
+				String dateStringTwo = extractCharacters(zeroZeroEight, 11, 14);
+				String dateStringOneFill = fillYear(dateStringOne);
+				String dateStringTwoFill = fillYear(dateStringTwo);
+				if (isYear(dateStringOneFill)) {
+					System.out.println("008a: " + dateStringOneFill);
+					years.add(dateStringOneFill);
+				}
+				if (isYear(dateStringTwoFill)) {
+					System.out.println("008b: " + dateStringTwoFill);
+					years.add(dateStringTwoFill);
+				}
+			}
+			
+			// do all the single field lookups
+			ArrayList<String> singleFields = new ArrayList<String>();
+			singleFields.add("240");
+			singleFields.add("500");
+			singleFields.add("501");
+			singleFields.add("504");
+			singleFields.add("518");
+			singleFields.add("524");
+			singleFields.add("545");
+			singleFields.add("561");
+			singleFields.add("590");
+			singleFields.add("591");
+			singleFields.add("592");
+			singleFields.add("593");
+			singleFields.add("594");
+			singleFields.add("595");
+			singleFields.add("596");
+			singleFields.add("597");
+			singleFields.add("598");
+			singleFields.add("599");
+			for (String singfield : singleFields) {
+				String fieldVal = sqlObj.getFieldByNumber(recordID, singfield);
+				if (fieldVal.length() > 3) {
+					returnedYears.clear();
+					System.out.println(singfield + ": " + fieldVal);
+					returnedYears = extractYearString(fieldVal);				
+					for (String td : returnedYears) {
+						if (isYear(td)) {
+							System.out.println(singfield + ": " + td);
+							years.add(td);
+						}
+					}
+				}
+				
+			}
+			
+			// do all sub-field lookups
+			Hashtable<String,String> sf = new Hashtable<String,String>();
+			sf.put("260", "c");
+			sf.put("264", "c");
+			sf.put("362", "c");
+			sf.put("520", "a");
+			sf.put("520", "c");
+			sf.put("534", "a");
+			sf.put("234", "c");
+			Set<String> keys = sf.keySet();
+			for(String key: keys){
+				returnedYears.clear();
+				returnedYears = extractYearsFromSubFields(recordID, key, sf.get(key));
+				if (!returnedYears.isEmpty()) {
+					years.addAll(returnedYears);			
+				}
+	        }
+			
+			// use this code to match a data in range.  Loop through
+			// all members of the years lest, check each one, and if
+			// it scopes, set ret = true
+			
+			for (String allyears : years) {
+				System.out.println("Record " + recordID + " has date " + allyears);
+				if (matchDateScope(configObj.lDateScopeBound, configObj.uDateScopebound, allyears)) {
+					//System.out.println("Found in scope date " + allyears);
+					ret = true;
+				}
+			}
+			
+		// automatically pass holding records since they have no original pub date
+		// info.  I'll merge them wit their appropriate bib in another process before
+		// outputting the MARC XML.
+		} else {
+			ret = true;
+		}
+		
+		// check 130 for bib
+		if (!ret) {
+			
+			
+		}
 		
 		return ret;
 	}
@@ -150,7 +324,6 @@ public class ScopeChecker {
 	public boolean languageScope(ArrayList<String> langCodes, int recordID) {
 		boolean ret = false;
 		
-		// TODO: START WORKING HERE
 		String langString;
 		String zeroZeroEight = sqlObj.getZeroZeroEight(recordID);
 		int recordType = sqlObj.getRecordType(recordID);
@@ -158,24 +331,20 @@ public class ScopeChecker {
 			if (zeroZeroEight.length() > 36) {
 				langString = extractCharacters(zeroZeroEight, 35, 37);
 				ret = matchLangScope(langCodes, langString);
-				System.out.println("Bib Language: " + langString);
+				System.out.println("Record " + recordID + " has Bib Language: " + langString);
 			}		
 		} else if (recordType ==2) {
 			if (zeroZeroEight.length() > 23) {
 				langString = extractCharacters(zeroZeroEight, 22, 24);
 				ret = matchLangScope(langCodes, langString);
-				System.out.println("Holding Language: " + langString);
+				System.out.println("Record " + recordID + " has Holding Language: " + langString);
 			}
 		} else {
 			if (configObj.liberal) {
 				ret = true;
 			}
 		}
-		if (ret) {
-			System.out.println("This is a match!");
-		} else {
-			System.out.println("This is not a match!");
-		}
+		
 		return ret;
 	}	
 	
@@ -228,5 +397,120 @@ public class ScopeChecker {
 		}
 		return retVal;
 	}
+	
+	/**
+	 * <p>Check a year to see if it is within a data range.</p>
+	 *
+	 * @param  	lowerDateBound   the low-end date scope (int)
+	 * @param 	upperDateBound	 the upper date bound (int)
+	 * @param	dateString		 the date to check (string)
+	 */	
+	private boolean matchDateScope(int lowerDateBound, int upperDateBound, String dateString) {
+		boolean retVal = false;
+		if (dateString.matches("[0-9]+") && dateString.length() > 3) {
+			int intDate = Integer.valueOf(dateString);
+			if (intDate >= lowerDateBound && intDate <= upperDateBound) {
+				retVal = true;
+			}
+		}
+		return retVal;
+	}
+	
+	/**
+	 * <p>Extract needles from a haystack.</p>
+	 *
+	 * @param  	haystack   	The text string to search in
+	 */	
+	private ArrayList<String> extractYearString(String haystack) {
+		ArrayList<String> years = new ArrayList<String>();
+		
+		String patternString = "\\d{4}";
+
+		Pattern pattern = Pattern.compile(patternString);
+		Matcher matcher = pattern.matcher(haystack);
+
+		while(matcher.find()) {
+			//int beginIndex = matcher.start() + 1;
+			int beginIndex = matcher.start();
+			//int endIndex = matcher.end() + 1;
+			int endIndex = matcher.end();
+			years.add(haystack.substring(beginIndex, endIndex));
+		}
+		
+		
+		return years;
+	}
+	
+	/**
+	 * <p>Check that a string looks like a year.</p>
+	 *
+	 * @param  	haystack   	The text string to search in
+	 */	
+	private boolean isYear(String token) {
+		boolean ret = false;
+		
+		String patternString = "\\d{4}";
+
+		Pattern pattern = Pattern.compile(patternString);
+		Matcher matcher = pattern.matcher(token);
+
+		while(matcher.find()) {
+			ret = true;
+		}
+		
+		return ret;
+	}
+	
+	/**
+	 * <p>Extract needles from a haystack.</p>
+	 *
+	 * @param  	haystack   	The text string to search in
+	 */	
+	private ArrayList<String> extractYearsFromSubFields(int recordID, String mainfield, String subfield) {
+		// check the 260 field (subfield c)
+		ArrayList<String> years = new ArrayList<String>();
+		ArrayList<String> rawValues = sqlObj.selectSubFieldValues(recordID, mainfield, subfield);
+		if (!rawValues.isEmpty()) {
+			for (String x : rawValues) {
+				if (isYear(x)) {
+					ArrayList<String> returnedYears = new ArrayList<String>();
+					returnedYears = extractYearString(x);				
+					for (String xx : returnedYears) {
+						years.add(xx);
+					}
+				}
+	
+			}			
+		}
+		return years;
+	}
+	
+	/**
+	 * <p>adds trailing zeros to a 008 date field so that
+	 * it is four digits long.  Needed because a catalgouer
+	 * can enter "12  " designate something published
+	 * sometime in the 1200s.</p>
+	 *
+	 * @param  	haystack   	The text string to search in
+	 */	
+	private String fillYear(String token) {
+		
+		/// need to replace blank spaces with 0s not add them to the end
+		
+		String ret = token;
+		
+		String removPipe = ret.replaceAll("\\|", "0");
+		String removSpace = removPipe.replaceAll("\\s", "0");
+		String removNonDigits = removSpace.replaceAll("\\D", "0");
+		String blankTest = "0000";
+		if (removNonDigits.equals(blankTest)) {
+			ret = "";
+		} else {
+			ret = removNonDigits;
+		}
+		
+		return ret;
+	}
+	
 
 }

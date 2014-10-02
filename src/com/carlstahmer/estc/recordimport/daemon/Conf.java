@@ -63,6 +63,9 @@ public class Conf {
 	boolean debug;
 	boolean console;
 	boolean liberal;
+	int lDateScopeBound;
+	int uDateScopebound;
+	ArrayList<String> fiveHundyDateFields = new ArrayList<String>();
 	
 	public Conf() {
 		listenDir = "";
@@ -77,6 +80,12 @@ public class Conf {
 		debug = false;
 		console = false;
 		liberal = true;
+		lDateScopeBound = 1473;
+		uDateScopebound = 1800;
+		fiveHundyDateFields.add("500");
+		fiveHundyDateFields.add("501");
+		fiveHundyDateFields.add("504");
+		
 	}
 	
 	/**

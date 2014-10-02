@@ -34,6 +34,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 
 /**
@@ -163,6 +164,21 @@ public class SqlModel {
 	
 	
 	/**
+	 * <p>Selects the name of a file from the db based on a file record id.</p>
+	 *
+	 * @param  	fileId		the id from the files table
+	 * @return				An array containing the file name and institutional code
+	 * 						of the library it belongs to
+	 */
+	public ArrayList<HashMap<String,String>> selectFileInfoById(int fileId) {
+		String strSql = "SELECT institution_code, filename FROM files" +
+				" WHERE id = " + fileId;
+		ArrayList<HashMap<String,String>> tableResults = qSelectGeneric(strSql);
+		return tableResults;
+	}
+	
+	
+	/**
 	 * <p>Inserts a new File record into the database.</p>
 	 *
 	 * @param  	currCode	the MARC institutional code for the creator of the file
@@ -213,6 +229,34 @@ public class SqlModel {
 				"' AND records.type LIKE '" + String.valueOf(recType) + "';";
 		int recordId = qSelectInt(strSql);		
 		return recordId;
+	}
+	
+	/**
+	 * <p>Selects a control identifier for a record from the records table</p>
+	 *
+	 * @param  	recordId			the id of the record
+	 * @return						A control identifier for the record.
+	 */
+	public String selectRecordControlId(int recordId) {
+		String controlId = "";
+		String strSql = "SELECT control_identifier FROM records" +
+				" WHERE id = " + recordId;
+		controlId = qSelectString(strSql);		
+		return controlId;
+	}
+	
+	/**
+	 * <p>Selects a control identifier for a record from the records table</p>
+	 *
+	 * @param  	recordId			the id of the record
+	 * @return						A control identifier for the record.
+	 */
+	public int selectRecordFileId(int recordId) {
+		int fileId = 0;
+		String strSql = "SELECT file_id FROM records" +
+				" WHERE id = " + recordId;
+		fileId = qSelectInt(strSql);		
+		return fileId;
 	}
 	
 	
@@ -690,6 +734,8 @@ public class SqlModel {
 	
 	/**
 	 * <p>Get the 008 string for a record</p>
+	 * 
+	 * @param	intRecordId		the record ID of the MARC record
 	 *
 	 * @return	a String containing the value of the 008 field
 	 */	
@@ -700,10 +746,79 @@ public class SqlModel {
 		return retString;
 	}
 	
+	
+	/**
+	 * <p>Get field by number for a record</p>
+	 * 
+	 * @param	intRecordId		the record ID of the MARC record
+	 * @param	fieldID			The field ID you want to get
+	 *
+	 * @return	a String containing the value of the identifies field field
+	 */	
+	public String getFieldByNumber(int intRecordId, String fieldID) {
+		String retString = "";
+		String strSQL = "SELECT value FROM records_has_fields WHERE record_id = " + intRecordId + " AND field LIKE '" + fieldID + "'";
+		retString = qSelectString(strSQL);
+		return retString;
+	}
+	
+	
+	
+	/**
+	 * <p>Select field:sub_field value for an identified 
+	 * record, field, and subfield</p>
+	 *
+	 * @param  	recordId	the id of the record whose field you want
+	 * @param	fieldNumber	the MARC field you are interested in
+	 * @param 	subField	the sub-field you want the value of
+	 * 
+	 * @return				an ArrayList of sub-field values
+	 */
+	public ArrayList<String> selectSubFieldValues(int recordId, String fieldNumber, String subField) {		
+		
+		// initialize required objects
+		ArrayList<String> subValues = new ArrayList<String>();
+		ArrayList<Integer> fieldResultSet = null;
+		
+		// define query
+		String strSql = "SELECT id FROM records_has_fields" +
+				" WHERE record_id = " + recordId + " AND field LIKE '" + fieldNumber + "'";
+		
+		// run query and process results
+		fieldResultSet = qSelectIntList(strSql);
+		
+		// for each matching field result
+		for (Integer fid : fieldResultSet) {
+			// now pull the value of the subfield I need and
+			// put it in the return array
+			
+			// define the sub-field query
+			String strSubSql = "SELECT value FROM fields_has_subfields" +
+					" WHERE field_id = " + fid + " AND subfield LIKE '" + subField + "'";
+			
+			// run query and process results
+			subValues.addAll(qSelectStringList(strSubSql));
+		}
+
+        // return results
+		return subValues;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * <p>Get the record type</p>
 	 *
-	 * @return	an ArrayList of record.id(s)
+	 * @return	the record type.  1=bib / 2 = holding
 	 */	
 	public int getRecordType(int intRecordId) {
 		int retInt = 0;
@@ -843,7 +958,57 @@ public class SqlModel {
 		return retVal;
 	}
 	
-	
+	/**
+	 * <p>A genreic object for querying the db for multiple return
+	 * values from a single numeric field. Field select list must 
+	 * contain only a single field.</p>
+	 *
+	 * @param  	strSql	A well formed SQL SELECT query with a single SELECT field of type INTEGER
+	 * @return			The returned list of integers
+	 */	
+	private ArrayList<Integer> qSelectIntList(String strSql) {
+		
+		if (!connOpen) {
+			this.openConnection();
+		}
+		
+		// initialize required objects
+		Statement stmt = null;
+		ResultSet resultSet = null;
+		ArrayList<Integer> retId = new ArrayList<Integer>();
+
+		
+		// run query
+		try {
+			stmt = conn.createStatement();
+	        resultSet = stmt.executeQuery(strSql);
+        	while (resultSet.next()) {
+        		retId.add(resultSet.getInt(1));
+        	}
+	        try {
+	        	resultSet.close();
+	        } catch (SQLException sqlEx) { 
+			    // handle any errors
+			    System.out.println("SQLException SqlModel.java qSelectInt-A: " + sqlEx.getMessage());
+			    System.out.println("SQLState: " + sqlEx.getSQLState());
+			    System.out.println("VendorError: " + sqlEx.getErrorCode());	        	
+	        } 
+		    
+		
+		} catch (SQLException ex){
+		    // handle any errors
+		    System.out.println("SQLException SqlModel.java qSelectInt: " + ex.getMessage());
+		    System.out.println("SQLState: " + ex.getSQLState());
+		    System.out.println("VendorError: " + ex.getErrorCode());
+		}	
+		
+		if (connOpen) {
+			this.closeConnection();
+		}
+		
+		return retId;
+	}
+		
 	
 	
 	/**
@@ -888,6 +1053,57 @@ public class SqlModel {
 		    } catch (SQLException sqlEx) { } // ignore
 
 		}
+		
+		if (connOpen) {
+			this.closeConnection();
+		}
+		
+		return retString;
+	}
+	
+	/**
+	 * <p>A genreic object for querying the db for multiple return
+	 * values from a single String field. Field select list must 
+	 * contain only a single field.</p>
+	 *
+	 * @param  	strSql	A well formed SQL SELECT query with a single SELECT field of type String
+	 * @return			The returned list of String values
+	 */	
+	private ArrayList<String> qSelectStringList(String strSql) {
+		
+		if (!connOpen) {
+			this.openConnection();
+		}
+		
+		// initialize required objects
+		Statement stmt = null;
+		ResultSet resultSet = null;
+		ArrayList<String> retString = new ArrayList<String>();
+
+		
+		// run query
+		try {
+			stmt = conn.createStatement();
+	        resultSet = stmt.executeQuery(strSql);
+        	while (resultSet.next()) {
+        		retString.add(resultSet.getString(1));
+        	}
+	        try {
+	        	resultSet.close();
+	        } catch (SQLException sqlEx) { 
+			    // handle any errors
+			    System.out.println("SQLException SqlModel.java qSelectInt-A: " + sqlEx.getMessage());
+			    System.out.println("SQLState: " + sqlEx.getSQLState());
+			    System.out.println("VendorError: " + sqlEx.getErrorCode());	        	
+	        } 
+		    
+		
+		} catch (SQLException ex){
+		    // handle any errors
+		    System.out.println("SQLException SqlModel.java qSelectInt: " + ex.getMessage());
+		    System.out.println("SQLState: " + ex.getSQLState());
+		    System.out.println("VendorError: " + ex.getErrorCode());
+		}	
 		
 		if (connOpen) {
 			this.closeConnection();
