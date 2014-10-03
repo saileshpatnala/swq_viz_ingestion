@@ -100,7 +100,6 @@ public class ScopeChecker {
 			for (int i=0;i<(recordsToCheck.size()-1);i++) {
 			//for (int i=0;i<10;i++) {
 				
-				String scopeFailMessage;
 				
 				boolean languageCheck = languageScope(configObj.languageScope, recordsToCheck.get(i));
 				if (languageCheck) {
@@ -149,6 +148,23 @@ public class ScopeChecker {
 					
 					logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), recordFileInfo + " failed scope check for " + failedScopeItem + ".");
 					
+					// first get all fields for the record than loop
+					// through and delete the sub-fields
+					ArrayList<Integer> fieldsToGo = sqlObj.selectAssocfieldIds(recordsToCheck.get(i));
+					for (int dr : fieldsToGo) {
+						sqlObj.deleteSubFields(dr);
+					}
+					
+					// then delete the fields
+					sqlObj.deleteRecordFields(recordsToCheck.get(i));
+					
+					// then delete the record
+					boolean recordgone = sqlObj.deleteRecordRecord(recordsToCheck.get(i));
+					
+					if (recordgone) {
+						logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), recordFileInfo + " was removed from db as out of scope.");
+					}
+
 					
 				}
 				
@@ -492,6 +508,8 @@ public class ScopeChecker {
 	 * sometime in the 1200s.</p>
 	 *
 	 * @param  	haystack   	The text string to search in
+	 * 
+	 * @return				The full, four integer date representation
 	 */	
 	private String fillYear(String token) {
 		
@@ -512,5 +530,4 @@ public class ScopeChecker {
 		return ret;
 	}
 	
-
 }

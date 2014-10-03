@@ -417,6 +417,25 @@ public class SqlModel {
 	
 	
 	/**
+	 * <p>Deletes a record</p>
+	 *
+	 * @param  	recordId	the id of the record whose fields you want to delete
+	 * @return				true on success, false on failure
+	 */
+	public boolean deleteRecordRecord(int recordId) {
+		// first add the record id to the recycle bin
+		String recycleSql = "INSERT into recycled_fields (foreign_key, type) VALUES (" + recordId + ", 1)";
+		qInsert(recycleSql);
+		
+        // now delete the fields
+		String strSql = "DELETE FROM records" +
+				" WHERE id = " + recordId;
+		boolean success = qUpdate(strSql);
+		return success;
+	}
+
+		
+	/**
 	 * <p>Select all fields in the records_has_fields table that are associated 
 	 * with a record from the records table.</p>
 	 *
@@ -632,24 +651,24 @@ public class SqlModel {
 		String strSqlFields = "SELECT id FROM fields_has_subfields" +
 				" WHERE field_id = " + fieldId;
 		
-		System.out.println("Getting Subfields");
+		//System.out.println("Getting Subfields");
 		resultSet = qSelectGeneric(strSqlFields);
-		System.out.println("Got Subfields");
+		//System.out.println("Got Subfields");
 		
 		if (resultSet.size() > 0) {
 		
 			for (int i=0; i < resultSet.size(); i++) {
 				HashMap<String,String> thisRecord = new HashMap<String,String>();
 				thisRecord = resultSet.get(i);
-				System.out.println("Adding Subfield with ID " + thisRecord.get("id") + " to the recycle bin");
+				// System.out.println("Adding Subfield with ID " + thisRecord.get("id") + " to the recycle bin");
 				String recycleSql = "INSERT into recycled_fields (foreign_key, type) VALUES (" + thisRecord.get("id") + ", 3)";
-				System.out.println("DebugRecycleSQL: " + recycleSql);
-				int intRecycle = qInsert(recycleSql);
-				if (intRecycle > 0) {
-					System.out.println("Successfuylly Added Subfield " + thisRecord.get("id") + " to recycle bin with id " + intRecycle);
-				} else {
-					System.out.println("Failed to add subfield " + thisRecord.get("id") + " to recycle bin.");
-				}
+				// System.out.println("DebugRecycleSQL: " + recycleSql);
+				qInsert(recycleSql);
+				//if (intRecycle > 0) {
+				//	System.out.println("Successfuylly Added Subfield " + thisRecord.get("id") + " to recycle bin with id " + intRecycle);
+				//} else {
+				//	System.out.println("Failed to add subfield " + thisRecord.get("id") + " to recycle bin.");
+				//}
 			}
 			
 			
@@ -657,13 +676,13 @@ public class SqlModel {
 			// now delete the subfield
 			String strSql = "DELETE FROM fields_has_subfields" +
 					" WHERE field_id = " + fieldId;
-			System.out.println("Deleting all Subfields");
+			//System.out.println("Deleting all Subfields");
 			success = qUpdate(strSql);
-			if (success) {
-				System.out.println("Subfields Deleted");
-			} else {
-				System.out.println("Failed to delete subfields for field " + fieldId);
-			}
+			//if (success) {
+			//	System.out.println("Subfields Deleted");
+			//} else {
+			//	System.out.println("Failed to delete subfields for field " + fieldId);
+			//}
 			
 		} else {
 			System.out.println("No Subfields for this field");
@@ -675,7 +694,7 @@ public class SqlModel {
 	
 	
 	/**
-	 * <p>Select all fields in the records table where records.processed == 0</p>
+	 * <p>Select all records in the records table where records.processed == 0</p>
 	 *
 	 * @return	an ArrayList of record.id(s)
 	 */
@@ -731,6 +750,21 @@ public class SqlModel {
         // return result
 		return resultSetList;
 	}
+	
+	/**
+	 * <p>Select all holding records</p>
+	 *
+	 * @return	an ArrayList of record.id(s)
+	 */
+	public ArrayList<HashMap<String,String>> selectHoldingRecords() {
+		String strSql = "SELECT records.id, records.file_id," + 
+				" records.control_identifier, records.type FROM records" +
+				" WHERE records.type = 2" +
+				" ORDER BY records.id ASC";
+		ArrayList<HashMap<String,String>> tableResults = qSelectGenericMultiRow(strSql);
+		return tableResults;
+	}
+	
 	
 	/**
 	 * <p>Get the 008 string for a record</p>
@@ -804,16 +838,7 @@ public class SqlModel {
 		return subValues;
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 	
 	/**
 	 * <p>Get the record type</p>
@@ -1114,7 +1139,9 @@ public class SqlModel {
 	
 	/**
 	 * <p>A generic object for executing a SELECT querying 
-	 * against the db.</p>
+	 * against the db that returns a single row/record.  Each slice
+	 * of the Array List holds one FieldName:Value pair from
+	 * the returned record.</p>
 	 *
 	 * @param  	strSql	A well formed SQL SELECT query
 	 * @return			A resultSet object containing the result of the query
@@ -1163,6 +1190,68 @@ public class SqlModel {
 		
 		return retList;
 	}
+	
+	
+	
+	
+	/**
+	 * <p>A generic object for executing a SELECT querying 
+	 * against the db that returns multiple fields from 
+	 * multiple rows.  Basically mimics a resultSet</p>
+	 *
+	 * @param  	strSql	A well formed SQL SELECT query
+	 * @return			A resultSet object containing the result of the query
+	 */	
+	private ArrayList<HashMap<String,String>> qSelectGenericMultiRow(String strSql) {
+		
+		
+		// ArrayList<ArrayList<HashMap<String,String>>> retList = new ArrayList<ArrayList<HashMap<String,String>>>();
+		ArrayList<HashMap<String,String>> retList = new ArrayList<HashMap<String,String>>();
+		
+		
+		if (!connOpen) {
+			this.openConnection();
+		}
+		
+		// initialize required objects
+		Statement stmt = null;
+		ResultSet resultSet = null;
+		ResultSetMetaData rsmd = null;
+
+		
+		// run query
+		try {
+			stmt = conn.createStatement();
+	        resultSet = stmt.executeQuery(strSql);	
+	        rsmd = resultSet.getMetaData();
+	        int colCount = rsmd.getColumnCount();
+        	while (resultSet.next()) {
+        		HashMap<String, String> fieldHash = new HashMap<String, String>();
+		        for (int i=1; i < (colCount + 1); i++) {
+		            fieldHash.put(rsmd.getColumnName(i), resultSet.getString(i));
+		        }
+		        retList.add(fieldHash);
+        	}
+	        try {
+	        	resultSet.close();
+	        } catch (SQLException sqlEx) { } // ignore
+		} catch (SQLException ex){
+		    // handle any errors
+		    System.out.println("SQLException SqlModel.java qSelectGeneric: " + ex.getMessage());
+		    System.out.println("SQLState: " + ex.getSQLState());
+		    System.out.println("VendorError: " + ex.getErrorCode());
+		}	
+		
+		if (connOpen) {
+			this.closeConnection();
+		}
+		
+		return retList;
+	}
+	
+	
+	
+	
 	
 	/**
 	 * <p>A generic object for executing an UPDATE 

@@ -205,8 +205,11 @@ public class ProcessManager {
 		
 		System.out.println("I'm here");
 		
-		ScopeChecker myScopeCheck = new ScopeChecker(config, sqlObj);
-		boolean thisScopeCheck = myScopeCheck.applyScopeFilter();
+		//ScopeChecker myScopeCheck = new ScopeChecker(config, sqlObj);
+		//boolean thisScopeCheck = myScopeCheck.applyScopeFilter();
+		
+		MergeHoldings myMergeHoldings = new MergeHoldings(config, sqlObj);
+		boolean thisMergeHoldings = myMergeHoldings.doMerge();
 		
 		System.out.println("And now I'm here");
 		
