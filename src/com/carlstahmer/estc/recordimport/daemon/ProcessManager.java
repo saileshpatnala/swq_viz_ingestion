@@ -26,6 +26,8 @@
  */
 package com.carlstahmer.estc.recordimport.daemon;
 
+import java.io.File;
+
 
 /**
  * @author cstahmer
@@ -69,13 +71,27 @@ public class ProcessManager {
 	 */	
 	public void runOnce() {
 		
-/*	
- * 	
+		System.out.println("I'm in runOnce");
+		
+/*
+ * COMMENTED OUT THE IMPORT SO I CAN WORK ON REST USING
+ * EXISTING DATA - NEED ULTIMATELY TO MOVE THIS OUT TO
+ * ITS OWN FUNCTION SO IT CAN BE CALLED BY RUN ONCE
+ * OR BY THE LISTENER	
+		
+		// This part of the code imports the marc
+		
 		FileUtils fileUts = new FileUtils(config, sqlObj);
 		fileUts.listFoldersRecursive();
 		if (fileUts.directoryList.size() > 0) {
+			
+			System.out.println("Found Files");
+			
 			for (int id=0;id<fileUts.directoryList.size();id++) {
 				String curCode = fileUts.directoryList.get(id);
+				if (Arrays.asList(conf.estcCodes).contains(curCode)) {
+					curCode = "estc";
+				}
 				String curDir = config.listenDir+"/"+curCode;
 				logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Working in directory: "+curDir);
 				fileUts.listFilesForFolder(curDir);
@@ -86,6 +102,7 @@ public class ProcessManager {
 						// construct a filename
 						String fileToProcess = curDir + "/" + fileUts.fileList.get(i);
 						
+						System.out.println("Filr" + fileToProcess);
 						
 						// instantiate file object to get last processed date
 						File fileInfo = new File(fileToProcess);
@@ -123,7 +140,7 @@ public class ProcessManager {
 								// this is a marc file
 								logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Processing MARC file "+fileToProcess);
 								LoadMarc myMarcInstance = new LoadMarc(config, sqlObj);
-								myMarcInstance.loadMarcFile(fileToProcess, curCode, fileRecordId);
+								holdingsItems = myMarcInstance.loadMarcFile(fileToProcess, curCode, fileRecordId);
 								
 							} else if (intFileType == 2) {
 								// this is a text file
@@ -192,10 +209,19 @@ public class ProcessManager {
 			}
 			
 		} else {
+			System.out.println("Didn't find any files");
 			logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "No instituional folders found in read directory");
 		}
 		
-*/
+		System.out.println("End of Import");
+		// THIS IS THE END OF THE IMPORT PART
+
+
+END OF THE IMPORTER TEMPORARY COMMENTING
+*/		
+		
+		// NEXT COMES THE OUTPUT PART
+		
 
 		// when I've gotten to here, I have broken down all the files from this directory,
 		// so now I can go ahead and write the good MARC out
@@ -205,13 +231,19 @@ public class ProcessManager {
 		
 		System.out.println("I'm here");
 		
-		//ScopeChecker myScopeCheck = new ScopeChecker(config, sqlObj);
-		//boolean thisScopeCheck = myScopeCheck.applyScopeFilter();
+		// The scope checker code below has been checked and is working
+		// ScopeChecker myScopeCheck = new ScopeChecker(config, sqlObj);
+		// boolean thisScopeCheck = myScopeCheck.applyScopeFilter();
 		
-		MergeHoldings myMergeHoldings = new MergeHoldings(config, sqlObj);
-		boolean thisMergeHoldings = myMergeHoldings.doMerge();
+		ExportRDF rdfExporter = new ExportRDF(config, sqlObj);
+		// rdfExporter.makeRDF(1, "estc.bl.uk");
+		rdfExporter.makeRDFAllBibs("estc.bl.uk");
 		
-		System.out.println("And now I'm here");
+		
+		// MergeHoldings myMergeHoldings = new MergeHoldings(config, sqlObj);
+		// boolean thisMergeHoldings = myMergeHoldings.doMerge();
+		
+		//System.out.println("And now I'm here");
 		
 		
 	}

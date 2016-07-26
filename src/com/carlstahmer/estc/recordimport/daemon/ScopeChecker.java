@@ -129,6 +129,9 @@ public class ScopeChecker {
 				
 				
 				if (languageCheck && dateCheck) {
+					
+					//TODO: UPDATE THE RECORD SO THAT 'scoped' = 1
+					
 					logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), recordFileInfo + " passed scope check for language and date.");
 					System.out.println("Record " + recordsToCheck.get(i) + " passed scope check.");
 				} else {
@@ -160,6 +163,9 @@ public class ScopeChecker {
 					
 					// then delete the record
 					boolean recordgone = sqlObj.deleteRecordRecord(recordsToCheck.get(i));
+					
+					//TODO: PUT CODE HERE TO ADD RECORD ID TO THE 
+					
 					
 					if (recordgone) {
 						logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), recordFileInfo + " was removed from db as out of scope.");

@@ -60,7 +60,21 @@ public class MergeHoldings {
 	
 	
 	/**
-	 * <p>Starting point and traffic cop for merge process</p>
+	 * <p>Starting point and traffic cop for merge process.  This goes
+	 * through all holding records and makes sure they can be matched to
+	 * a bib record through a 004 field.  If the 004 is empty, then try
+	 * to match the control number and institution of this holding record
+	 * to a bib record.  If this bib is found, then add a 004 and put the 
+	 * correct control number in it. If none is found, then do nothing.
+	 * If one is found, then mark the record as processed. 
+	 * </p>
+	 * 
+	 * <p>If a 004 is found, try to match this number in the bibs.  If none
+	 * found then do nothing.  If found, then mark the record as processed.</p>
+	 * 
+	 * <p>In the above scenario, we leave un-matched holdings in the 
+	 * db in case their match comes later.  Then, when we do scope checks,
+	 * we process bibs first?????
 	 *
 	 * @return  true when merge completed, false if an error occurred
 	 */
@@ -72,6 +86,7 @@ public class MergeHoldings {
 		ArrayList<HashMap<String,String>> holdingRecords = sqlObj.selectHoldingRecords();
 		
 		System.out.println("Size of returned records: " + holdingRecords.size());
+		
 		
 		// loop through the holding records
 		int i = 1;

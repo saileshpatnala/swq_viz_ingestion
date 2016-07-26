@@ -108,7 +108,11 @@ public class Listener {
 	    // Start the process manager
 	    ProcessManager pm = new ProcessManager(config, sqlObj);
 	    logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Listening at: "+config.listenDir);
-		pm.runOnce();
+		
+	    // I'm currently calling the runOnce() method.  I will ultimately
+	    // need to fix the actual daemon listener and change this.
+	    // I should probably make it a config / command line option
+	    pm.runOnce();
 	    		
 		sqlObj.closeConnection();
 		logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Process Completed");

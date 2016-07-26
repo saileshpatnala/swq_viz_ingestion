@@ -83,6 +83,7 @@ public class SqlModel {
 			return true;
 	    } catch (SQLException ex) {
 	        // handle any errors
+	    	System.out.println("pass: " + dbpass);
 	        System.out.println("SQLException SqlModel.java openConnection(): " + ex.getMessage());
 	        System.out.println("SQLState: " + ex.getSQLState());
 	        System.out.println("VendorError: " + ex.getErrorCode());
@@ -110,8 +111,12 @@ public class SqlModel {
 // Data Model Methods //
 ////////////////////////
 	
+	/////////////////////////////////////////////////////////////////
+	//                   SELECT FUNCTIONS                          //
+	/////////////////////////////////////////////////////////////////
+	
 	/**
-	 * <p>Returns a file type id based upon a filename suffix 
+	 * <p>Selects a file type id based upon a filename suffix 
 	 * and mapping provided in database.</p>
 	 *
 	 * @param  	suffix		the suffix to lookup
@@ -175,41 +180,6 @@ public class SqlModel {
 				" WHERE id = " + fileId;
 		ArrayList<HashMap<String,String>> tableResults = qSelectGeneric(strSql);
 		return tableResults;
-	}
-	
-	
-	/**
-	 * <p>Inserts a new File record into the database.</p>
-	 *
-	 * @param  	currCode	the MARC institutional code for the creator of the file
-	 * @param  	fileName  	the filename of the file
-	 * @param	modDate		the system last modified time stamp of the file
-	 * @param	fileType	1=marc, 2=csv, 3=text, 4=excel
-	 * @return				A file ID if found or 0 if not found
-	 */
-	public int insertFileRecord(String currCode, String fileName, long modDate, int fileType) {
-		// define query
-		String strSql = "INSERT INTO files " +
-				"(institution_code, filename, modification_date, type)" +
-				" VALUES" + 
-				" ('" + currCode + "', '" + fileName + "', " + modDate + ", " + fileType + ");";
-		int recordId = qInsert(strSql);
-		return recordId;
-	}
-	
-	/**
-	 * <p>Updates the system last modified date of a file record.</p>
-	 *
-	 * @param  	strFileId		the file id to update
-	 * @param  	fileModDate  	the new mod date
-	 * @return				1 = success, 0 = failure
-	 */
-	public boolean updateFileModDate(int intFileId, long fileModDate) {
-		String strSql = "UPDATE files " +
-				"SET modification_date = " + fileModDate +
-				" WHERE id = " + intFileId+ ";";
-		boolean retFlag = qUpdate(strSql);
-		return retFlag;
 	}	
 	
 	/**
@@ -246,7 +216,7 @@ public class SqlModel {
 	}
 	
 	/**
-	 * <p>Selects a control identifier for a record from the records table</p>
+	 * <p>Selects a file ID for a record from the records table</p>
 	 *
 	 * @param  	recordId			the id of the record
 	 * @return						A control identifier for the record.
@@ -261,7 +231,7 @@ public class SqlModel {
 	
 	
 	/**
-	 * <p>Get the last modified datetimestamp for a record</p>
+	 * <p>Selects the last modified datetimestamp for a record</p>
 	 *
 	 * @param  	recordId	The record id	
 	 * @return				The moddate for the record.
@@ -275,166 +245,19 @@ public class SqlModel {
 	}	
 	
 	/**
-	 * <p>Inserts a marc-record record entry into the records table.</p>
+	 * <p>Selects the field type for a field record in the
+	 * records_has_fields table</p>
 	 *
-	 * @param  	fileId				the id from the files table for the file that the marc record was read from
-	 * @param  	recType  			the type of record.  1 = bib, 2 = holding
-	 * @param	controlIdentifier	the record control identifier
-	 * @return						The record if of the inserted record.  Returns 0 on failure.
+	 * @param  	recordId	The recordHasFieldsId id	
+	 * @return				The field type for the record.
 	 */
-	public int insertRecordRecord(int fileId, int recType, String controlIdentifier, double moddate) {
-		String strSql;
-		// first check to see if there is a recycled record ID available
-		String recycleSql = "SELECT foreign_key FROM recycled_fields WHERE type = 1";
-		int useId = qSelectInt(recycleSql);	
-		if (useId > 0) {
-			strSql = "INSERT INTO records " +
-					"(id, file_id, control_identifier, type, moddate)" +
-					" VALUES" + 
-					" (" + useId + ", " + fileId + ", '" + controlIdentifier + "', " + recType + ", " + moddate + ");";
-			String strDeleteRecycleSql = "DELETE from recycled_fields WHERE type = 1 AND foreign_key = " + useId + ";";
-			qUpdate(strDeleteRecycleSql);
-		} else {
-			strSql = "INSERT INTO records " +
-					"(file_id, control_identifier, type, moddate)" +
-					" VALUES" + 
-					" (" + fileId + ", '" + controlIdentifier + "', " + recType + ", " + moddate + ");";
-		}
-		int recordId = qInsert(strSql);
-		return recordId;
+	public String selectFieldType(int recordHasFieldsId) {
+		String strSql = "SELECT field FROM records_has_fields" +
+				" WHERE id = " + recordHasFieldsId + ";";
+		String type = qSelectString(strSql);		
+		return type;
 	}
 	
-	
-	/**
-	 * <p>Flags a record entry in the records table as having been processed, meaning
-	 * that all of the data contained in the original marc recrod has been saved to
-	 * the fields and subfields tables.  This identifies the record as suitable for 
-	 * output publishing.</p>
-	 *
-	 * @param  	recordId	the id of the record to flag
-	 * @return				true on success, false on failure
-	 */
-	public boolean setRecordRecordProcessed(int recordId) {
-		String strSql = "UPDATE records" +
-				" SET processed = 1" +
-				" WHERE id = " + recordId;
-		boolean marked = qUpdate(strSql);
-		return marked;
-	}	
-	
-
-	/**
-	 * <p>Flags a record entry in the records table as having not been processed, meaning
-	 * that all of the data contained in the original marc recrod has yet to be saved to
-	 * the fields and subfields tables.  This identifies the record as not yet ready for 
-	 * output publishing.</p>
-	 *
-	 * @param  	recordId	the id of the record to flag
-	 * @return				true on success, false on failure
-	 */
-	public boolean setRecordRecordUnProcessed(int recordId) {
-		String strSql = "UPDATE records" +
-				" SET processed = 0" +
-				" WHERE id = " + recordId;
-		boolean marked = qUpdate(strSql);
-		return marked;
-	}
-	
-	/**
-	 * <p>Flags a record entry in the records table as having been filtered for scope,
-	 * meaning that it passed all scope tests.</p>
-	 *
-	 * @param  	recordId	the id of the record to flag
-	 * @return				true on success, false on failure
-	 */
-	public boolean setRecordRecordScoped(int recordId) {
-		String strSql = "UPDATE records" +
-				" SET scoped = 1" +
-				" WHERE id = " + recordId;
-		boolean marked = qUpdate(strSql);
-		return marked;
-	}	
-	
-
-	/**
-	 * <p>Flags a record entry in the records table as having not been filtered for
-	 * scope, meaning it has yet to pass scope tests.</p>
-	 *
-	 * @param  	recordId	the id of the record to flag
-	 * @return				true on success, false on failure
-	 */
-	public boolean setRecordRecordUnScoped(int recordId) {
-		String strSql = "UPDATE records" +
-				" SET scoped = 0" +
-				" WHERE id = " + recordId;
-		boolean marked = qUpdate(strSql);
-		return marked;
-	}
-	
-	/**
-	 * <p>Flags a record entry in the records table as having been exported.</p>
-	 *
-	 * @param  	recordId	the id of the record to flag
-	 * @return				true on success, false on failure
-	 */
-	public boolean setRecordRecordExported(int recordId) {
-		String strSql = "UPDATE records" +
-				" SET exported = 1" +
-				" WHERE id = " + recordId;
-		boolean marked = qUpdate(strSql);
-		return marked;
-	}	
-	
-
-	/**
-	 * <p>Flags a record entry in the records table as not having been exported.</p>
-	 *
-	 * @param  	recordId	the id of the record to flag
-	 * @return				true on success, false on failure
-	 */
-	public boolean setRecordRecordNotExported(int recordId) {
-		String strSql = "UPDATE records" +
-				" SET exported = 0" +
-				" WHERE id = " + recordId;
-		boolean marked = qUpdate(strSql);
-		return marked;
-	}	
-	
-	/**
-	 * <p>Update the last modified date on a record.</p>
-	 *
-	 * @param  	recordId	the id of the record to flag
-	 * @param	moddate		the last modified date
-	 * @return				true on success, false on failure
-	 */
-	public boolean updateRecordRecordModdate(int recordId, double moddate) {
-		String strSql = "UPDATE records" +
-				" SET moddate = " + String.valueOf(moddate) +
-				" WHERE id = " + String.valueOf(recordId);
-		boolean marked = qUpdate(strSql);
-		return marked;
-	}
-	
-	
-	/**
-	 * <p>Deletes a record</p>
-	 *
-	 * @param  	recordId	the id of the record whose fields you want to delete
-	 * @return				true on success, false on failure
-	 */
-	public boolean deleteRecordRecord(int recordId) {
-		// first add the record id to the recycle bin
-		String recycleSql = "INSERT into recycled_fields (foreign_key, type) VALUES (" + recordId + ", 1)";
-		qInsert(recycleSql);
-		
-        // now delete the fields
-		String strSql = "DELETE FROM records" +
-				" WHERE id = " + recordId;
-		boolean success = qUpdate(strSql);
-		return success;
-	}
-
-		
 	/**
 	 * <p>Select all fields in the records_has_fields table that are associated 
 	 * with a record from the records table.</p>
@@ -501,9 +324,7 @@ public class SqlModel {
 
         // return result
 		return recordRows;
-	}	
-	
-	
+	}		
 	
 	/**
 	 * <p>Select the ids of all fields in the records_has_fields table that are associated 
@@ -522,7 +343,7 @@ public class SqlModel {
 		String strSql = "SELECT id FROM records_has_fields" +
 				" WHERE records_has_fields.record_id = " + recordId + ";";
 		
-		System.out.println("Dup Assoc Field SQL: [" + strSql + "]");
+		//System.out.println("Dup Assoc Field SQL: [" + strSql + "]");
 		
 		// run query and process results
 		resultSet = qSelectGeneric(strSql);
@@ -535,161 +356,6 @@ public class SqlModel {
 		
         // return result
 		return fields;
-	}	
-	
-	/**
-	 * <p>Insert a field associated with a record into the records_has_fields table.</p>
-	 *
-	 * @param  	recordId	the id of the associated record
-	 * @param  	fieldVal	the marc tag for the field
-	 * @param  	valueVal	the data contained in the field as string
-	 * @param  	fieldType	an id from the field_typeds table indicated whether a control or data field.  1 = control, 2 = data.
-	 * @return				the id of the inserted field
-	 */
-	public int insertFieldRecord(int recordId, String fieldVal, String valueVal, int fieldType) {
-		valueVal = valueVal.replace("'", "''");
-		String strSql;
-		// first check to see if there is a recycled record ID available
-		String recycleSql = "SELECT foreign_key FROM recycled_fields WHERE type = 2";
-		int useId = qSelectInt(recycleSql);	
-		if (useId > 0) {
-			strSql = "INSERT INTO records_has_fields " +
-					"(id, record_id, field, value, type)" +
-					" VALUES" + 
-					" (" + useId + ", " + recordId + ", '" + fieldVal + "', '" + valueVal + "', " + fieldType + ");";
-			String strDeleteRecycleSql = "DELETE from recycled_fields WHERE type = 2 AND foreign_key = " + useId + ";";
-			qUpdate(strDeleteRecycleSql);
-		} else {
-			strSql = "INSERT INTO records_has_fields " +
-					"(record_id, field, value, type)" +
-					" VALUES" + 
-					" (" + recordId + ", '" + fieldVal + "', '" + valueVal + "', " + fieldType + ");";
-		}
-		int insertId = qInsert(strSql);
-		return insertId;
-	}	
-	
-	
-	/**
-	 * <p>Deletes all fields associated with a designated record</p>
-	 *
-	 * @param  	recordId	the id of the record whose fields you want to delete
-	 * @return				true on success, false on failure
-	 */
-	public boolean deleteRecordFields(int recordId) {
-		
-		// initialize needed objects
-		ArrayList<HashMap<String,String>> resultSet = new ArrayList<HashMap<String,String>>();
-	
-		// first add all field ids to the recycle bin
-		String strSqlFields = "SELECT id FROM records_has_fields" +
-				" WHERE record_id = " + recordId;
-		
-		resultSet = qSelectGeneric(strSqlFields);
-
-		for (int i=0; i < resultSet.size(); i++) {
-			HashMap<String,String> thisRecord = new HashMap<String,String>();
-			thisRecord = resultSet.get(i);
-			String recycleSql = "INSERT into recycled_fields (foreign_key, type) VALUES (" + thisRecord.get("id") + ", 2)";
-			qInsert(recycleSql);
-		}	
-
-        // now delete the fields
-		String strSql = "DELETE FROM records_has_fields" +
-				" WHERE record_id = " + recordId;
-		boolean success = qUpdate(strSql);
-		return success;
-	}
-
-	
-	
-	/**
-	 * <p>Insert a subfield associated with a field into the fields_has_subfields table.</p>
-	 *
-	 * @param  	fieldId			the id of the associated field from the fields table
-	 * @param  	subfieldTag		the marc tag for the sub-field
-	 * @param  	subfieldVal		the data contained in the sub-field as string
-	 * @return					the id of the inserted sub-field
-	 */
-	public int insertSubfieldRecord(int fieldId, String subfieldTag, String subfieldVal) {
-		subfieldVal = subfieldVal.replace("'", "''");
-		String strSql;
-		// first check to see if there is a recycled record ID available
-		String recycleSql = "SELECT foreign_key FROM recycled_fields WHERE type = 3";
-		int useId = qSelectInt(recycleSql);	
-		if (useId > 0) {
-			strSql = "INSERT INTO fields_has_subfields " +
-					"(id, field_id, subfield, value)" +
-					" VALUES" + 
-					" (" + useId + ", " + fieldId + ", '" + subfieldTag + "', '" + subfieldVal + "');";
-			String strDeleteRecycleSql = "DELETE from recycled_fields WHERE type = 3 AND foreign_key = " + useId + ";";
-			qUpdate(strDeleteRecycleSql);
-		} else {
-			strSql = "INSERT INTO fields_has_subfields " +
-					"(field_id, subfield, value)" +
-					" VALUES" + 
-					" (" + fieldId + ", '" + subfieldTag + "', '" + subfieldVal + "');";
-		}
-		int insertId = qInsert(strSql);
-		return insertId;
-	}
-	
-	
-	/**
-	 * <p>Deletes all sub-fields associated with a designated field</p>
-	 *
-	 * @param  	fieldId		the id of the field whose sub-fields you want to delete
-	 * @return				true on success, false on failure
-	 */
-	public boolean deleteSubFields(int fieldId) {
-		
-		// initialize objects
-		ArrayList<HashMap<String,String>> resultSet = new ArrayList<HashMap<String,String>>();
-		boolean success = false;
-		
-		// first add all subfield ids to the recycle bin
-		String strSqlFields = "SELECT id FROM fields_has_subfields" +
-				" WHERE field_id = " + fieldId;
-		
-		//System.out.println("Getting Subfields");
-		resultSet = qSelectGeneric(strSqlFields);
-		//System.out.println("Got Subfields");
-		
-		if (resultSet.size() > 0) {
-		
-			for (int i=0; i < resultSet.size(); i++) {
-				HashMap<String,String> thisRecord = new HashMap<String,String>();
-				thisRecord = resultSet.get(i);
-				// System.out.println("Adding Subfield with ID " + thisRecord.get("id") + " to the recycle bin");
-				String recycleSql = "INSERT into recycled_fields (foreign_key, type) VALUES (" + thisRecord.get("id") + ", 3)";
-				// System.out.println("DebugRecycleSQL: " + recycleSql);
-				qInsert(recycleSql);
-				//if (intRecycle > 0) {
-				//	System.out.println("Successfuylly Added Subfield " + thisRecord.get("id") + " to recycle bin with id " + intRecycle);
-				//} else {
-				//	System.out.println("Failed to add subfield " + thisRecord.get("id") + " to recycle bin.");
-				//}
-			}
-			
-			
-			
-			// now delete the subfield
-			String strSql = "DELETE FROM fields_has_subfields" +
-					" WHERE field_id = " + fieldId;
-			//System.out.println("Deleting all Subfields");
-			success = qUpdate(strSql);
-			//if (success) {
-			//	System.out.println("Subfields Deleted");
-			//} else {
-			//	System.out.println("Failed to delete subfields for field " + fieldId);
-			//}
-			
-		} else {
-			System.out.println("No Subfields for this field");
-			success = true;
-		}
-		
-		return success;
 	}
 	
 	
@@ -750,6 +416,66 @@ public class SqlModel {
         // return result
 		return resultSetList;
 	}
+
+	/**
+	 * <p>Select all BIB records in the records table 
+	 * where records.processed == 0</p>
+	 *
+	 * @return	an ArrayList of record.id(s)
+	 */
+	public ArrayList<Integer> selectUnprocessedBibs() {
+				
+		// initialize required objects
+		ArrayList<Integer> resultSetList = new ArrayList<Integer>();
+		
+		
+		// define query
+		String strSql = "SELECT records.id FROM records" +
+				" WHERE records.scoped = 0" +
+				" AND type = 1" +
+				" ORDER BY records.id ASC";
+		
+		if (!connOpen) {
+			this.openConnection();
+		}
+		
+		// initialize required objects
+		Statement stmt = null;
+		ResultSet resultSet = null;
+	
+		// run query
+		try {
+			stmt = conn.createStatement();
+	        resultSet = stmt.executeQuery(strSql);
+
+	        while (resultSet.next()) {
+	        		resultSetList.add(resultSet.getInt(1));
+	        }
+
+	        try {
+	        	resultSet.close();
+	        } catch (SQLException sqlEx) { } // ignore
+		    
+		
+		} catch (SQLException ex){
+		    // handle any errors
+		    System.out.println("SQLException SqlModel.java qSelectString: " + ex.getMessage());
+		    System.out.println("SQLState: " + ex.getSQLState());
+		    System.out.println("VendorError: " + ex.getErrorCode());
+		} finally {
+		    try {
+		    	stmt.close();
+		    } catch (SQLException sqlEx) { } // ignore
+
+		}
+		
+		if (connOpen) {
+			this.closeConnection();
+		}
+
+        // return result
+		return resultSetList;
+	}
 	
 	/**
 	 * <p>Select all holding records</p>
@@ -767,7 +493,7 @@ public class SqlModel {
 	
 	
 	/**
-	 * <p>Get the 008 string for a record</p>
+	 * <p>Select the 008 string for a record</p>
 	 * 
 	 * @param	intRecordId		the record ID of the MARC record
 	 *
@@ -782,7 +508,7 @@ public class SqlModel {
 	
 	
 	/**
-	 * <p>Get field by number for a record</p>
+	 * <p>Select field by number for a record</p>
 	 * 
 	 * @param	intRecordId		the record ID of the MARC record
 	 * @param	fieldID			The field ID you want to get
@@ -796,6 +522,20 @@ public class SqlModel {
 		return retString;
 	}
 	
+	/**
+	 * <p>Select field by number for a record</p>
+	 * 
+	 * @param	intRecordId		the record ID of the MARC record
+	 * @param	fieldID			The field ID you want to get
+	 *
+	 * @return	a String containing the value of the identifies field field
+	 */	
+	public String getFieldByID(int fieldID) {
+		String retString = "";
+		String strSQL = "SELECT value FROM records_has_fields WHERE id LIKE '" + fieldID + "'";
+		retString = qSelectString(strSQL);
+		return retString;
+	}
 	
 	
 	/**
@@ -838,10 +578,33 @@ public class SqlModel {
 		return subValues;
 	}
 	
+	/**
+	 * <p>Select field:sub_field value for an identified 
+	 * record, field, and subfield</p>
+	 *
+	 * @param  	recordId	the id of the record whose field you want
+	 * @param	fieldNumber	the MARC field you are interested in
+	 * @param 	subField	the sub-field you want the value of
+	 * 
+	 * @return				an ArrayList of sub-field values
+	 */
+	public ArrayList<String> selectSubFieldValuesByID(int fieldNumber, String subField) {		
+		
+		// initialize required objects
+		ArrayList<String> subValues = new ArrayList<String>();
+
+		String strSubSql = "SELECT value FROM fields_has_subfields" +
+				" WHERE field_id = " + fieldNumber + " AND subfield LIKE '" + subField + "'";
+		subValues.addAll(qSelectStringList(strSubSql));
+
+        // return results
+		return subValues;
+	}
+	
 
 	
 	/**
-	 * <p>Get the record type</p>
+	 * <p>Select the record type</p>
 	 *
 	 * @return	the record type.  1=bib / 2 = holding
 	 */	
@@ -851,33 +614,6 @@ public class SqlModel {
 		retInt = qSelectInt(strSQL);
 		return retInt;
 	}	
-	
-
-//////////////////////
-// Logging  methods //
-//////////////////////
-		
-	/**
-	 * <p>Writes a new log message to the database runlog table.</p>
-	 *
-	 * @param  	messageType	[1] = error, [2] = info, [3] = debug
-	 * @param  	fileName  	the filename of the file initiating the message
-	 * @param	lineNumber	the line number from the file where the message is initiated
-	 * @param	messageText	the message
-	 */
-	public int insertLogMessage(int messageType, String fileName, int lineNumber, String messageText) {
-		String strSql = "INSERT INTO runlog " +
-				"(type, file, line, message)" +
-				" VALUES" + 
-				" (" + messageType + ", '" + fileName + "', " + lineNumber + ", '" + messageText + "');";
-		int insertId = qInsert(strSql);
-		return insertId;
-	}
-	
-			
-///////////////////////////////	
-// Generic SQL query methods //
-///////////////////////////////
 	
 	/**
 	 * <p>A genreic object for querying the db for a single numeric
@@ -928,9 +664,7 @@ public class SqlModel {
 		}
 		
 		return retId;
-	}
-	
-	
+	}	
 	
 	/**
 	 * <p>A genreic object for querying the db for a single numeric
@@ -1247,58 +981,124 @@ public class SqlModel {
 		}
 		
 		return retList;
-	}
+	}	
 	
 	
-	
-	
+	/////////////////////////////////////////////////////////////////
+	//                   INSERT FUNCTIONS                          //
+	/////////////////////////////////////////////////////////////////
 	
 	/**
-	 * <p>A generic object for executing an UPDATE 
-	 * against the db.</p>
+	 * <p>Inserts a new File record into the database.</p>
 	 *
-	 * @param  	strSql	A well formed SQL SELECT query
-	 * @return			A boolean value indicating success or failure
-	 */		
-	private boolean qUpdate(String strSql) {
-		
-		if (!connOpen) {
-			this.openConnection();
-		}
-		
-		// initialize required objects
-		boolean success = false;
-		Statement stmt = null;
-		
-		try {
-
-		    stmt = conn.createStatement();
-		    stmt.executeUpdate(strSql);
-		    success = true;   
-		} catch (SQLException ex){
-			    // handle any errors
-			    System.out.println("SQLException SqlModel.java qUpdate: " + ex.getMessage());
-			    System.out.println("SQLState: " + ex.getSQLState());
-			    System.out.println("VendorError: " + ex.getErrorCode());
-
-		} finally {
-
-		    if (stmt != null) {
-		        try {
-		            stmt.close();
-		        } catch (SQLException ex) {
-		            // ignore
-		        }
-		    }
-		}
-		
-		if (connOpen) {
-			this.closeConnection();
-		}
-		
-		return success;
+	 * @param  	currCode	the MARC institutional code for the creator of the file
+	 * @param  	fileName  	the filename of the file
+	 * @param	modDate		the system last modified time stamp of the file
+	 * @param	fileType	1=marc, 2=csv, 3=text, 4=excel
+	 * @return				A file ID if found or 0 if not found
+	 */
+	public int insertFileRecord(String currCode, String fileName, long modDate, int fileType) {
+		// define query
+		String strSql = "INSERT INTO files " +
+				"(institution_code, filename, modification_date, type)" +
+				" VALUES" + 
+				" ('" + currCode + "', '" + fileName + "', " + modDate + ", " + fileType + ");";
+		int recordId = qInsert(strSql);
+		return recordId;
 	}
 	
+	/**
+	 * <p>Inserts a marc-record record entry into the records table.</p>
+	 *
+	 * @param  	fileId				the id from the files table for the file that the marc record was read from
+	 * @param  	recType  			the type of record.  1 = bib, 2 = holding
+	 * @param	controlIdentifier	the record control identifier
+	 * @return						The record if of the inserted record.  Returns 0 on failure.
+	 */
+	public int insertRecordRecord(int fileId, int recType, String controlIdentifier, double moddate) {
+		String strSql;
+		// first check to see if there is a recycled record ID available
+		String recycleSql = "SELECT foreign_key FROM recycled_fields WHERE type = 1";
+		int useId = qSelectInt(recycleSql);	
+		if (useId > 0) {
+			strSql = "INSERT INTO records " +
+					"(id, file_id, control_identifier, type, moddate)" +
+					" VALUES" + 
+					" (" + useId + ", " + fileId + ", '" + controlIdentifier + "', " + recType + ", " + moddate + ");";
+			String strDeleteRecycleSql = "DELETE from recycled_fields WHERE type = 1 AND foreign_key = " + useId + ";";
+			qUpdate(strDeleteRecycleSql);
+		} else {
+			strSql = "INSERT INTO records " +
+					"(file_id, control_identifier, type, moddate)" +
+					" VALUES" + 
+					" (" + fileId + ", '" + controlIdentifier + "', " + recType + ", " + moddate + ");";
+		}
+		int recordId = qInsert(strSql);
+		return recordId;
+	}
+	
+	/**
+	 * <p>Insert a field associated with a record into the records_has_fields table.</p>
+	 *
+	 * @param  	recordId	the id of the associated record
+	 * @param  	fieldVal	the marc tag for the field
+	 * @param  	valueVal	the data contained in the field as string
+	 * @param  	fieldType	an id from the field_typeds table indicated whether a control or data field.  1 = control, 2 = data.
+	 * @return				the id of the inserted field
+	 */
+	public int insertFieldRecord(int recordId, String fieldVal, String valueVal, int fieldType) {
+		valueVal = valueVal.replace("'", "''");
+		String strSql;
+		// first check to see if there is a recycled record ID available
+		String recycleSql = "SELECT foreign_key FROM recycled_fields WHERE type = 2";
+		int useId = qSelectInt(recycleSql);	
+		if (useId > 0) {
+			strSql = "INSERT INTO records_has_fields " +
+					"(id, record_id, field, value, type)" +
+					" VALUES" + 
+					" (" + useId + ", " + recordId + ", '" + fieldVal + "', '" + valueVal + "', " + fieldType + ");";
+			String strDeleteRecycleSql = "DELETE from recycled_fields WHERE type = 2 AND foreign_key = " + useId + ";";
+			qUpdate(strDeleteRecycleSql);
+		} else {
+			strSql = "INSERT INTO records_has_fields " +
+					"(record_id, field, value, type)" +
+					" VALUES" + 
+					" (" + recordId + ", '" + fieldVal + "', '" + valueVal + "', " + fieldType + ");";
+		}
+		int insertId = qInsert(strSql);
+		return insertId;
+	}
+	
+	/**
+	 * <p>Insert a subfield associated with a field into the fields_has_subfields table.</p>
+	 *
+	 * @param  	fieldId			the id of the associated field from the fields table
+	 * @param  	subfieldTag		the marc tag for the sub-field
+	 * @param  	subfieldVal		the data contained in the sub-field as string
+	 * @return					the id of the inserted sub-field
+	 */
+	public int insertSubfieldRecord(int fieldId, String subfieldTag, String subfieldVal) {
+		subfieldVal = subfieldVal.replace("'", "''");
+		String strSql;
+		// first check to see if there is a recycled record ID available
+		String recycleSql = "SELECT foreign_key FROM recycled_fields WHERE type = 3";
+		int useId = qSelectInt(recycleSql);	
+		if (useId > 0) {
+			strSql = "INSERT INTO fields_has_subfields " +
+					"(id, field_id, subfield, value)" +
+					" VALUES" + 
+					" (" + useId + ", " + fieldId + ", '" + subfieldTag + "', '" + subfieldVal + "');";
+			String strDeleteRecycleSql = "DELETE from recycled_fields WHERE type = 3 AND foreign_key = " + useId + ";";
+			qUpdate(strDeleteRecycleSql);
+		} else {
+			strSql = "INSERT INTO fields_has_subfields " +
+					"(field_id, subfield, value)" +
+					" VALUES" + 
+					" (" + fieldId + ", '" + subfieldTag + "', '" + subfieldVal + "');";
+		}
+		int insertId = qInsert(strSql);
+		return insertId;
+	}
 	
 	/**
 	 * <p>A generic object for executing an INSERT 
@@ -1350,6 +1150,320 @@ public class SqlModel {
 		}
 		
 		return insertId;
+	}
+
+	/////////////////////////////////////////////////////////////////
+	//                   UPDATE FUNCTIONS                          //
+	/////////////////////////////////////////////////////////////////
+	
+	/**
+	 * <p>Updates the system last modified date of a file record.</p>
+	 *
+	 * @param  	strFileId		the file id to update
+	 * @param  	fileModDate  	the new mod date
+	 * @return				1 = success, 0 = failure
+	 */
+	public boolean updateFileModDate(int intFileId, long fileModDate) {
+		String strSql = "UPDATE files " +
+				"SET modification_date = " + fileModDate +
+				" WHERE id = " + intFileId+ ";";
+		boolean retFlag = qUpdate(strSql);
+		return retFlag;
+	}
+	
+	/**
+	 * <p>Update the last modified date on a record.</p>
+	 *
+	 * @param  	recordId	the id of the record to flag
+	 * @param	moddate		the last modified date
+	 * @return				true on success, false on failure
+	 */
+	public boolean updateRecordRecordModdate(int recordId, double moddate) {
+		String strSql = "UPDATE records" +
+				" SET moddate = " + String.valueOf(moddate) +
+				" WHERE id = " + String.valueOf(recordId);
+		boolean marked = qUpdate(strSql);
+		return marked;
+	}
+	
+	/**
+	 * <p>A generic object for executing an UPDATE 
+	 * against the db.</p>
+	 *
+	 * @param  	strSql	A well formed SQL SELECT query
+	 * @return			A boolean value indicating success or failure
+	 */		
+	private boolean qUpdate(String strSql) {
+		
+		if (!connOpen) {
+			this.openConnection();
+		}
+		
+		// initialize required objects
+		boolean success = false;
+		Statement stmt = null;
+		
+		try {
+
+		    stmt = conn.createStatement();
+		    stmt.executeUpdate(strSql);
+		    success = true;   
+		} catch (SQLException ex){
+			    // handle any errors
+			    System.out.println("SQLException SqlModel.java qUpdate: " + ex.getMessage());
+			    System.out.println("SQLState: " + ex.getSQLState());
+			    System.out.println("VendorError: " + ex.getErrorCode());
+
+		} finally {
+
+		    if (stmt != null) {
+		        try {
+		            stmt.close();
+		        } catch (SQLException ex) {
+		            // ignore
+		        }
+		    }
+		}
+		
+		if (connOpen) {
+			this.closeConnection();
+		}
+		
+		return success;
+	}
+
+	/////////////////////////////////////////////////////////////////
+	//                   DELETE FUNCTIONS                          //
+	/////////////////////////////////////////////////////////////////
+	
+	/**
+	 * <p>Deletes a record</p>
+	 *
+	 * @param  	recordId	the id of the record whose fields you want to delete
+	 * @return				true on success, false on failure
+	 */
+	public boolean deleteRecordRecord(int recordId) {
+		// first add the record id to the recycle bin
+		String recycleSql = "INSERT into recycled_fields (foreign_key, type) VALUES (" + recordId + ", 1)";
+		qInsert(recycleSql);
+		
+        // now delete the fields
+		String strSql = "DELETE FROM records" +
+				" WHERE id = " + recordId;
+		boolean success = qUpdate(strSql);
+		return success;
+	}		
+	
+	/**
+	 * <p>Deletes all fields associated with a designated record</p>
+	 *
+	 * @param  	recordId	the id of the record whose fields you want to delete
+	 * @return				true on success, false on failure
+	 */
+	public boolean deleteRecordFields(int recordId) {
+		
+		// initialize needed objects
+		ArrayList<HashMap<String,String>> resultSet = new ArrayList<HashMap<String,String>>();
+	
+		// first add all field ids to the recycle bin
+		String strSqlFields = "SELECT id FROM records_has_fields" +
+				" WHERE record_id = " + recordId;
+		
+		resultSet = qSelectGeneric(strSqlFields);
+
+		for (int i=0; i < resultSet.size(); i++) {
+			HashMap<String,String> thisRecord = new HashMap<String,String>();
+			thisRecord = resultSet.get(i);
+			String recycleSql = "INSERT into recycled_fields (foreign_key, type) VALUES (" + thisRecord.get("id") + ", 2)";
+			qInsert(recycleSql);
+		}	
+
+        // now delete the fields
+		String strSql = "DELETE FROM records_has_fields" +
+				" WHERE record_id = " + recordId;
+		boolean success = qUpdate(strSql);
+		return success;
+	}
+
+	
+	/**
+	 * <p>Deletes all sub-fields associated with a designated field</p>
+	 *
+	 * @param  	fieldId		the id of the field whose sub-fields you want to delete
+	 * @return				true on success, false on failure
+	 */
+	public boolean deleteSubFields(int fieldId) {
+		
+		// initialize objects
+		ArrayList<HashMap<String,String>> resultSet = new ArrayList<HashMap<String,String>>();
+		boolean success = false;
+		
+		// first add all subfield ids to the recycle bin
+		String strSqlFields = "SELECT id FROM fields_has_subfields" +
+				" WHERE field_id = " + fieldId;
+		
+		//System.out.println("Getting Subfields");
+		resultSet = qSelectGeneric(strSqlFields);
+		//System.out.println("Got Subfields");
+		
+		if (resultSet.size() > 0) {
+		
+			for (int i=0; i < resultSet.size(); i++) {
+				HashMap<String,String> thisRecord = new HashMap<String,String>();
+				thisRecord = resultSet.get(i);
+				// System.out.println("Adding Subfield with ID " + thisRecord.get("id") + " to the recycle bin");
+				String recycleSql = "INSERT into recycled_fields (foreign_key, type) VALUES (" + thisRecord.get("id") + ", 3)";
+				// System.out.println("DebugRecycleSQL: " + recycleSql);
+				qInsert(recycleSql);
+				//if (intRecycle > 0) {
+				//	System.out.println("Successfuylly Added Subfield " + thisRecord.get("id") + " to recycle bin with id " + intRecycle);
+				//} else {
+				//	System.out.println("Failed to add subfield " + thisRecord.get("id") + " to recycle bin.");
+				//}
+			}
+			
+			
+			
+			// now delete the subfield
+			String strSql = "DELETE FROM fields_has_subfields" +
+					" WHERE field_id = " + fieldId;
+			//System.out.println("Deleting all Subfields");
+			success = qUpdate(strSql);
+			//if (success) {
+			//	System.out.println("Subfields Deleted");
+			//} else {
+			//	System.out.println("Failed to delete subfields for field " + fieldId);
+			//}
+			
+		} else {
+			System.out.println("No Subfields for this field");
+			success = true;
+		}
+		
+		return success;
+	}
+	
+
+//////////////////////
+// Logging  methods //
+//////////////////////
+		
+	/**
+	 * <p>Writes a new log message to the database runlog table.</p>
+	 *
+	 * @param  	messageType	[1] = error, [2] = info, [3] = debug
+	 * @param  	fileName  	the filename of the file initiating the message
+	 * @param	lineNumber	the line number from the file where the message is initiated
+	 * @param	messageText	the message
+	 */
+	public int insertLogMessage(int messageType, String fileName, int lineNumber, String messageText) {
+		String strSql = "INSERT INTO runlog " +
+				"(type, file, line, message)" +
+				" VALUES" + 
+				" (" + messageType + ", '" + fileName + "', " + lineNumber + ", '" + messageText + "');";
+		int insertId = qInsert(strSql);
+		return insertId;
+	}
+	
+				
+	/////////////////////////////////////////////////////////////////
+	//                   SET FLAGS FUNCTIONS                       //
+	/////////////////////////////////////////////////////////////////
+	
+	/**
+	 * <p>Flags a record entry in the records table as having been processed, meaning
+	 * that all of the data contained in the original marc recrod has been saved to
+	 * the fields and subfields tables.  This identifies the record as suitable for 
+	 * output publishing.</p>
+	 *
+	 * @param  	recordId	the id of the record to flag
+	 * @return				true on success, false on failure
+	 */
+	public boolean setRecordRecordProcessed(int recordId) {
+		String strSql = "UPDATE records" +
+				" SET processed = 1" +
+				" WHERE id = " + recordId;
+		boolean marked = qUpdate(strSql);
+		return marked;
 	}	
+	
+
+	/**
+	 * <p>Flags a record entry in the records table as having not been processed, meaning
+	 * that all of the data contained in the original marc recrod has yet to be saved to
+	 * the fields and subfields tables.  This identifies the record as not yet ready for 
+	 * output publishing.</p>
+	 *
+	 * @param  	recordId	the id of the record to flag
+	 * @return				true on success, false on failure
+	 */
+	public boolean setRecordRecordUnProcessed(int recordId) {
+		String strSql = "UPDATE records" +
+				" SET processed = 0" +
+				" WHERE id = " + recordId;
+		boolean marked = qUpdate(strSql);
+		return marked;
+	}
+	
+	/**
+	 * <p>Flags a record entry in the records table as having been filtered for scope,
+	 * meaning that it passed all scope tests.</p>
+	 *
+	 * @param  	recordId	the id of the record to flag
+	 * @return				true on success, false on failure
+	 */
+	public boolean setRecordRecordScoped(int recordId) {
+		String strSql = "UPDATE records" +
+				" SET scoped = 1" +
+				" WHERE id = " + recordId;
+		boolean marked = qUpdate(strSql);
+		return marked;
+	}	
+	
+
+	/**
+	 * <p>Flags a record entry in the records table as having not been filtered for
+	 * scope, meaning it has yet to pass scope tests.</p>
+	 *
+	 * @param  	recordId	the id of the record to flag
+	 * @return				true on success, false on failure
+	 */
+	public boolean setRecordRecordUnScoped(int recordId) {
+		String strSql = "UPDATE records" +
+				" SET scoped = 0" +
+				" WHERE id = " + recordId;
+		boolean marked = qUpdate(strSql);
+		return marked;
+	}
+	
+	/**
+	 * <p>Flags a record entry in the records table as having been exported.</p>
+	 *
+	 * @param  	recordId	the id of the record to flag
+	 * @return				true on success, false on failure
+	 */
+	public boolean setRecordRecordExported(int recordId) {
+		String strSql = "UPDATE records" +
+				" SET exported = 1" +
+				" WHERE id = " + recordId;
+		boolean marked = qUpdate(strSql);
+		return marked;
+	}	
+	
+
+	/**
+	 * <p>Flags a record entry in the records table as not having been exported.</p>
+	 *
+	 * @param  	recordId	the id of the record to flag
+	 * @return				true on success, false on failure
+	 */
+	public boolean setRecordRecordNotExported(int recordId) {
+		String strSql = "UPDATE records" +
+				" SET exported = 0" +
+				" WHERE id = " + recordId;
+		boolean marked = qUpdate(strSql);
+		return marked;
+	}
+	
 	
 }

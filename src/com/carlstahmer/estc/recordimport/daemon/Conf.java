@@ -66,6 +66,8 @@ public class Conf {
 	int lDateScopeBound;
 	int uDateScopebound;
 	ArrayList<String> fiveHundyDateFields = new ArrayList<String>();
+	String[] estcCodes;
+	String estcCodesCSV;
 	
 	public Conf() {
 		listenDir = "";
@@ -85,6 +87,7 @@ public class Conf {
 		fiveHundyDateFields.add("500");
 		fiveHundyDateFields.add("501");
 		fiveHundyDateFields.add("504");
+		estcCodesCSV = "estcstar,estc";
 		
 	}
 	
@@ -124,6 +127,9 @@ public class Conf {
 			if (liberalvalue == 1) {
 				liberal = true;
 			}
+			estcCodesCSV = (String) map.get("estccodes");
+			estcCodes = estcCodesCSV.split("\\s*,\\s*");
+			
 			loaded = true;
 		
 		} catch (FileNotFoundException e) {
@@ -159,6 +165,7 @@ public class Conf {
 			options.addOption("debug", false, "run in debug mode - verbose logging");
 			options.addOption("console", false, "write log to console instead of database");
 			options.addOption("liberal", false, "keep records with missing control data");
+			options.addOption("estccodes", false, "csv list of institutional codes that represent ESTC bib records");
 			options.addOption("help", false, "get help");
 							
 			
@@ -227,7 +234,13 @@ public class Conf {
 				if(langscopeVal != null) {
 					langscope = langscopeVal;
 				}
-			}			
+			}
+			if (cmd.hasOption("estccodes")) {
+				String langscopeVal = cmd.getOptionValue("estccodes");
+				if(langscopeVal != null) {
+					estcCodesCSV = langscopeVal;
+				}
+			}
 			if (cmd.hasOption("help")) {
 					String HelpString = "Requires the presence of a config.yml in the application root to run correcly. ";
 					HelpString = HelpString + "Values in the config can be overwritten at runtime via command line ";
