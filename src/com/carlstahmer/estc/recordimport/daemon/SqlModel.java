@@ -1,11 +1,11 @@
 /**
- *	<p>Copyright (c) 2014, Carl Stahmer - <a href="http://www.carlstahmer.com">www.carlstahmer.com</a>.</p>
+ *	<p>Copyright (c) 2016, Carl Stahmer - <a href="http://www.carlstahmer.com">www.carlstahmer.com</a>.</p>
  *	
  *	<p>This file is part of the ESTC Record Importer package, a server 
  *	daemon that processes incoming MARC cataloging data stored in binary
  *	MARC, .csv, and .txt formats, checks the records for scope on date,
- *	language, and place of publication, and the makes the filtered
- *	records available to other services via OAI-PMH.</p>
+ *	language, and place of publication, and exports the filtered
+ *	records as RDF suitable for linked data exchange.</p>
  *
  *	<p>The ESTC Record Importer is free software: you can redistribute it 
  *	and/or modify it under the terms of the GNU General Public License 
@@ -22,8 +22,11 @@
  *	see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.</p>
  *
  *	<p>Development of this software was made possible through funding from 
- *	the Andrew W. Mellon Foundation.</p>
+ *	the Andrew W. Mellon Foundation which maintains a nonexclusive, 
+ *  royalty-free, worldwide, perpetual, irrevocable license to distribute 
+ *  this software either in wholoe or in part for scholarly and educational purposes.</p>
  */
+
 package com.carlstahmer.estc.recordimport.daemon;
 
 import java.sql.Connection;
@@ -202,6 +205,64 @@ public class SqlModel {
 	}
 	
 	/**
+	 * <p>Selects holding records associated with a bib records.</p>
+	 *
+	 * @param  	estdID		the ESTC ID to match
+	 * @return				An array containing id's of associated holding records
+	 */
+	public ArrayList<HashMap<String,String>> selectHoldingRecordIDs(String estcID) {
+		String strSql = "SELECT records.id FROM records " +
+							"JOIN records_has_fields ON records_has_fields.record_id = records.id " +
+							"WHERE records.type = 2 AND records_has_fields.field LIKE \"001\" " +
+							"AND records_has_fields.value LIKE \"" + estcID + "\"";
+		ArrayList<HashMap<String,String>> tableResults = qSelectGeneric(strSql);
+		return tableResults;
+	}	
+	
+	/**
+	 * <p>Selects all subfields for a given field.</p>
+	 *
+	 * @param  	feildID		the ESTC ID to match
+	 * @return				An array containing id's of associated holding records
+	 */
+	public ArrayList<HashMap<String,String>> selectSubFields(int feildID) {
+		String strSql = "SELECT fields_has_subfields.* FROM fields_has_subfields" + 
+							" WHERE fields_has_subfields.field_id = " + feildID;
+		ArrayList<HashMap<String,String>> tableResults = qSelectGeneric(strSql);
+		return tableResults;
+	}
+	
+	/**
+	 * <p>Selects all the subfields for a given field.
+	 * I think the one above doesn't work right.</p>
+	 *
+	 * @param  	feildID		the field whose subfield I want
+	 * @return				An array of hashes of all subfields
+	 */
+	public ArrayList<HashMap<String,String>> selectAllSubfields(int feildID) {
+		
+		// initialize required objects
+		ArrayList<HashMap<String,String>> recordRows = new ArrayList<HashMap<String,String>>();
+		HashMap<String,String> recordColumns = new HashMap<String, String>();
+		ArrayList<HashMap<String,String>> resultSet = new ArrayList<HashMap<String,String>>();
+		
+		
+		// define query
+		String strSql = "SELECT fields_has_subfields.* FROM fields_has_subfields" + 
+							" WHERE fields_has_subfields.field_id = " + feildID;
+		
+		// run query and process results
+		resultSet = qSelectGenericMultiRow(strSql);
+		
+		for (int i=0; i < resultSet.size(); i++) {
+    		recordRows.add(resultSet.get(i));
+		}
+
+        // return result
+		return recordRows;
+	}	
+	
+	/**
 	 * <p>Selects a control identifier for a record from the records table</p>
 	 *
 	 * @param  	recordId			the id of the record
@@ -358,6 +419,37 @@ public class SqlModel {
 		return fields;
 	}
 	
+	/**
+	 * <p>Select all 852 fields in the records_has_fields table that are associated 
+	 * with a record from the records table.</p>
+	 *
+	 * @param  	recordId	the id of the record whose fields you want
+	 * @return				an Array of field ids
+	 */
+	public ArrayList<Integer> selectEightFiftyTwoFields(int recordId) {		
+		
+		// initialize required objects
+		ArrayList<HashMap<String,String>> resultSet = new ArrayList<HashMap<String,String>>();
+		ArrayList<Integer> recordRows = new ArrayList<Integer>();
+		
+		// define query
+		String strSql = "SELECT records_has_fields.id FROM records_has_fields" +
+							" WHERE records_has_fields.record_id = " +  recordId +
+							" AND records_has_fields.field LIKE \"852\"";
+		
+		// run query and process results
+		resultSet = qSelectGeneric(strSql);
+		
+		for (int i=0; i < resultSet.size(); i++) {
+			HashMap<String,String> thisRecord = new HashMap<String,String>();
+			thisRecord = resultSet.get(i);
+			recordRows.add(Integer.valueOf(thisRecord.get("id")));
+		}
+        
+        // return results
+		return recordRows;
+	}
+	
 	
 	/**
 	 * <p>Select all records in the records table where records.processed == 0</p>
@@ -431,8 +523,8 @@ public class SqlModel {
 		
 		// define query
 		String strSql = "SELECT records.id FROM records" +
-				" WHERE records.scoped = 0" +
-				" AND type = 1" +
+				" WHERE records.processed = 0" +
+				" AND records.type = 1" +
 				" ORDER BY records.id ASC";
 		
 		if (!connOpen) {
@@ -981,7 +1073,67 @@ public class SqlModel {
 		}
 		
 		return retList;
-	}	
+	}
+	
+	
+	/**
+	 * <p>A generic object for executing a SELECT querying 
+	 * against the db that returns multiple fields from 
+	 * multiple rows.  Basically mimics a resultSet</p>
+	 *
+	 * @param  	strSql	A well formed SQL SELECT query
+	 * @return			A resultSet object containing the result of the query
+	 */	
+	private ArrayList<HashMap<String,String>> qSelectGenericMultiRowTwo(String strSql) {
+		
+		
+		// ArrayList<ArrayList<HashMap<String,String>>> retList = new ArrayList<ArrayList<HashMap<String,String>>>();
+		ArrayList<HashMap<String,String>> retList = new ArrayList<HashMap<String,String>>();
+		
+		
+		if (!connOpen) {
+			this.openConnection();
+		}
+		
+		// initialize required objects
+		Statement stmt = null;
+		ResultSet resultSet = null;
+		ResultSetMetaData rsmd = null;
+
+		
+		// run query
+		try {
+			stmt = conn.createStatement();
+	        resultSet = stmt.executeQuery(strSql);	
+	        rsmd = resultSet.getMetaData();
+	        int colCount = rsmd.getColumnCount();
+        	while (resultSet.next()) {
+        		System.out.println("Processing Row");
+        		HashMap<String, String> fieldHash = new HashMap<String, String>();
+		        for (int i=1; i < (colCount + 1); i++) {
+		        	System.out.println("Adding column " + rsmd.getColumnName(i) + " to has");
+		            fieldHash.put(rsmd.getColumnName(i), resultSet.getString(i));
+		        }
+		        System.out.println("Adding Hash to ArrayList");
+		        retList.add(fieldHash);
+		        System.out.println("ArrayList Size: " + retList.size());
+        	}
+	        try {
+	        	resultSet.close();
+	        } catch (SQLException sqlEx) { } // ignore
+		} catch (SQLException ex){
+		    // handle any errors
+		    System.out.println("SQLException SqlModel.java qSelectGeneric: " + ex.getMessage());
+		    System.out.println("SQLState: " + ex.getSQLState());
+		    System.out.println("VendorError: " + ex.getErrorCode());
+		}	
+		
+		if (connOpen) {
+			this.closeConnection();
+		}
+		
+		return retList;
+	}
 	
 	
 	/////////////////////////////////////////////////////////////////

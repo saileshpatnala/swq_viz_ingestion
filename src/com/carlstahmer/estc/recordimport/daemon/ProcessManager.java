@@ -1,11 +1,11 @@
 /**
- *	<p>Copyright (c) 2014, Carl Stahmer - <a href="http://www.carlstahmer.com">www.carlstahmer.com</a>.</p>
+ *	<p>Copyright (c) 2016, Carl Stahmer - <a href="http://www.carlstahmer.com">www.carlstahmer.com</a>.</p>
  *	
  *	<p>This file is part of the ESTC Record Importer package, a server 
  *	daemon that processes incoming MARC cataloging data stored in binary
  *	MARC, .csv, and .txt formats, checks the records for scope on date,
- *	language, and place of publication, and the makes the filtered
- *	records available to other services via OAI-PMH.</p>
+ *	language, and place of publication, and exports the filtered
+ *	records as RDF suitable for linked data exchange.</p>
  *
  *	<p>The ESTC Record Importer is free software: you can redistribute it 
  *	and/or modify it under the terms of the GNU General Public License 
@@ -22,8 +22,11 @@
  *	see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.</p>
  *
  *	<p>Development of this software was made possible through funding from 
- *	the Andrew W. Mellon Foundation.</p>
+ *	the Andrew W. Mellon Foundation which maintains a nonexclusive, 
+ *  royalty-free, worldwide, perpetual, irrevocable license to distribute 
+ *  this software either in wholoe or in part for scholarly and educational purposes.</p>
  */
+
 package com.carlstahmer.estc.recordimport.daemon;
 
 import java.io.File;
@@ -73,12 +76,8 @@ public class ProcessManager {
 		
 		System.out.println("I'm in runOnce");
 		
-/*
- * COMMENTED OUT THE IMPORT SO I CAN WORK ON REST USING
- * EXISTING DATA - NEED ULTIMATELY TO MOVE THIS OUT TO
- * ITS OWN FUNCTION SO IT CAN BE CALLED BY RUN ONCE
- * OR BY THE LISTENER	
-		
+// importer part	
+/*		
 		// This part of the code imports the marc
 		
 		FileUtils fileUts = new FileUtils(config, sqlObj);
@@ -89,9 +88,9 @@ public class ProcessManager {
 			
 			for (int id=0;id<fileUts.directoryList.size();id++) {
 				String curCode = fileUts.directoryList.get(id);
-				if (Arrays.asList(conf.estcCodes).contains(curCode)) {
-					curCode = "estc";
-				}
+				//if (Arrays.asList(config.estcCodes).contains(curCode)) {
+					curCode = "estcstar";
+				//}
 				String curDir = config.listenDir+"/"+curCode;
 				logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Working in directory: "+curDir);
 				fileUts.listFilesForFolder(curDir);
@@ -102,7 +101,7 @@ public class ProcessManager {
 						// construct a filename
 						String fileToProcess = curDir + "/" + fileUts.fileList.get(i);
 						
-						System.out.println("Filr" + fileToProcess);
+						System.out.println("File" + fileToProcess);
 						
 						// instantiate file object to get last processed date
 						File fileInfo = new File(fileToProcess);
@@ -140,7 +139,7 @@ public class ProcessManager {
 								// this is a marc file
 								logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Processing MARC file "+fileToProcess);
 								LoadMarc myMarcInstance = new LoadMarc(config, sqlObj);
-								holdingsItems = myMarcInstance.loadMarcFile(fileToProcess, curCode, fileRecordId);
+								myMarcInstance.loadMarcFile(fileToProcess, curCode, fileRecordId);
 								
 							} else if (intFileType == 2) {
 								// this is a text file
@@ -217,8 +216,8 @@ public class ProcessManager {
 		// THIS IS THE END OF THE IMPORT PART
 
 
-END OF THE IMPORTER TEMPORARY COMMENTING
-*/		
+// IMPORTER TEMPORARY COMMENT OUT END
+*/
 		
 		// NEXT COMES THE OUTPUT PART
 		
@@ -236,7 +235,6 @@ END OF THE IMPORTER TEMPORARY COMMENTING
 		// boolean thisScopeCheck = myScopeCheck.applyScopeFilter();
 		
 		ExportRDF rdfExporter = new ExportRDF(config, sqlObj);
-		// rdfExporter.makeRDF(1, "estc.bl.uk");
 		rdfExporter.makeRDFAllBibs("estc.bl.uk");
 		
 		

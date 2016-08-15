@@ -1,11 +1,11 @@
 /**
- *	<p>Copyright (c) 2014, Carl Stahmer - <a href="http://www.carlstahmer.com">www.carlstahmer.com</a>.</p>
+ *	<p>Copyright (c) 2016, Carl Stahmer - <a href="http://www.carlstahmer.com">www.carlstahmer.com</a>.</p>
  *	
  *	<p>This file is part of the ESTC Record Importer package, a server 
  *	daemon that processes incoming MARC cataloging data stored in binary
  *	MARC, .csv, and .txt formats, checks the records for scope on date,
- *	language, and place of publication, and the makes the filtered
- *	records available to other services via OAI-PMH.</p>
+ *	language, and place of publication, and exports the filtered
+ *	records as RDF suitable for linked data exchange.</p>
  *
  *	<p>The ESTC Record Importer is free software: you can redistribute it 
  *	and/or modify it under the terms of the GNU General Public License 
@@ -22,8 +22,11 @@
  *	see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.</p>
  *
  *	<p>Development of this software was made possible through funding from 
- *	the Andrew W. Mellon Foundation.</p>
+ *	the Andrew W. Mellon Foundation which maintains a nonexclusive, 
+ *  royalty-free, worldwide, perpetual, irrevocable license to distribute 
+ *  this software either in wholoe or in part for scholarly and educational purposes.</p>
  */
+
 package com.carlstahmer.estc.recordimport.daemon;
 
 import java.io.FileInputStream;
@@ -31,6 +34,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.*;
 
+import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
 import org.marc4j.MarcStreamReader;
 import org.marc4j.marc.DataField;
@@ -77,7 +81,9 @@ public class LoadMarc {
 		try {			
 			
 			InputStream input = new FileInputStream(strFile);
-			MarcReader reader = new MarcStreamReader(input);
+			//MarcReader reader = new MarcStreamReader(input);
+			MarcReader reader = new MarcPermissiveStreamReader(input, true, true);
+			
 			boolean blnHasControlIdent = false;
 	        while (reader.hasNext()) {
 	            Record record = reader.next();
@@ -85,11 +91,12 @@ public class LoadMarc {
 	            List<ControlField> controlFields = record.getControlFields();
 	            String strControlNumKey = "";
 	            String strLastChange = "";
-	            int recType = 1;
+	            // int recType = 1;  // bib
+	            int recType = 2; // hold
 	            for (int i=0;i<controlFields.size();i++) {
 	            	ControlField thisControl = controlFields.get(i);
 	            	if (thisControl.getTag().equals("004")) {
-	            		recType = 2;
+	            		recType = 1;
 	            	}
 	            	if (thisControl.getTag().equals("001")) {
 	            		strControlNumKey = thisControl.getData();

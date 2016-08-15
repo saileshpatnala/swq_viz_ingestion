@@ -1,3 +1,32 @@
+/**
+ *	<p>Copyright (c) 2016, Carl Stahmer - <a href="http://www.carlstahmer.com">www.carlstahmer.com</a>.</p>
+ *	
+ *	<p>This file is part of the ESTC Record Importer package, a server 
+ *	daemon that processes incoming MARC cataloging data stored in binary
+ *	MARC, .csv, and .txt formats, checks the records for scope on date,
+ *	language, and place of publication, and exports the filtered
+ *	records as RDF suitable for linked data exchange.</p>
+ *
+ *	<p>The ESTC Record Importer is free software: you can redistribute it 
+ *	and/or modify it under the terms of the GNU General Public License 
+ *	as published by the Free Software Foundation, either version 3 of 
+ *	the License, or (at your option) any later version.</p>
+ *
+ *	<p>The ESTC Record Importer is distributed in the hope that it will 
+ *	be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+ *	of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ *	GNU General Public License for more details.</p>
+ *
+ *	<p>You should have received a copy of the GNU General Public License  
+ *	along with the ESTC Record Importer distribution.  If not, 
+ *	see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.</p>
+ *
+ *	<p>Development of this software was made possible through funding from 
+ *	the Andrew W. Mellon Foundation which maintains a nonexclusive, 
+ *  royalty-free, worldwide, perpetual, irrevocable license to distribute 
+ *  this software either in wholoe or in part for scholarly and educational purposes.</p>
+ */
+
 package com.carlstahmer.estc.recordimport.daemon;
 
 import java.util.ArrayList;
@@ -15,7 +44,10 @@ public class ExportRDF {
 	Conf configObj;
 	SqlModel sqlObj;
 	Logger logger;
+	String rdfHeader;
+	String rdfAbout;
 	String rdfString;
+	String rdfFooter;
 
 	public ExportRDF(Conf config, SqlModel sqlModObj) {
 		configObj = config;
@@ -39,11 +71,6 @@ public class ExportRDF {
 	public boolean makeRDF(int recordID, String domainURI) {
 		boolean ret = false;
 		
-		//TODO: here I need to read in the record and construct various values
-		// String libCode = GET VALUE
-
-		
-		
 		// get the record type holding/bib
 		int recordType = sqlObj.getRecordType(recordID);
 		
@@ -64,23 +91,27 @@ public class ExportRDF {
 		//String itemID = "use an ESTC ID if this is a bib record, otherwise use the record ID";
 		
 		// make header
-		rdfString = "<rdf:RDF xmlns:gl=\"http://bl.uk.org/schema#\"\n";
-		rdfString = rdfString + "    xmlns:estc=\"http://estc21.ucr.edu/schema#\"\n";
-		rdfString = rdfString + "    xmlns:dct=\"http://purl.org/dc/terms/#\"\n";
-		rdfString = rdfString + "    xmlns:dc=\"http://purl.org/dc/elements/1.1/#\"\n";
-		rdfString = rdfString + "    xmlns:foaf=\"http://xmlns.com/foaf/0.1/#\"\n";
-		rdfString = rdfString + "    xmlns:geo=\"http://www.w3.org/2003/01/geo/wgs84_pos/#\"\n";
-		rdfString = rdfString + "    xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n";
-		rdfString = rdfString + "    xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema/#\"\n";
-		rdfString = rdfString + "    xmlns:role=\"http://www.loc.gov/loc.terms/relators/\"\n";
-		rdfString = rdfString + "    xmlns:bf=\"http://bibframe.org/vocab/\"\n";
-		rdfString = rdfString + "    xmlns:relators=\"http://id.loc.gov/vocabulary/relators/\"\n";
-		rdfString = rdfString + "    xmlns:collex=\"http://www.collex.org/schema#\"\n";
-		rdfString = rdfString + "    xmlns:scm=\"http://schema.org/\" >\n";
+		rdfHeader = "<rdf:RDF xmlns:gl=\"http://bl.uk.org/schema#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:estc=\"http://estc21.ucr.edu/schema#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:dct=\"http://purl.org/dc/terms/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:dc=\"http://purl.org/dc/elements/1.1/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:foaf=\"http://xmlns.com/foaf/0.1/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:geo=\"http://www.w3.org/2003/01/geo/wgs84_pos/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:role=\"http://www.loc.gov/loc.terms/relators/\"\n";
+		rdfHeader = rdfHeader + "    xmlns:bf=\"http://bibframe.org/vocab/\"\n";
+		rdfHeader = rdfHeader + "    xmlns:relators=\"http://id.loc.gov/vocabulary/relators/\"\n";
+		rdfHeader = rdfHeader + "    xmlns:collex=\"http://www.collex.org/schema#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:scm=\"http://schema.org/\" >\n";
+		
+		// make footer
+		rdfFooter = "    </estc:estc>\n";
+		rdfFooter = rdfFooter + "</rdf:RDF>";
 		
 		// make the record itself
-		rdfString = rdfString + "    <estc:estc rdf:about=\"http://" + domainURI + "/" + itemID + "\">\n";
-		rdfString = rdfString + "        <collex:federation>ESTC</collex:federation>\n";
+		rdfAbout = "    <estc:estc rdf:about=\"http://" + domainURI + "/" + itemID + "\">\n";
+		rdfString = "        <collex:federation>ESTC</collex:federation>\n";
 		rdfString = rdfString + "        <collex:archive>" + instCode + "</collex:archive>\n";
 		
 		// setup needed output variables
@@ -91,6 +122,7 @@ public class ExportRDF {
 		ArrayList<String> coverage = new ArrayList<String>();
 		ArrayList<ArrayList<String>> authorArray = new ArrayList<ArrayList<String>>();
 		ArrayList<String> fiveHundNotes = new ArrayList<String>();
+		ArrayList<String> fiveHundTenNotes = new ArrayList<String>();
 		
 		// Get all of the fields associated with this record
 		ArrayList<Integer> fieldsArray = sqlObj.selectRecordFieldIds(recordID);
@@ -99,37 +131,6 @@ public class ExportRDF {
 			Integer fieldID = fieldsArray.get(i);
 			String fieldType = sqlObj.selectFieldType(fieldID);
 			
-			
-			
-			
-			//TO: Everything below is broken because each time I loop
-			//through a field I just grab the field that matches the record
-			//and field type, rather than grabbing by the field ID.  This
-			// means that it pulls the first record every time for fields that
-			// have  multiple entries.  I need to change this so that
-			// I'm retrieving field data by the actual id
-			
-			
-			/*
-			need to change
-			
-			getFieldByNumber(recordID, "008")
-			
-			to getFieldByID(fieldID)  [I need to create getFieldByID(String fieldID)]
-					
-			Then I need to change ever call to work this way		
-			*/
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
 			// if 245 title
 			if (fieldType.equals("245")) {
 				// get raw value
@@ -137,11 +138,11 @@ public class ExportRDF {
 				// get subfields
 				String titleA = "";
 				String titleB = "";
-				ArrayList<String> subFieldA = sqlObj.selectSubFieldValues(recordID, "245", "a");
+				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (int ia=0;ia < subFieldA.size();ia++) {
 					titleA = subFieldA.get(ia);
 				}
-				ArrayList<String> subFieldB = sqlObj.selectSubFieldValues(recordID, "245", "b");
+				ArrayList<String> subFieldB = sqlObj.selectSubFieldValuesByID(fieldID, "b");
 				for (int ia=0;ia < subFieldB.size();ia++) {
 					titleB =  subFieldB.get(ia);
 				}
@@ -198,23 +199,23 @@ public class ExportRDF {
 				
 				ArrayList<String> retVal = new ArrayList<String>();
 				
-				ArrayList<String> subFieldA = sqlObj.selectSubFieldValues(recordID, "100", "a");
+				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (int ia=0;ia < subFieldA.size();ia++) {
 					subA = subFieldA.get(ia);
 				}
-				ArrayList<String> subFieldB = sqlObj.selectSubFieldValues(recordID, "100", "b");
+				ArrayList<String> subFieldB = sqlObj.selectSubFieldValuesByID(fieldID, "b");
 				for (int ia=0;ia < subFieldB.size();ia++) {
 					subB =  subFieldB.get(ia);
 				}
-				ArrayList<String> subFieldC = sqlObj.selectSubFieldValues(recordID, "100", "c");
+				ArrayList<String> subFieldC = sqlObj.selectSubFieldValuesByID(fieldID, "c");
 				for (int ia=0;ia < subFieldC.size();ia++) {
 					subB =  subFieldC.get(ia);
 				}
-				ArrayList<String> subFieldD = sqlObj.selectSubFieldValues(recordID, "100", "d");
+				ArrayList<String> subFieldD = sqlObj.selectSubFieldValuesByID(fieldID, "d");
 				for (int ia=0;ia < subFieldD.size();ia++) {
 					subB =  subFieldD.get(ia);
 				}
-				ArrayList<String> subFieldE = sqlObj.selectSubFieldValues(recordID, "100", "e");
+				ArrayList<String> subFieldE = sqlObj.selectSubFieldValuesByID(fieldID, "e");
 				for (int ia=0;ia < subFieldE.size();ia++) {
 					subB =  subFieldE.get(ia);
 				}
@@ -426,7 +427,7 @@ public class ExportRDF {
 				String rawValue = sqlObj.getFieldByID(fieldID);;
 				// get subfields
 				String subA = "";
-				ArrayList<String> subFieldA = sqlObj.selectSubFieldValues(recordID, "655", "a");
+				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (int iag=0;iag < subFieldA.size();iag++) {
 					subA = subFieldA.get(iag);
 				}
@@ -435,6 +436,9 @@ public class ExportRDF {
 				} else if (rawValue.length() > 0) {
 					workingValue = rawValue;
 				}
+				
+				// remove trailing period
+				
 				genre = workingValue;
 			}
 			
@@ -445,7 +449,7 @@ public class ExportRDF {
 				String rawValue = sqlObj.getFieldByID(fieldID);;
 				// get subfields
 				String subA = "";
-				ArrayList<String> subFieldA = sqlObj.selectSubFieldValues(recordID, "751", "a");
+				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (int iag=0;iag < subFieldA.size();iag++) {
 					subA = subFieldA.get(iag);
 				}
@@ -470,31 +474,31 @@ public class ExportRDF {
 				String subF = "";
 				String subG = "";
 				String subH = "";
-				ArrayList<String> subFieldA = sqlObj.selectSubFieldValues(recordID, "752", "a");
+				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (int iag=0;iag < subFieldA.size();iag++) {
 					subA = subFieldA.get(iag);
 				}
-				ArrayList<String> subFieldB = sqlObj.selectSubFieldValues(recordID, "752", "b");
+				ArrayList<String> subFieldB = sqlObj.selectSubFieldValuesByID(fieldID, "b");
 				for (int iag=0;iag < subFieldB.size();iag++) {
 					subB = subFieldB.get(iag);
 				}
-				ArrayList<String> subFieldC = sqlObj.selectSubFieldValues(recordID, "752", "c");
+				ArrayList<String> subFieldC = sqlObj.selectSubFieldValuesByID(fieldID, "c");
 				for (int iag=0;iag < subFieldC.size();iag++) {
 					subC = subFieldC.get(iag);
 				}	
-				ArrayList<String> subFieldD = sqlObj.selectSubFieldValues(recordID, "752", "d");
+				ArrayList<String> subFieldD = sqlObj.selectSubFieldValuesByID(fieldID, "d");
 				for (int iag=0;iag < subFieldD.size();iag++) {
 					subD = subFieldD.get(iag);
 				}
-				ArrayList<String> subFieldF = sqlObj.selectSubFieldValues(recordID, "752", "f");
+				ArrayList<String> subFieldF = sqlObj.selectSubFieldValuesByID(fieldID, "f");
 				for (int iag=0;iag < subFieldF.size();iag++) {
 					subF = subFieldF.get(iag);
 				}
-				ArrayList<String> subFieldG = sqlObj.selectSubFieldValues(recordID, "752", "g");
+				ArrayList<String> subFieldG = sqlObj.selectSubFieldValuesByID(fieldID, "g");
 				for (int iag=0;iag < subFieldG.size();iag++) {
 					subG = subFieldG.get(iag);
 				}
-				ArrayList<String> subFieldH = sqlObj.selectSubFieldValues(recordID, "752", "h");
+				ArrayList<String> subFieldH = sqlObj.selectSubFieldValuesByID(fieldID, "h");
 				for (int iag=0;iag < subFieldH.size();iag++) {
 					subH = subFieldH.get(iag);
 				}
@@ -557,7 +561,8 @@ public class ExportRDF {
 				}
 				
 				if (workingValue.length() > 0) {
-					coverage.add(workingValue);
+					String trimmedValue = removeFinalComma(workingValue);
+					coverage.add(trimmedValue);
 				}
 
 			}
@@ -571,7 +576,6 @@ public class ExportRDF {
 				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (int in=0;in < subFieldA.size();in++) {
 					note = subFieldA.get(in);
-					System.out.println(note);
 				}
 				
 				if (note.length() > 0) {
@@ -579,6 +583,37 @@ public class ExportRDF {
 				} else if (rawValue.length() > 0) {
 					fiveHundNotes.add(rawValue);
 				}
+			}
+			
+			// 510 notes
+			if (fieldType.equals("510")) {
+				// get raw value
+				String rawValue = sqlObj.getFieldByID(fieldID);
+				// get subfields
+				String subA = "";
+				String subC = "";
+				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int in=0;in < subFieldA.size();in++) {
+					subA = subFieldA.get(in);
+				}
+				ArrayList<String> subFieldC = sqlObj.selectSubFieldValuesByID(fieldID, "c");
+				for (int in=0;in < subFieldC.size();in++) {
+					subC = subFieldC.get(in);
+				}
+				
+				String retString = "";
+				if (subA.length() > 0) {
+					if (subC.length() > 0) {
+						retString = subA + " " + subC;
+					} else {
+						String trimmedSubA = removeFinalComma(subA);
+						retString = trimmedSubA;
+					}
+				} else {
+					retString = rawValue;
+				}
+				
+				fiveHundTenNotes.add(retString);
 			}
 			
 		}
@@ -607,24 +642,68 @@ public class ExportRDF {
 				rdfString = rdfString + subjectTerms.get(ist);
 			}
 		}
+		if (fiveHundTenNotes.size() > 0) {
+			for (int isn=0;isn < fiveHundTenNotes.size();isn++) {
+				rdfString = rdfString + "        <dct:isReferencedBy>" + fiveHundTenNotes.get(isn) + "</dct:isReferencedBy>\n";
+			}
+		}
 		if (fiveHundNotes.size() > 0) {
 			for (int isn=0;isn < fiveHundNotes.size();isn++) {
 				rdfString = rdfString + "        <dct:description>" + fiveHundNotes.get(isn) + "</dct:description>\n";
 			}
 		}
 		
+		// put loop to build holding records here
+		ArrayList<HashMap<String,String>> holdingRecords = sqlObj.selectHoldingRecordIDs(itemID);
+		int ihr = 0;
+		while (ihr < holdingRecords.size()) {
+			HashMap<String,String> holdingRecordResults = holdingRecords.get(ihr);
+			int holdingRecordID = Integer.parseInt(holdingRecordResults.get("id"));
+			// now get all the 852 fields for the record
+			ArrayList<Integer> eightFiftyTwos = sqlObj.selectEightFiftyTwoFields(holdingRecordID);
+			int ihf = 0;
+			while (ihf < eightFiftyTwos.size()) {
+				int eightFiftyTwofieldID = eightFiftyTwos.get(ihf);
+				ArrayList<HashMap<String,String>> holdingSubs  = sqlObj.selectAllSubfields(eightFiftyTwofieldID);
+				// get the a subfield value (Location - in form of library code)
+				String aVal = getSubfieldValue(holdingSubs, "a");
+				// get the b subfield value (Sublocation or collection)
+				String bVal = getSubfieldValue(holdingSubs, "b");
+				// get the e subfield value (Address)
+				String eVal = getSubfieldValue(holdingSubs, "e");
+				// get the j subfield value (Shelving Control Number)
+				String jVal = getSubfieldValue(holdingSubs, "j");
+				// get the x subfield value (non public note)
+				String xVal = getSubfieldValue(holdingSubs, "x");
+				// get the r subfield value (unique id)
+				String rVal = getSubfieldValue(holdingSubs, "r");
+				// get list of q values (physical location)
+				ArrayList<String> qVals = getSubfieldValueList(holdingSubs, "q");
+				
+				// TODO: 	Now I have all the subfield values and I can build the RDF
+				//			In order to do so, I need to figure out where everything goes
+				//			in the RDF schema. Look first at NINES RDF and see if there
+				//			are existing slots where I can put stuff.  Also need to figure 
+				//			out where in the RDF digital surrogates go.
+				//			
+				
+				// this if chunk is testing code.  It can go away.
+				if (bVal.length() > 0) {
+					System.out.println("HoldingSub bVal: " + bVal);
+				} else {
+					System.out.println("no bVal");
+				}
+				
+				
+				// need to keep this so that the loop works right
+				ihf++;
+			}
+			ihr++;
+		}
 		
+		String bibRDF = rdfHeader + rdfAbout + rdfString + rdfFooter;
 		
-		
-		
-		
-		
-		
-		// make closer
-		rdfString = rdfString + "    </estc:estc>\n";
-		rdfString = rdfString + "</rdf:RDF>";
-		
-		System.out.println(rdfString);
+		System.out.println(bibRDF);
 		
 		return ret;
 	}
@@ -633,13 +712,14 @@ public class ExportRDF {
 	public String getSubject(int recordID, String field, ArrayList<String> subFields, String separator) {
 		String ret = "";
 		String workingString = "";
+		int fieldIDasInt = Integer.parseInt(field);
 		// get raw value
 		
 		String rawValue = sqlObj.getFieldByNumber(recordID, field);
 		
 		for (int ia=0;ia < subFields.size();ia++) {
 			String localWorking = "";
-			ArrayList<String> subFieldIt = sqlObj.selectSubFieldValues(recordID, field, subFields.get(ia));
+			ArrayList<String> subFieldIt = sqlObj.selectSubFieldValuesByID(fieldIDasInt, subFields.get(ia));
 			for (int iab=0;iab < subFieldIt.size();iab++) {
 				localWorking = subFieldIt.get(iab);
 			}
@@ -675,6 +755,37 @@ public class ExportRDF {
 	public String removeFinalComma(String str) {
 	    String ret = str.substring(0, str.length()-1);
 	    return ret;
+	}
+	
+	public String getSubfieldValue(ArrayList<HashMap<String,String>> thisRow, String subfield) {
+		String retVal = null;
+		int isfr = 0;
+		while (isfr < thisRow.size()) {
+			HashMap<String,String> holdingRecordSubFieldsRes = thisRow.get(isfr);
+			String subfieldvalue = holdingRecordSubFieldsRes.get("subfield");
+			if (subfieldvalue.equals(subfield)) {
+				retVal = holdingRecordSubFieldsRes.get("value");
+			}
+			isfr++;
+		}
+		
+		return retVal;
+		
+	}
+	public ArrayList<String> getSubfieldValueList(ArrayList<HashMap<String,String>> thisRow, String subfield) {
+		ArrayList<String> retVals = new ArrayList<String>();
+		int isfr = 0;
+		while (isfr < thisRow.size()) {
+			HashMap<String,String> holdingRecordSubFieldsRes = thisRow.get(isfr);
+			String subfieldvalue = holdingRecordSubFieldsRes.get("subfield");
+			if (subfieldvalue.equals(subfield)) {
+				retVals.add(holdingRecordSubFieldsRes.get("value"));
+			}
+			isfr++;
+		}
+		
+		return retVals;
+		
 	}
 
 }

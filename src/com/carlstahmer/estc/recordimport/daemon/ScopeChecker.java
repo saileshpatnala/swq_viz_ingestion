@@ -1,11 +1,11 @@
 /**
- *	<p>Copyright (c) 2014, Carl Stahmer - <a href="http://www.carlstahmer.com">www.carlstahmer.com</a>.</p>
+ *	<p>Copyright (c) 2016, Carl Stahmer - <a href="http://www.carlstahmer.com">www.carlstahmer.com</a>.</p>
  *	
  *	<p>This file is part of the ESTC Record Importer package, a server 
  *	daemon that processes incoming MARC cataloging data stored in binary
  *	MARC, .csv, and .txt formats, checks the records for scope on date,
- *	language, and place of publication, and the makes the filtered
- *	records available to other services via OAI-PMH.</p>
+ *	language, and place of publication, and exports the filtered
+ *	records as RDF suitable for linked data exchange.</p>
  *
  *	<p>The ESTC Record Importer is free software: you can redistribute it 
  *	and/or modify it under the terms of the GNU General Public License 
@@ -22,8 +22,11 @@
  *	see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.</p>
  *
  *	<p>Development of this software was made possible through funding from 
- *	the Andrew W. Mellon Foundation.</p>
+ *	the Andrew W. Mellon Foundation which maintains a nonexclusive, 
+ *  royalty-free, worldwide, perpetual, irrevocable license to distribute 
+ *  this software either in wholoe or in part for scholarly and educational purposes.</p>
  */
+
 package com.carlstahmer.estc.recordimport.daemon;
 
 import java.util.ArrayList;

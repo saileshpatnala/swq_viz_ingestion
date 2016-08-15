@@ -4,7 +4,8 @@
 #   start if this file is not present in the document root.
 
 #   The directory where the daemon should look for files
-listendir: /Users/cstahmer/Documents/estc_record_importer/MARCTESTS/estcstar
+#   listendir: /Users/cstahmer/Documents/estc_record_importer/MARCTESTS/estcstar
+listendir: /Users/cstahmer/Documents/estc_record_importer/MARCTESTS/dev
 
 #   The directory where the daemon should write data.  This is
 #   the directory that the XC Marctools server is monitoring
@@ -21,7 +22,8 @@ runinterval: 5000
 dbserver: localhost
 
 #	The SQL Databse
-dbname: estcimports
+#   dbname: estcimports
+dbname: estcimport_dev
 
 #	The SQL User
 dbuser: estcimporter
