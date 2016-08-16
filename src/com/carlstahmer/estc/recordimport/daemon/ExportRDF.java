@@ -24,7 +24,7 @@
  *	<p>Development of this software was made possible through funding from 
  *	the Andrew W. Mellon Foundation which maintains a nonexclusive, 
  *  royalty-free, worldwide, perpetual, irrevocable license to distribute 
- *  this software either in wholoe or in part for scholarly and educational purposes.</p>
+ *  this software either in whole or in part for scholarly and educational purposes.</p>
  */
 
 package com.carlstahmer.estc.recordimport.daemon;
@@ -66,6 +66,12 @@ public class ExportRDF {
 		
 		return success;
 	}
+	
+	
+	// TODO: Something is wrong with the way subjects are getting 
+	// written out.  Also need to fix the data display.  Also, RDF
+	// is currently not parsing correctly.  This could just be because
+	// of the errors above, but I'll have to figure it out.
 	
 	// create an RDF string for a resource
 	public boolean makeRDF(int recordID, String domainURI) {
@@ -109,8 +115,12 @@ public class ExportRDF {
 		rdfFooter = "    </estc:estc>\n";
 		rdfFooter = rdfFooter + "</rdf:RDF>";
 		
+		// make unique identifier for about and parent associations
+		String uniqueRI = "http://" + domainURI + "/" + itemID;
+		String parentAssoc = "        <bf:instanceOf>" + uniqueRI + "</bf:instanceOf>\n";
+		
 		// make the record itself
-		rdfAbout = "    <estc:estc rdf:about=\"http://" + domainURI + "/" + itemID + "\">\n";
+		rdfAbout = "    <estc:estc rdf:about=\"" + uniqueRI + "\">\n";
 		rdfString = "        <collex:federation>ESTC</collex:federation>\n";
 		rdfString = rdfString + "        <collex:archive>" + instCode + "</collex:archive>\n";
 		
@@ -140,7 +150,7 @@ public class ExportRDF {
 				String titleB = "";
 				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (int ia=0;ia < subFieldA.size();ia++) {
-					titleA = subFieldA.get(ia);
+					titleA = fixAmper(subFieldA.get(ia));
 				}
 				ArrayList<String> subFieldB = sqlObj.selectSubFieldValuesByID(fieldID, "b");
 				for (int ia=0;ia < subFieldB.size();ia++) {
@@ -654,6 +664,7 @@ public class ExportRDF {
 		}
 		
 		// put loop to build holding records here
+		ArrayList<String> children = new ArrayList<String>();
 		ArrayList<HashMap<String,String>> holdingRecords = sqlObj.selectHoldingRecordIDs(itemID);
 		int ihr = 0;
 		while (ihr < holdingRecords.size()) {
@@ -680,25 +691,38 @@ public class ExportRDF {
 				// get list of q values (physical location)
 				ArrayList<String> qVals = getSubfieldValueList(holdingSubs, "q");
 				
-				// TODO: 	Now I have all the subfield values and I can build the RDF
-				//			In order to do so, I need to figure out where everything goes
-				//			in the RDF schema. Look first at NINES RDF and see if there
-				//			are existing slots where I can put stuff.  Also need to figure 
-				//			out where in the RDF digital surrogates go.
-				//			
 				
-				// this if chunk is testing code.  It can go away.
-				if (bVal.length() > 0) {
-					System.out.println("HoldingSub bVal: " + bVal);
-				} else {
-					System.out.println("no bVal");
+				// get the unique holding info
+				String uniqueHRI = "http://" + domainURI + "/" + rVal;
+				String rdfAboutHolding = "    <estc:estc rdf:about=\"" + uniqueHRI + "\">\n";
+				children.add(uniqueHRI);
+				String rdfStringAdditions = "        <role:OWN>" + aVal + "</role:OWN>\n";
+				rdfStringAdditions = rdfStringAdditions + "        <role:RPS>" + bVal + "</role:RPS>\n";
+				rdfStringAdditions = rdfStringAdditions + "        <bf:shelfMark>" + jVal + "</bf:shelfMark>\n";
+				int ihq = 0;
+				while (ihq < qVals.size()) {
+					String subLocationValue = qVals.get(ihq);
+					if (subLocationValue.length() > 0) {
+						rdfStringAdditions = rdfStringAdditions + "        <bf:subLocation>" + subLocationValue + "</bf:subLocation>\n";
+					}
+					ihq++;
 				}
 				
 				
+				// now construct an rdf output for this holding:
+				String holdingRDF = rdfHeader + rdfAboutHolding + rdfString + rdfStringAdditions + parentAssoc + rdfFooter;
+				System.out.println(holdingRDF);
 				// need to keep this so that the loop works right
 				ihf++;
 			}
 			ihr++;
+		}
+		
+		// add child associations if any
+		int ihch = 0;
+		while (ihch < children.size()) {
+			rdfString = rdfString + "        <bf:hasInstance>" + children.get(ihch) + "</bf:hasInstance>\n";
+			ihch++;
 		}
 		
 		String bibRDF = rdfHeader + rdfAbout + rdfString + rdfFooter;
@@ -786,6 +810,11 @@ public class ExportRDF {
 		
 		return retVals;
 		
+	}
+	
+	public String fixAmper(String str) {
+		String retStr = str.replace("&", "&amp;");
+		return retStr;
 	}
 
 }

@@ -24,7 +24,7 @@
  *	<p>Development of this software was made possible through funding from 
  *	the Andrew W. Mellon Foundation which maintains a nonexclusive, 
  *  royalty-free, worldwide, perpetual, irrevocable license to distribute 
- *  this software either in wholoe or in part for scholarly and educational purposes.</p>
+ *  this software either in whole or in part for scholarly and educational purposes.</p>
  */
 
 package com.carlstahmer.estc.recordimport.daemon;
