@@ -586,8 +586,7 @@ public class SqlModel {
 		String strSql = "SELECT records.id FROM records" +
 				" WHERE records.exported = 0" +
 				" AND records.type = 1" +
-				" ORDER BY records.id ASC" +
-				" LIMIT 2";
+				" ORDER BY records.id ASC";
 		
 		if (!connOpen) {
 			this.openConnection();
@@ -1426,8 +1425,7 @@ public class SqlModel {
 	public boolean updateExported(int recordID) {
 		String strSql = "UPDATE records " +
 				"SET exported = 1 WHERE id = " + recordID+ ";";
-		//boolean retFlag = qUpdate(strSql);
-		boolean retFlag = true;
+		boolean retFlag = qUpdate(strSql);
 		return retFlag;
 	}
 	
