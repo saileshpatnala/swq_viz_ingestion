@@ -715,19 +715,19 @@ public class ExportRDF {
 				String uniqueHRI = "http://" + domainURI + "/" + rVal;
 				String rdfAboutHolding = "    <estc:estc rdf:about=\"" + uniqueHRI + "\">\n";
 				children.add(uniqueHRI);
-				String rdfStringAdditions = "        <role:OWN>" + aVal + "</role:OWN>\n";
-				rdfStringAdditions = rdfStringAdditions + "        <role:RPS>" + bVal + "</role:RPS>\n";
-				rdfStringAdditions = rdfStringAdditions + "        <bf:shelfMark>" + jVal + "</bf:shelfMark>\n";
+				String rdfStringAdditions = "";
 				int ihq = 0;
 				while (ihq < qVals.size()) {
 					String subLocationValue = qVals.get(ihq);
 					if (subLocationValue != null && subLocationValue.length() > 0) {
-						rdfStringAdditions = rdfStringAdditions + "        <bf:subLocation>" + subLocationValue + "</bf:subLocation>\n";
+						rdfStringAdditions = rdfStringAdditions + "        <dct:description>" + subLocationValue + "</dct:description>\n";
 					}
 					ihq++;
 				}
-				
-				
+				rdfStringAdditions = "        <role:OWN>" + aVal + "</role:OWN>\n";
+				rdfStringAdditions = rdfStringAdditions + "        <role:RPS>" + bVal + "</role:RPS>\n";
+				rdfStringAdditions = rdfStringAdditions + "        <bf:shelfMark>" + jVal + "</bf:shelfMark>\n";
+								
 				// now construct an rdf output for this holding:
 				String holdingRDF = rdfHeader + rdfAboutHolding + rdfString + rdfStringAdditions + parentAssoc + rdfFooter;
 				
