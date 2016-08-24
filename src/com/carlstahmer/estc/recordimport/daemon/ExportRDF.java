@@ -29,6 +29,9 @@
 
 package com.carlstahmer.estc.recordimport.daemon;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -59,19 +62,14 @@ public class ExportRDF {
 		boolean success = false;
 		
 		// loop through all bib records and send to makeRDF for each
-		ArrayList<Integer> recordsQueue = sqlObj.selectUnprocessedBibs();
+		ArrayList<Integer> recordsQueue = sqlObj.selectUnExportedBibs();
 		for (int i=0;i < recordsQueue.size();i++) {
-			makeRDF(recordsQueue.get(i), domainURI);
+			int workingRecordID = recordsQueue.get(i);
+			makeRDF(workingRecordID, domainURI);
 		}
 		
 		return success;
 	}
-	
-	
-	// TODO: Something is wrong with the way subjects are getting 
-	// written out.  Also need to fix the data display.  Also, RDF
-	// is currently not parsing correctly.  This could just be because
-	// of the errors above, but I'll have to figure it out.
 	
 	// create an RDF string for a resource
 	public boolean makeRDF(int recordID, String domainURI) {
@@ -87,6 +85,9 @@ public class ExportRDF {
 		} else {
 			itemID = String.valueOf(recordID);
 		}
+		
+		System.out.println("Processing record " + recordID + " item " + itemID);
+		
 		
 		// get the library code for the record
 		ArrayList<HashMap<String,String>> tableResults = sqlObj.selectFileInfoById(sqlObj.selectRecordFileId(recordID));
@@ -127,12 +128,15 @@ public class ExportRDF {
 		// setup needed output variables
 		String finalTitle = "Utitled or Title not Known";
 		String finalDate = "";
+		String finalDateString = "";
 		ArrayList<String> subjectTerms = new ArrayList<String>();
 		String genre = "";
 		ArrayList<String> coverage = new ArrayList<String>();
 		ArrayList<ArrayList<String>> authorArray = new ArrayList<ArrayList<String>>();
 		ArrayList<String> fiveHundNotes = new ArrayList<String>();
 		ArrayList<String> fiveHundTenNotes = new ArrayList<String>();
+		ArrayList<String> surrogateSub = new ArrayList<String>();
+		String estcID = "";
 		
 		// Get all of the fields associated with this record
 		ArrayList<Integer> fieldsArray = sqlObj.selectRecordFieldIds(recordID);
@@ -154,15 +158,15 @@ public class ExportRDF {
 				}
 				ArrayList<String> subFieldB = sqlObj.selectSubFieldValuesByID(fieldID, "b");
 				for (int ia=0;ia < subFieldB.size();ia++) {
-					titleB =  subFieldB.get(ia);
+					titleB =  fixAmper(subFieldB.get(ia));
 				}
 				
-				if (titleA.length() > 0) {
+				if (titleA != null && titleA.length() > 0) {
 					finalTitle = titleA;
-					if (titleB.length() > 0) {
+					if (titleB != null && titleB.length() > 0) {
 						finalTitle = finalTitle + " " + titleB;
 					}
-				} else if (rawValue.length() > 0) {
+				} else if (rawValue != null && rawValue.length() > 0) {
 					finalTitle = rawValue;
 				} else {
 					finalTitle = "Utitled or Title not Known";
@@ -173,7 +177,7 @@ public class ExportRDF {
 			if (fieldType.equals("008")) {
 				// get raw value
 				String rawZeroZeroEight = sqlObj.getFieldByNumber(recordID, "008");
-				if (rawZeroZeroEight.length() > 13 ) {
+				if (rawZeroZeroEight != null && rawZeroZeroEight.length() > 13 ) {
 					String one = String.valueOf(rawZeroZeroEight.charAt(7));
 					String two = String.valueOf(rawZeroZeroEight.charAt(8));
 					String three = String.valueOf(rawZeroZeroEight.charAt(9));
@@ -186,10 +190,13 @@ public class ExportRDF {
 					startDate = startDate.replaceAll("[^\\d.]", "");
 					String endDate = five + six + seven + eight;
 					endDate = endDate.replaceAll("[^\\d.]", "");
-					if (startDate.length() == 4) {
+
+					if (startDate  != null && startDate.length() == 4) {
 						finalDate = startDate;
-						if (endDate.length() == 4) {
-							finalDate = finalDate + "-" + endDate;
+						finalDateString = finalDate;
+						if ( endDate != null && endDate.length() == 4) {
+							finalDate = finalDate + "," + endDate;
+							finalDateString = finalDate + "," + endDate;
 						}
 					}
 				}
@@ -219,49 +226,51 @@ public class ExportRDF {
 				}
 				ArrayList<String> subFieldC = sqlObj.selectSubFieldValuesByID(fieldID, "c");
 				for (int ia=0;ia < subFieldC.size();ia++) {
-					subB =  subFieldC.get(ia);
+					subC =  subFieldC.get(ia);
 				}
 				ArrayList<String> subFieldD = sqlObj.selectSubFieldValuesByID(fieldID, "d");
 				for (int ia=0;ia < subFieldD.size();ia++) {
-					subB =  subFieldD.get(ia);
+					subD =  subFieldD.get(ia);
 				}
 				ArrayList<String> subFieldE = sqlObj.selectSubFieldValuesByID(fieldID, "e");
 				for (int ia=0;ia < subFieldE.size();ia++) {
-					subB =  subFieldE.get(ia);
+					subE =  subFieldE.get(ia);
 				}
 				
 				String seperator = " ";
-				if (subA.length() > 0) {
-					if (subB.length() == 0 && subC.length() == 0 && subD.length() == 0) {
+				if (subA  != null && subA.length() > 0) {
+					if (subB != null && subB.length() == 0 && subC != null && subC.length() == 0 && subD != null && subD.length() == 0) {
 						String trimmed = removeFinalComma(subA);
 						thisAuthor = trimmed;
 					} else {
 						thisAuthor = subA;
-						if (subB.length() > 0) {
-							if (subC.length() == 0 && subD.length() == 0) {
+						if (subB != null && subB.length() > 0) {
+							if (subC != null && subC.length() == 0 && subD != null && subD.length() == 0) {
 								String trimmedB = removeFinalComma(subB);
 								thisAuthor = thisAuthor + seperator + trimmedB;
 							} else {
 								thisAuthor = thisAuthor + seperator + subB;
 							}
 						}
-						if (subC.length() > 0) {
-							if (subD.length() == 0) {
+						if (subC != null && subC.length() > 0) {
+							if (subD != null && subD.length() == 0) {
 								String trimmedC = removeFinalComma(subC);
 								thisAuthor = thisAuthor + seperator + trimmedC;
 							} else {
 								thisAuthor = thisAuthor + seperator + subC;
 							}
 						}	
-						if (subD.length() > 0) {
+						if (subD != null && subD.length() > 0) {
 								thisAuthor = thisAuthor + seperator + subD;
 						}
 					}
-				} else if (rawValue.length() > 0) {
+				} else if (rawValue != null && rawValue.length() > 0) {
 					thisAuthor = rawValue;
 				}
 				
-				if (subE.length() == 0) {
+				thisAuthor = fixAmper(thisAuthor);
+				
+				if (subE != null && subE.length() == 0) {
 					subE = "AUT";
 				}
 				
@@ -279,8 +288,8 @@ public class ExportRDF {
 				subFieldsToInclude.add("c");
 				subFieldsToInclude.add("d");
 				String thisSubjectString = getSubject(recordID, "600", subFieldsToInclude, " ");
-				if (thisSubjectString.length() > 0) {
-					subjectTerms.add(thisSubjectString);
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
 			}
@@ -290,8 +299,8 @@ public class ExportRDF {
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "610", subFieldsToInclude, " ");
-				if (thisSubjectString.length() > 0) {
-					subjectTerms.add(thisSubjectString);
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
 			}
@@ -303,8 +312,8 @@ public class ExportRDF {
 				subFieldsToInclude.add("b");
 				subFieldsToInclude.add("c");
 				String thisSubjectString = getSubject(recordID, "611", subFieldsToInclude, " ");
-				if (thisSubjectString.length() > 0) {
-					subjectTerms.add(thisSubjectString);
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
 			}
@@ -314,8 +323,8 @@ public class ExportRDF {
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "630", subFieldsToInclude, " ");
-				if (thisSubjectString.length() > 0) {
-					subjectTerms.add(thisSubjectString);
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
 			}
@@ -325,8 +334,8 @@ public class ExportRDF {
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "648", subFieldsToInclude, " ");
-				if (thisSubjectString.length() > 0) {
-					subjectTerms.add(thisSubjectString);
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
 			}
@@ -339,8 +348,8 @@ public class ExportRDF {
 				subFieldsToInclude.add("c");
 				subFieldsToInclude.add("d");
 				String thisSubjectString = getSubject(recordID, "650", subFieldsToInclude, " ");
-				if (thisSubjectString.length() > 0) {
-					subjectTerms.add(thisSubjectString);
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
 			}
@@ -350,8 +359,8 @@ public class ExportRDF {
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "651", subFieldsToInclude, " ");
-				if (thisSubjectString.length() > 0) {
-					subjectTerms.add(thisSubjectString);
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
 			}
@@ -361,8 +370,8 @@ public class ExportRDF {
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "653", subFieldsToInclude, " ");
-				if (thisSubjectString.length() > 0) {
-					subjectTerms.add(thisSubjectString);
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
 			}
@@ -373,8 +382,8 @@ public class ExportRDF {
 				subFieldsToInclude.add("a");
 				subFieldsToInclude.add("b");
 				String thisSubjectString = getSubject(recordID, "654", subFieldsToInclude, " ");
-				if (thisSubjectString.length() > 0) {
-					subjectTerms.add(thisSubjectString);
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
 			}
@@ -384,8 +393,8 @@ public class ExportRDF {
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "656", subFieldsToInclude, " ");
-				if (thisSubjectString.length() > 0) {
-					subjectTerms.add(thisSubjectString);
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
 			}
@@ -395,8 +404,8 @@ public class ExportRDF {
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "657", subFieldsToInclude, " ");
-				if (thisSubjectString.length() > 0) {
-					subjectTerms.add(thisSubjectString);
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
 			}
@@ -407,8 +416,8 @@ public class ExportRDF {
 				subFieldsToInclude.add("a");
 				subFieldsToInclude.add("b");
 				String thisSubjectString = getSubject(recordID, "658", subFieldsToInclude, " ");
-				if (thisSubjectString.length() > 0) {
-					subjectTerms.add(thisSubjectString);
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
 			}
@@ -424,10 +433,15 @@ public class ExportRDF {
 				subFieldsToInclude.add("g");
 				subFieldsToInclude.add("h");
 				String thisSubjectString = getSubject(recordID, "662", subFieldsToInclude, " ");
-				if (thisSubjectString.length() > 0) {
-					subjectTerms.add(thisSubjectString);
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
+			}
+			
+			// digital surrogates
+			if (fieldType.equals("856")) {
+				surrogateSub = sqlObj.selectSubFieldValuesByID(fieldID, "u");
 			}
 			
 			// collex:genre
@@ -441,15 +455,14 @@ public class ExportRDF {
 				for (int iag=0;iag < subFieldA.size();iag++) {
 					subA = subFieldA.get(iag);
 				}
-				if (subA.length() > 0) {
+				if (subA != null && subA.length() > 0) {
 					workingValue = subA;
-				} else if (rawValue.length() > 0) {
+				} else if (rawValue != null && rawValue.length() > 0) {
 					workingValue = rawValue;
 				}
 				
 				// remove trailing period
-				
-				genre = workingValue;
+				genre = fixAmper(workingValue);
 			}
 			
 			// dc:coverage
@@ -463,12 +476,12 @@ public class ExportRDF {
 				for (int iag=0;iag < subFieldA.size();iag++) {
 					subA = subFieldA.get(iag);
 				}
-				if (subA.length() > 0) {
+				if (subA != null && subA.length() > 0) {
 					workingValue = subA;
-				} else if (rawValue.length() > 0) {
+				} else if (rawValue != null && rawValue.length() > 0) {
 					workingValue = rawValue;
 				}
-				coverage.add(workingValue);
+				coverage.add(fixAmper(workingValue));
 			}
 			
 			// dc:coverage - hierarchical
@@ -486,78 +499,78 @@ public class ExportRDF {
 				String subH = "";
 				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (int iag=0;iag < subFieldA.size();iag++) {
-					subA = subFieldA.get(iag);
+					subA = fixAmper(subFieldA.get(iag));
 				}
 				ArrayList<String> subFieldB = sqlObj.selectSubFieldValuesByID(fieldID, "b");
 				for (int iag=0;iag < subFieldB.size();iag++) {
-					subB = subFieldB.get(iag);
+					subB = fixAmper(subFieldB.get(iag));
 				}
 				ArrayList<String> subFieldC = sqlObj.selectSubFieldValuesByID(fieldID, "c");
 				for (int iag=0;iag < subFieldC.size();iag++) {
-					subC = subFieldC.get(iag);
+					subC = fixAmper(subFieldC.get(iag));
 				}	
 				ArrayList<String> subFieldD = sqlObj.selectSubFieldValuesByID(fieldID, "d");
 				for (int iag=0;iag < subFieldD.size();iag++) {
-					subD = subFieldD.get(iag);
+					subD = fixAmper(subFieldD.get(iag));
 				}
 				ArrayList<String> subFieldF = sqlObj.selectSubFieldValuesByID(fieldID, "f");
 				for (int iag=0;iag < subFieldF.size();iag++) {
-					subF = subFieldF.get(iag);
+					subF = fixAmper(subFieldF.get(iag));
 				}
 				ArrayList<String> subFieldG = sqlObj.selectSubFieldValuesByID(fieldID, "g");
 				for (int iag=0;iag < subFieldG.size();iag++) {
-					subG = subFieldG.get(iag);
+					subG = fixAmper(subFieldG.get(iag));
 				}
 				ArrayList<String> subFieldH = sqlObj.selectSubFieldValuesByID(fieldID, "h");
 				for (int iag=0;iag < subFieldH.size();iag++) {
-					subH = subFieldH.get(iag);
+					subH = fixAmper(subFieldH.get(iag));
 				}
 				
 				String seperator = "--";
 				boolean notFirst = false;
-				if (subA.length() > 0) {
+				if (subA != null && subA.length() > 0) {
 					if (notFirst) {
 						workingValue = workingValue + seperator;
 					}
 					workingValue = workingValue + subA;
 					notFirst = true;
 				}
-				if (subB.length() > 0) {
+				if (subB != null && subB.length() > 0) {
 					if (notFirst) {
 						workingValue = workingValue + seperator;
 					}
 					workingValue = workingValue + subB;
 					notFirst = true;
 				}
-				if (subC.length() > 0) {
+				if (subC != null && subC.length() > 0) {
 					if (notFirst) {
 						workingValue = workingValue + seperator;
 					}
 					workingValue = workingValue + subC;
 					notFirst = true;
 				}
-				if (subD.length() > 0) {
+				if (subD != null && subD.length() > 0) {
 					if (notFirst) {
 						workingValue = workingValue + seperator;
 					}
 					workingValue = workingValue + subD;
 					notFirst = true;
 				}
-				if (subF.length() > 0) {
+				if (subF != null && subF.length() > 0) {
 					if (notFirst) {
 						workingValue = workingValue + seperator;
 					}
 					workingValue = workingValue + subF;
 					notFirst = true;
 				}
-				if (subG.length() > 0) {
+				if (subG != null && subG.length() > 0) {
 					if (notFirst) {
 						workingValue = workingValue + seperator;
 					}
 					workingValue = workingValue + subG;
 					notFirst = true;
 				}
-				if (subH.length() > 0) {
+				if (subH != null && subH.length() > 0) {
 					if (notFirst) {
 						workingValue = workingValue + seperator;
 					}
@@ -566,13 +579,13 @@ public class ExportRDF {
 				}
 					
 					
-				if ((workingValue.length() == 0) && (rawValue.length() > 0)) {
+				if ((workingValue != null) && (workingValue.length() == 0) && (rawValue != null) &&  (rawValue.length() > 0)) {
 					workingValue = rawValue;
 				}
 				
-				if (workingValue.length() > 0) {
+				if (workingValue != null && workingValue.length() > 0) {
 					String trimmedValue = removeFinalComma(workingValue);
-					coverage.add(trimmedValue);
+					coverage.add(fixAmper(trimmedValue));
 				}
 
 			}
@@ -588,10 +601,10 @@ public class ExportRDF {
 					note = subFieldA.get(in);
 				}
 				
-				if (note.length() > 0) {
-					fiveHundNotes.add(note);
-				} else if (rawValue.length() > 0) {
-					fiveHundNotes.add(rawValue);
+				if (note != null && note.length() > 0) {
+					fiveHundNotes.add(fixAmper(note));
+				} else if (rawValue != null && rawValue.length() > 0) {
+					fiveHundNotes.add(fixAmper(rawValue));
 				}
 			}
 			
@@ -612,8 +625,8 @@ public class ExportRDF {
 				}
 				
 				String retString = "";
-				if (subA.length() > 0) {
-					if (subC.length() > 0) {
+				if (subA != null && subA.length() > 0) {
+					if (subC != null && subC.length() > 0) {
 						retString = subA + " " + subC;
 					} else {
 						String trimmedSubA = removeFinalComma(subA);
@@ -622,8 +635,8 @@ public class ExportRDF {
 				} else {
 					retString = rawValue;
 				}
-				
-				fiveHundTenNotes.add(retString);
+	
+				fiveHundTenNotes.add(fixAmper(retString));
 			}
 			
 		}
@@ -636,28 +649,32 @@ public class ExportRDF {
 			rdfString = rdfString + formatContributor(thisCont.get(0), thisCont.get(1));
 		}
 		
-		if (finalDate.length() > 0) {
-			rdfString = rdfString + "        <dc:date>" + finalDate + "</dc:date>\n";
+		if (finalDate != null && finalDate.length() > 0) {
+			rdfString = rdfString + "        <dc:date>\n             <collex:date>\n";
+			rdfString = rdfString + "                  <rdfs:label>" + finalDateString + "</rdfs:label>\n";
+			rdfString = rdfString + "                  <rdfs:value>" + finalDateString + "</rdfs:value>\n";
+			rdfString = rdfString + "             </collex:date>\n        </dc:date>\n";
+			
 		}
-		if (coverage.size() > 0) {
+		if (coverage != null && coverage.size() > 0) {
 			for (int ic=0;ic < coverage.size();ic++) {
 				rdfString = rdfString + "        <dc:coverage>" + coverage.get(ic) + "</dc:coverage>\n";
 			}
 		}
-		if (genre.length() > 0) {
+		if (genre != null && genre.length() > 0) {
 			rdfString = rdfString + "        <collex:genre>" + genre + "</collex:genre>\n";
 		}
-		if (subjectTerms.size() > 0) {
+		if (subjectTerms != null && subjectTerms.size() > 0) {
 			for (int ist=0;ist < subjectTerms.size();ist++) {
 				rdfString = rdfString + subjectTerms.get(ist);
 			}
 		}
-		if (fiveHundTenNotes.size() > 0) {
+		if (fiveHundTenNotes != null && fiveHundTenNotes.size() > 0) {
 			for (int isn=0;isn < fiveHundTenNotes.size();isn++) {
 				rdfString = rdfString + "        <dct:isReferencedBy>" + fiveHundTenNotes.get(isn) + "</dct:isReferencedBy>\n";
 			}
 		}
-		if (fiveHundNotes.size() > 0) {
+		if (fiveHundNotes != null && fiveHundNotes.size() > 0) {
 			for (int isn=0;isn < fiveHundNotes.size();isn++) {
 				rdfString = rdfString + "        <dct:description>" + fiveHundNotes.get(isn) + "</dct:description>\n";
 			}
@@ -668,6 +685,7 @@ public class ExportRDF {
 		ArrayList<HashMap<String,String>> holdingRecords = sqlObj.selectHoldingRecordIDs(itemID);
 		int ihr = 0;
 		while (ihr < holdingRecords.size()) {
+			String uniqueHoldingID = "";
 			HashMap<String,String> holdingRecordResults = holdingRecords.get(ihr);
 			int holdingRecordID = Integer.parseInt(holdingRecordResults.get("id"));
 			// now get all the 852 fields for the record
@@ -677,17 +695,18 @@ public class ExportRDF {
 				int eightFiftyTwofieldID = eightFiftyTwos.get(ihf);
 				ArrayList<HashMap<String,String>> holdingSubs  = sqlObj.selectAllSubfields(eightFiftyTwofieldID);
 				// get the a subfield value (Location - in form of library code)
-				String aVal = getSubfieldValue(holdingSubs, "a");
+				String aVal = fixAmper(getSubfieldValue(holdingSubs, "a"));
 				// get the b subfield value (Sublocation or collection)
-				String bVal = getSubfieldValue(holdingSubs, "b");
+				String bVal = fixAmper(getSubfieldValue(holdingSubs, "b"));
 				// get the e subfield value (Address)
-				String eVal = getSubfieldValue(holdingSubs, "e");
+				String eVal = fixAmper(getSubfieldValue(holdingSubs, "e"));
 				// get the j subfield value (Shelving Control Number)
-				String jVal = getSubfieldValue(holdingSubs, "j");
+				String jVal = fixAmper(getSubfieldValue(holdingSubs, "j"));
 				// get the x subfield value (non public note)
-				String xVal = getSubfieldValue(holdingSubs, "x");
+				String xVal = fixAmper(getSubfieldValue(holdingSubs, "x"));
 				// get the r subfield value (unique id)
-				String rVal = getSubfieldValue(holdingSubs, "r");
+				String rVal = fixAmper(getSubfieldValue(holdingSubs, "r"));
+				uniqueHoldingID = rVal;
 				// get list of q values (physical location)
 				ArrayList<String> qVals = getSubfieldValueList(holdingSubs, "q");
 				
@@ -702,7 +721,7 @@ public class ExportRDF {
 				int ihq = 0;
 				while (ihq < qVals.size()) {
 					String subLocationValue = qVals.get(ihq);
-					if (subLocationValue.length() > 0) {
+					if (subLocationValue != null && subLocationValue.length() > 0) {
 						rdfStringAdditions = rdfStringAdditions + "        <bf:subLocation>" + subLocationValue + "</bf:subLocation>\n";
 					}
 					ihq++;
@@ -711,10 +730,33 @@ public class ExportRDF {
 				
 				// now construct an rdf output for this holding:
 				String holdingRDF = rdfHeader + rdfAboutHolding + rdfString + rdfStringAdditions + parentAssoc + rdfFooter;
-				System.out.println(holdingRDF);
+				
+				// TODO: Write out Holding RDF
+				try {
+					// write out the rdf
+					PrintWriter holdingWriter = new PrintWriter( configObj.writeDir + "/hold_" + uniqueHoldingID + ".rdf", "UTF-8");
+					holdingWriter.print(holdingRDF);
+					holdingWriter.close();
+					
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					System.out.println("Error exporting record " + holdingRecordID + " holding item " + uniqueHoldingID);
+					e.printStackTrace();
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					System.out.println("Error exporting record " + holdingRecordID + " holding item " + uniqueHoldingID);
+					e.printStackTrace();
+				}
+				
+				//System.out.println(holdingRDF);
+				System.out.println("Processed holding record " + holdingRecordID + " item " + uniqueHoldingID);
+
 				// need to keep this so that the loop works right
 				ihf++;
 			}
+			
+			// mark the holding record as exported
+			sqlObj.updateExported(holdingRecordID);
 			ihr++;
 		}
 		
@@ -725,9 +767,36 @@ public class ExportRDF {
 			ihch++;
 		}
 		
+		// add digital surrogates
+		for (int ids=0;ids < surrogateSub.size();ids++) {
+			String digSur = surrogateSub.get(ids);
+			if (digSur != null && digSur.length() > 0) {
+				rdfString = rdfString + "        <scm:url>" + digSur + "</scm:url>\n";
+			}
+		}
+		
 		String bibRDF = rdfHeader + rdfAbout + rdfString + rdfFooter;
 		
-		System.out.println(bibRDF);
+		// TODO: write out bib rdf
+		try {
+			PrintWriter bibWriter = new PrintWriter( configObj.writeDir + "/bib_" + itemID + ".rdf", "UTF-8");
+			bibWriter.print(bibRDF);
+			bibWriter.close();
+			// if i'm here than we didn't throw an error so 
+			// so mark the record as exported
+			sqlObj.updateExported(recordID);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println("Error exporting record " + recordID + " holding item " + itemID);
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			System.out.println("Error exporting record " + recordID + " holding item " + itemID);
+			e.printStackTrace();
+		}
+		
+		// System.out.println(bibRDF);
+		System.out.println("Processed bib record " + recordID + " item " + itemID);
 		
 		return ret;
 	}
@@ -736,30 +805,41 @@ public class ExportRDF {
 	public String getSubject(int recordID, String field, ArrayList<String> subFields, String separator) {
 		String ret = "";
 		String workingString = "";
-		int fieldIDasInt = Integer.parseInt(field);
-		// get raw value
 		
+		// get raw value and field id
 		String rawValue = sqlObj.getFieldByNumber(recordID, field);
-		
-		for (int ia=0;ia < subFields.size();ia++) {
-			String localWorking = "";
-			ArrayList<String> subFieldIt = sqlObj.selectSubFieldValuesByID(fieldIDasInt, subFields.get(ia));
-			for (int iab=0;iab < subFieldIt.size();iab++) {
-				localWorking = subFieldIt.get(iab);
-			}
-			if (localWorking.length() > 0) {
-				if (workingString.length() > 0) {
-					workingString = workingString + separator;
-				}
-				workingString = workingString + localWorking;
-			}
+		ArrayList<HashMap<String,String>> RetInfo = sqlObj.getFieldInfo(recordID, field);
+		String FieldID = "";
+		for (int sfa=0;sfa < RetInfo.size();sfa++) {
+			HashMap<String,String> thisHash = RetInfo.get(sfa); 
+			FieldID = thisHash.get("id");
 		}
 		
-		if ((workingString.length() == 0) && (rawValue.length() > 0)) {
+		if (FieldID != null && FieldID.length() > 0) {
+			
+			int FieldIdAsInt = Integer.parseInt(FieldID);
+			
+			for (int ia=0;ia < subFields.size();ia++) {
+				String localWorking = "";
+				ArrayList<String> subFieldIt = sqlObj.selectSubFieldValuesByID(FieldIdAsInt, subFields.get(ia));
+				for (int iab=0;iab < subFieldIt.size();iab++) {
+					localWorking = subFieldIt.get(iab);
+				}
+				if (localWorking != null && localWorking.length() > 0) {
+					if (workingString != null && workingString.length() > 0) {
+						workingString = workingString + separator;
+					}
+					workingString = workingString + localWorking;
+				}
+			}			
+			
+		}
+		
+		if ((workingString != null) && (workingString.length() == 0) && (rawValue != null) && (rawValue.length() > 0)) {
 			workingString = rawValue;
 		}
 		
-		if (workingString.length() > 0) {
+		if (workingString != null && workingString.length() > 0) {
 			String collapseString = workingString.replaceAll("[^\\s]", "");
 			ret = ret + "        <dct:subject>\n";
 			ret = ret + "                <scm:about rdfs:resource=\"http://estc.bl.uk/subjects/" + collapseString + "\">\n";
@@ -803,7 +883,7 @@ public class ExportRDF {
 			HashMap<String,String> holdingRecordSubFieldsRes = thisRow.get(isfr);
 			String subfieldvalue = holdingRecordSubFieldsRes.get("subfield");
 			if (subfieldvalue.equals(subfield)) {
-				retVals.add(holdingRecordSubFieldsRes.get("value"));
+				retVals.add(fixAmper(holdingRecordSubFieldsRes.get("value")));
 			}
 			isfr++;
 		}
@@ -812,8 +892,11 @@ public class ExportRDF {
 		
 	}
 	
-	public String fixAmper(String str) {
-		String retStr = str.replace("&", "&amp;");
+	public static String fixAmper(String str) {
+		String retStr = "";
+		if ( str != null && str.length() > 0) {
+			retStr = str.replace("&", "&amp;");
+		}
 		return retStr;
 	}
 

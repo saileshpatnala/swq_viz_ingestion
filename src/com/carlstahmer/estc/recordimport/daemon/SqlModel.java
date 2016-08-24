@@ -569,6 +569,68 @@ public class SqlModel {
 		return resultSetList;
 	}
 	
+	
+	/**
+	 * <p>Select all BIB records in the records table 
+	 * where records.exported == 0</p>
+	 *
+	 * @return	an ArrayList of record.id(s)
+	 */
+	public ArrayList<Integer> selectUnExportedBibs() {
+				
+		// initialize required objects
+		ArrayList<Integer> resultSetList = new ArrayList<Integer>();
+		
+		
+		// define query
+		String strSql = "SELECT records.id FROM records" +
+				" WHERE records.exported = 0" +
+				" AND records.type = 1" +
+				" ORDER BY records.id ASC" +
+				" LIMIT 2";
+		
+		if (!connOpen) {
+			this.openConnection();
+		}
+		
+		// initialize required objects
+		Statement stmt = null;
+		ResultSet resultSet = null;
+	
+		// run query
+		try {
+			stmt = conn.createStatement();
+	        resultSet = stmt.executeQuery(strSql);
+
+	        while (resultSet.next()) {
+	        		resultSetList.add(resultSet.getInt(1));
+	        }
+
+	        try {
+	        	resultSet.close();
+	        } catch (SQLException sqlEx) { } // ignore
+		    
+		
+		} catch (SQLException ex){
+		    // handle any errors
+		    System.out.println("SQLException SqlModel.java qSelectString: " + ex.getMessage());
+		    System.out.println("SQLState: " + ex.getSQLState());
+		    System.out.println("VendorError: " + ex.getErrorCode());
+		} finally {
+		    try {
+		    	stmt.close();
+		    } catch (SQLException sqlEx) { } // ignore
+
+		}
+		
+		if (connOpen) {
+			this.closeConnection();
+		}
+
+        // return result
+		return resultSetList;
+	}
+	
 	/**
 	 * <p>Select all holding records</p>
 	 *
@@ -613,6 +675,21 @@ public class SqlModel {
 		retString = qSelectString(strSQL);
 		return retString;
 	}
+
+	/**
+	 * <p>Select field by number for a record</p>
+	 * 
+	 * @param	intRecordId		the record ID of the MARC record
+	 * @param	fieldID			The field ID you want to get
+	 *
+	 * @return	a String containing the value of the identifies field field
+	 */	
+	public ArrayList<HashMap<String,String>> getFieldInfo(int intRecordId, String fieldID) {
+		String strSQL = "SELECT id, value FROM records_has_fields WHERE record_id = " + intRecordId + " AND field LIKE '" + fieldID + "'";
+		ArrayList<HashMap<String,String>> tableResults = qSelectGenericMultiRow(strSQL);
+		return tableResults;
+	}
+	
 	
 	/**
 	 * <p>Select field by number for a record</p>
@@ -1336,6 +1413,22 @@ public class SqlModel {
 				" WHERE id = " + String.valueOf(recordId);
 		boolean marked = qUpdate(strSql);
 		return marked;
+	}
+	
+	
+	/**
+	 * <p>Updates a record status to exported.</p>
+	 *
+	 * @param  	strFileId		the file id to update
+	 * @param  	fileModDate  	the new mod date
+	 * @return				1 = success, 0 = failure
+	 */
+	public boolean updateExported(int recordID) {
+		String strSql = "UPDATE records " +
+				"SET exported = 1 WHERE id = " + recordID+ ";";
+		//boolean retFlag = qUpdate(strSql);
+		boolean retFlag = true;
+		return retFlag;
 	}
 	
 	/**

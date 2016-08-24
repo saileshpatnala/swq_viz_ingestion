@@ -74,7 +74,7 @@ public class ProcessManager {
 	 */	
 	public void runOnce() {
 		
-		System.out.println("I'm in runOnce");
+		//System.out.println("I'm in runOnce");
 		
 // importer part	
 /*		
@@ -228,7 +228,7 @@ public class ProcessManager {
 		// filter for date and language
 		// check for ESTC numbers
 		
-		System.out.println("I'm here");
+		//System.out.println("I'm here");
 		
 		// The scope checker code below has been checked and is working
 		// ScopeChecker myScopeCheck = new ScopeChecker(config, sqlObj);
