@@ -72,176 +72,186 @@ public class ProcessManager {
 	/**
 	 * <p>Launches the MARC import process a single time.</p>
 	 */	
-	public void runOnce() {
-		
-		//System.out.println("I'm in runOnce");
-		
-// importer part	
-/*		
-		// This part of the code imports the marc
-		
-		FileUtils fileUts = new FileUtils(config, sqlObj);
-		fileUts.listFoldersRecursive();
-		if (fileUts.directoryList.size() > 0) {
+	public void runOnce(int runType) {
+
+		// run an import if the runType that the listener 
+		// requests is 0, else run an export
+		if (runType == 0) {
 			
-			System.out.println("Found Files");
+			// This part of the code imports the marc
+			System.out.println("Start of Import");
 			
-			for (int id=0;id<fileUts.directoryList.size();id++) {
-				String curCode = fileUts.directoryList.get(id);
-				//if (Arrays.asList(config.estcCodes).contains(curCode)) {
-					curCode = "estcstar";
-				//}
-				String curDir = config.listenDir+"/"+curCode;
-				logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Working in directory: "+curDir);
-				fileUts.listFilesForFolder(curDir);
-				if (fileUts.fileList.size() > 0) {
-					
-					for (int i=0; i < fileUts.fileList.size(); i++) {
-
-						// construct a filename
-						String fileToProcess = curDir + "/" + fileUts.fileList.get(i);
+			FileUtils fileUts = new FileUtils(config, sqlObj);
+			fileUts.listFoldersRecursive();
+			if (fileUts.directoryList.size() > 0) {
+				
+				System.out.println("Found Files");
+				
+				for (int id=0;id<fileUts.directoryList.size();id++) {
+					String curCode = fileUts.directoryList.get(id);
+					//if (Arrays.asList(config.estcCodes).contains(curCode)) {
+						curCode = "estcstar";
+					//}
+					String curDir = config.listenDir+"/"+curCode;
+					logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Working in directory: "+curDir);
+					fileUts.listFilesForFolder(curDir);
+					if (fileUts.fileList.size() > 0) {
 						
-						System.out.println("File" + fileToProcess);
-						
-						// instantiate file object to get last processed date
-						File fileInfo = new File(fileToProcess);
-						long fileModDate = fileInfo.lastModified();
-
-						// now check to see if this is existing file that has not been modified.
-						// create or load SQL file record
-						// selectFileRecord(curCode, fileName, fileModDate)
-						logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Sql connection opened");
-						logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Checking whether file has been previously processed");
-						int fileRecordId = sqlObj.selectFileRecordStrict(curCode, fileUts.fileList.get(i), fileModDate);
-						if (fileRecordId == 0) {
-
-							String fileName = fileInfo.getName();
-							logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Processing File "+fileName+" Last Modified "+fileModDate);
-							logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Current Institutional Code "+curCode);
+						for (int i=0; i < fileUts.fileList.size(); i++) {
 							
-							// create or load SQL file record
-							logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Sql connection opened");
-							int dupFileRecordId = sqlObj.selectFileRecord(curCode, fileName);	
-							boolean newFile = false;
-							if (dupFileRecordId == 0) {
-								newFile = true;
-								fileRecordId = sqlObj.insertFileRecord(curCode, fileName, fileModDate, 1);
-								logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "File " + fileName + " entered in system as new file with ID " + fileRecordId);
-							} else {
-								fileRecordId = dupFileRecordId;
-								logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "File " + fileName + " already exists in system with ID " + fileRecordId + ".  Timestamp will be updated at conclusion of record processing." );
-							}
+	
+							// construct a filename
+							String fileToProcess = curDir + "/" + fileUts.fileList.get(i);
+							
+							
+							System.out.println("Processing File: " + fileToProcess);
 							
 							// get a file type and process accordingly
 							int intFileType = fileUts.fileType(fileUts.fileList.get(i));
 							
-							if (intFileType == 1) {
-								// this is a marc file
-								logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Processing MARC file "+fileToProcess);
-								LoadMarc myMarcInstance = new LoadMarc(config, sqlObj);
-								myMarcInstance.loadMarcFile(fileToProcess, curCode, fileRecordId);
+							if (intFileType > 0) {
+								// instantiate file object to get last processed date
+								File fileInfo = new File(fileToProcess);
+								long fileModDate = fileInfo.lastModified();
+		
+								// now check to see if this is existing file that has not been modified.
+								// create or load SQL file record
+								// selectFileRecord(curCode, fileName, fileModDate)
+								logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Sql connection opened");
+								logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Checking whether file has been previously processed");
+								int fileRecordId = sqlObj.selectFileRecordStrict(curCode, fileUts.fileList.get(i), fileModDate);
+								if (fileRecordId == 0) {
+		
+									String fileName = fileInfo.getName();
+									logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Processing File "+fileName+" Last Modified "+fileModDate);
+									logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Current Institutional Code "+curCode);
+									
+									// create or load SQL file record
+									logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Sql connection opened");
+									int dupFileRecordId = sqlObj.selectFileRecord(curCode, fileName);	
+									boolean newFile = false;
+									if (dupFileRecordId == 0) {
+										newFile = true;
+										fileRecordId = sqlObj.insertFileRecord(curCode, fileName, fileModDate, 1);
+										logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "File " + fileName + " entered in system as new file with ID " + fileRecordId);
+									} else {
+										fileRecordId = dupFileRecordId;
+										logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "File " + fileName + " already exists in system with ID " + fileRecordId + ".  Timestamp will be updated at conclusion of record processing." );
+									}
+									
+									if (intFileType == 1) {
+										// this is a marc file
+										logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Processing MARC file "+fileToProcess);
+										LoadMarc myMarcInstance = new LoadMarc(config, sqlObj);
+										myMarcInstance.loadMarcFile(fileToProcess, curCode, fileRecordId);
+										
+									} else if (intFileType == 2) {
+										// this is a text file
+										logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Processing text file "+fileToProcess);
+									
+									
+									} else if (intFileType == 3) {
+										// this is an excel file
+										logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Processing Excel file "+fileToProcess);
+										
+										
+									} else if (intFileType == 4) {
+										// this is a csv file
+										logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Processing CSV file "+fileToProcess);
+										
+										
+									} else if (intFileType == 5) {
+										// this is an xml file
+										logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Processing XML file "+fileToProcess);
+										
+										
+									} else {
+										// this is an unrecognized file
+										logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Unable to process file "+fileToProcess+"--Unrecognized file type");
+									}
+									
+									if (!newFile) {
+							        	// update file modification date for file in db so that it reflects
+							        	// the latest mod date on system correctly
+							        	boolean dateUpdated = sqlObj.updateFileModDate(fileRecordId, fileModDate);
+							        	if (dateUpdated) {
+							        		logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Updated modification date of file " + fileName + " with system ID "+fileRecordId+" to "+fileModDate);
+							        	} else {
+							        		logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Unable to update modification date of file "+fileRecordId+" with system modification date of "+fileModDate);
+							        	}
+		
+							        }
+									
+									
+									
 								
-							} else if (intFileType == 2) {
-								// this is a text file
-								logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Processing text file "+fileToProcess);
-							
-							
-							} else if (intFileType == 3) {
-								// this is an excel file
-								logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Processing Excel file "+fileToProcess);
-								
-								
-							} else if (intFileType == 4) {
-								// this is a csv file
-								logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Processing CSV file "+fileToProcess);
-								
-								
-							} else if (intFileType == 5) {
-								// this is an xml file
-								logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Processing XML file "+fileToProcess);
-								
-								
+								} else {
+									logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Skipping file " + fileUts.fileList.get(i) + " -- already exists in system with last modification date of " + fileModDate + " -- file ID " + fileRecordId);
+								}
+									
 							} else {
-								// this is an unrecognized file
-								logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Unable to process file "+fileToProcess+"--Unrecognized file type");
+								logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Skipping file of unknown file type " + fileUts.fileList.get(i));
+								System.out.println("Skipping file of unknown file type " + fileUts.fileList.get(i));
 							}
+							// now that I'm here, whatever kind of file we started with,
+							// the data has been written to the system so now I can process
+							// it by checking if it is date and language relevant, if a holding
+							// record, does it have the correct association with a bib record
+							// does it have an ESTC number anywhere in the data that can 
+							// be extracted and placed in the proper place
 							
-							if (!newFile) {
-					        	// update file modification date for file in db so that it reflects
-					        	// the latest mod date on system correctly
-					        	boolean dateUpdated = sqlObj.updateFileModDate(fileRecordId, fileModDate);
-					        	if (dateUpdated) {
-					        		logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Updated modification date of file " + fileName + " with system ID "+fileRecordId+" to "+fileModDate);
-					        	} else {
-					        		logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Unable to update modification date of file "+fileRecordId+" with system modification date of "+fileModDate);
-					        	}
-
-					        }
+							// need to do some more research here and figure out
+							// if I want to go to holding/bib record format or collapse
+							// everything to bib records.  
 							
 							
 							
-						
-						} else {
-							logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Skipping file " + fileUts.fileList.get(i) + " -- already exists in system with last modification date of " + fileModDate + " -- file ID " + fileRecordId);
+							
 						}
-								
-	
-						// now that I'm here, whatever kind of file we started with,
-						// the data has been written to the system so now I can process
-						// it by checking if it is date and language relevant, if a holding
-						// record, does it have the correct association with a bib record
-						// does it have an ESTC number anywhere in the data that can 
-						// be extracted and placed in the proper place
-						
-						// need to do some more research here and figure out
-						// if I want to go to holding/bib record format or collapse
-						// everything to bib records.  
-						
-						
-						
-						
-					}
-				} else {
-					logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "No files found in folder");
-				}				
-			
+					} else {
+						logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "No files found in folder");
+					}				
+				
+				}
+				
+			} else {
+				System.out.println("Didn't find any files");
+				logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "No instituional folders found in read directory");
 			}
 			
+			System.out.println("End of Import");
+			
+			// THIS IS THE END OF THE IMPORT PART
+			
 		} else {
-			System.out.println("Didn't find any files");
-			logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "No instituional folders found in read directory");
+			
+			System.out.println("Start of Export");
+		
+			// NEXT COMES THE OUTPUT PART
+			
+	
+			// when I've gotten to here, I have broken down all the files from this directory,
+			// so now I can go ahead and write the good MARC out
+			//
+			// filter for date and language
+			// check for ESTC numbers
+			
+			//System.out.println("I'm here");
+			
+			// The scope checker code below has been checked and is working
+			// ScopeChecker myScopeCheck = new ScopeChecker(config, sqlObj);
+			// boolean thisScopeCheck = myScopeCheck.applyScopeFilter();
+			
+//			ExportRDF rdfExporter = new ExportRDF(config, sqlObj);
+//			rdfExporter.makeRDFAllBibs("estc.bl.uk");
+			
+			
+			// MergeHoldings myMergeHoldings = new MergeHoldings(config, sqlObj);
+			// boolean thisMergeHoldings = myMergeHoldings.doMerge();
+			
+			System.out.println("End of Export");
+		
 		}
-		
-		System.out.println("End of Import");
-		// THIS IS THE END OF THE IMPORT PART
-
-
-// IMPORTER TEMPORARY COMMENT OUT END
-*/
-		
-		// NEXT COMES THE OUTPUT PART
-		
-
-		// when I've gotten to here, I have broken down all the files from this directory,
-		// so now I can go ahead and write the good MARC out
-		//
-		// filter for date and language
-		// check for ESTC numbers
-		
-		//System.out.println("I'm here");
-		
-		// The scope checker code below has been checked and is working
-		// ScopeChecker myScopeCheck = new ScopeChecker(config, sqlObj);
-		// boolean thisScopeCheck = myScopeCheck.applyScopeFilter();
-		
-		ExportRDF rdfExporter = new ExportRDF(config, sqlObj);
-		rdfExporter.makeRDFAllBibs("estc.bl.uk");
-		
-		
-		// MergeHoldings myMergeHoldings = new MergeHoldings(config, sqlObj);
-		// boolean thisMergeHoldings = myMergeHoldings.doMerge();
-		
-		//System.out.println("And now I'm here");
 		
 		
 	}

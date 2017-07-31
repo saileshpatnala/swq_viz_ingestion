@@ -69,6 +69,19 @@ public class Listener {
 		// Welcome Message
 		System.out.println("Starting ESTC Marc Import/Export Server...");
 		
+		// Get input arguments and process accordingly
+		int processType = 0;
+		for (String s: args) {
+            if (s.matches("export")) {
+            	processType = 1;
+            } 
+        }
+		if (processType > 0) {
+			System.out.println("Running in Export mode");
+		} else {
+			System.out.println("Running in Import mode");
+		}
+		
 		// Load required configuration YML file
 		Conf config = new Conf();
 		if (!config.loadConf()) {
@@ -107,6 +120,7 @@ public class Listener {
 	    if (config.listenDir.substring(config.listenDir.length() - 1).equals("/")) {
 	    	config.listenDir = config.listenDir.substring(0, config.listenDir.length() - 1);
 	    }
+	    System.out.println("Listen Directory: " + config.listenDir);
 	    
 	    // Start the process manager
 	    ProcessManager pm = new ProcessManager(config, sqlObj);
@@ -115,7 +129,8 @@ public class Listener {
 	    // I'm currently calling the runOnce() method.  I will ultimately
 	    // need to fix the actual daemon listener and change this.
 	    // I should probably make it a config / command line option
-	    pm.runOnce();
+	    
+	    pm.runOnce(processType);
 	    		
 		sqlObj.closeConnection();
 		logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Process Completed");

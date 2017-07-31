@@ -91,6 +91,7 @@ public class FileUtils {
 	public void listFoldersRecursive() {
 		directoryList.clear();
 		String folderToListen = config.listenDir;
+		System.out.println("Reading Folder: " + folderToListen);
 		listFolders(folderToListen);
 	}
 	
@@ -151,11 +152,12 @@ public class FileUtils {
 			logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "SQL connection opened");
 			intRet = sqlObj.selectFileTypeID(fileSuffix);
 			logger.log(3, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Retrieving File Type");
-
-		}	
-		
-		intRet = 1;
-	
+			if (fileSuffix.equals("mrc")) {
+				intRet = 1;
+			}
+			
+			
+		}
 		return intRet;
 	}
 	

@@ -62,6 +62,7 @@ public class ExportRDF {
 		boolean success = false;
 		
 		// loop through all bib records and send to makeRDF for each
+		
 		ArrayList<Integer> recordsQueue = sqlObj.selectUnExportedBibs();
 		for (int i=0;i < recordsQueue.size();i++) {
 			int workingRecordID = recordsQueue.get(i);
@@ -87,14 +88,12 @@ public class ExportRDF {
 		}
 		
 		System.out.println("Processing record " + recordID + " item " + itemID);
-		
-		
+
 		// get the library code for the record
 		ArrayList<HashMap<String,String>> tableResults = sqlObj.selectFileInfoById(sqlObj.selectRecordFileId(recordID));
 		HashMap<String,String> recordInfoRecord = tableResults.get(0);
 		String instCode = recordInfoRecord.get("institution_code");
-		
-		
+	
 		//String itemID = "use an ESTC ID if this is a bib record, otherwise use the record ID";
 		
 		// make header
@@ -171,6 +170,7 @@ public class ExportRDF {
 				} else {
 					finalTitle = "Utitled or Title not Known";
 				}
+
 			}
 			
 			// if 008 date
@@ -638,7 +638,7 @@ public class ExportRDF {
 	
 				fiveHundTenNotes.add(fixAmper(retString));
 			}
-			
+
 		}
 		
 		// build the content part of the RDF
@@ -758,6 +758,7 @@ public class ExportRDF {
 			// mark the holding record as exported
 			sqlObj.updateExported(holdingRecordID);
 			ihr++;
+		
 		}
 		
 		// add child associations if any

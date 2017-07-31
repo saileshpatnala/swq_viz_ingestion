@@ -91,13 +91,17 @@ public class LoadMarc {
 	            List<ControlField> controlFields = record.getControlFields();
 	            String strControlNumKey = "";
 	            String strLastChange = "";
+	            boolean blnTypeIdentified = false;
 	            // int recType = 1;  // bib
-	            int recType = 2; // hold
+	            // int recType = 2; // hold
+	            // int recType = 3; // orphan
+	            int recType = 0;
 	            for (int i=0;i<controlFields.size();i++) {
+	            	
+	            	
+	            	
 	            	ControlField thisControl = controlFields.get(i);
-	            	if (thisControl.getTag().equals("004")) {
-	            		recType = 1;
-	            	}
+	            	
 	            	if (thisControl.getTag().equals("001")) {
 	            		strControlNumKey = thisControl.getData();
 	            	}
@@ -109,15 +113,31 @@ public class LoadMarc {
 	            	}
 	            }
 	            
+	            	if (strControlNumKey.matches("^[S|N|R|W|T]\\d+")) {
+	            		// if here then this is an ESTC bib or holding record
+	            		if (blnHasControlIdent) {
+	            			recType = 1;
+	            			System.out.println("Processing Bib Record");
+	            		} else {
+	            			recType = 2;
+	            			System.out.println("Processing Holding Record");
+	            		}    	
+		            } else {
+		            	// if here, then this is an unmatched record
+		            	recType = 3;
+		            	System.out.println("Processing Un-Matched Record");
+		            }
+
+	            
+	            
 	            if (strLastChange.length() < 1) {
 	            	strLastChange = "0";
 	            }
 	            double moddate;
 	            moddate = Double.parseDouble(strLastChange);
-
-	            
+            
 	            // Now check and see if this record already exists if we got a control key
-	            if (strControlNumKey.length() > 0) {
+	            if (strControlNumKey.length() > 0 || recType == 0) {
 	            	
 	            	int intRecordId = recs.duplicateRecordCheck(curCode, strControlNumKey, moddate, recType);
 	            	
@@ -208,7 +228,7 @@ public class LoadMarc {
 	            	}
 	            	
 	            } else {
-	            	logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Unable to process record due to missing or blank conrole field [001]");
+	            	logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Unable to process record due to missing or blank control field [001]");
 	            }
 
 	            // now create the holdings records for held items

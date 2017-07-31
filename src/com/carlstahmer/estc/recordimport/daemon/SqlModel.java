@@ -35,9 +35,12 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -78,20 +81,31 @@ public class SqlModel {
 	 */
 	public boolean openConnection() {
 		
-		try {
-			
-			String strConnString = "jdbc:mysql://"+dbserver+"/"+dbname+"?user="+dbuser+"&password="+dbpass;
-	        conn = DriverManager.getConnection(strConnString);
-	        connOpen = true;
-			return true;
-	    } catch (SQLException ex) {
-	        // handle any errors
-	    	System.out.println("pass: " + dbpass);
-	        System.out.println("SQLException SqlModel.java openConnection(): " + ex.getMessage());
-	        System.out.println("SQLState: " + ex.getSQLState());
-	        System.out.println("VendorError: " + ex.getErrorCode());
-	        return false;
-	    }
+		connOpen = false;
+		
+		do {
+			try {
+				//currentTime();
+				String strConnString = "jdbc:mysql://"+dbserver+"/"+dbname+"?user="+dbuser+"&password="+dbpass;
+		        conn = DriverManager.getConnection(strConnString);
+		        connOpen = true;
+		        //currentTime();
+		    } catch (SQLException ex) {
+		        // handle any errors
+		    	System.out.println("pass: " + dbpass);
+		        System.out.println("SQLException SqlModel.java openConnection(): " + ex.getMessage());
+		        System.out.println("SQLState: " + ex.getSQLState());
+		        System.out.println("VendorError: " + ex.getErrorCode());
+		        try {
+					TimeUnit.SECONDS.sleep(30);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		    }
+		} while (connOpen == false);
+		
+		return true;
 		
 	}
 	
@@ -214,7 +228,8 @@ public class SqlModel {
 		String strSql = "SELECT records.id FROM records " +
 							"JOIN records_has_fields ON records_has_fields.record_id = records.id " +
 							"WHERE records.type = 2 AND records_has_fields.field LIKE \"001\" " +
-							"AND records_has_fields.value LIKE \"" + estcID + "\"";
+							"AND records_has_fields.shortval LIKE \"" + estcID + "\"";
+		//System.out.println("strsql: " + strSql);
 		ArrayList<HashMap<String,String>> tableResults = qSelectGeneric(strSql);
 		return tableResults;
 	}	
@@ -700,7 +715,7 @@ public class SqlModel {
 	 */	
 	public String getFieldByID(int fieldID) {
 		String retString = "";
-		String strSQL = "SELECT value FROM records_has_fields WHERE id LIKE '" + fieldID + "'";
+		String strSQL = "SELECT value FROM records_has_fields WHERE id = " + fieldID;
 		retString = qSelectString(strSQL);
 		return retString;
 	}
@@ -1361,6 +1376,7 @@ public class SqlModel {
 			    System.out.println("SQLException SqlModel.java qInsert: " + ex.getMessage());
 			    System.out.println("SQLState: " + ex.getSQLState());
 			    System.out.println("VendorError: " + ex.getErrorCode());
+			    System.out.println("SQL Statement: " + strSql);
 
 		} finally {
 
@@ -1706,6 +1722,13 @@ public class SqlModel {
 				" WHERE id = " + recordId;
 		boolean marked = qUpdate(strSql);
 		return marked;
+	}
+	
+	
+	public void currentTime() {
+	        Calendar cal = Calendar.getInstance();
+	        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+	        System.out.println( sdf.format(cal.getTime()) );
 	}
 	
 	
