@@ -152,151 +152,7 @@ public class ExportRDF {
  * eg -> <collex:thumbnail rdf:resource="http://YOUR_PUBLICATION.ORG/THUMBNAIL.JPG"/>
  */
 			
-			
-/* TODO
- * 
- * FIELD 210 - Abbreviated Title
-
-Subfield Codes
-$a - Abbreviated title (NR) 
-$b - Qualifying information (NR) 
-$2 - Source (R)
-
-XML ENTITY: rdau:P60359  abbreviatedTitle
-
- * 			
- */	
-
-			
-/* TODO
- * 
- * FIELD 130 & 730 - Uniform Title
-
-Subfield Codes
-$a - Uniform title (NR)
-$d - Date of treaty signing (R)
-$f - Date of a work (NR)
-$g - Miscellaneous information (R)
-$h - Medium (NR)
-$k - Form subheading (R)
-$l - Language of a work (NR)
-$m - Medium of performance for music (R)
-$n - Number of part/section of a work (R)
-$o - Arranged statement for music (NR)
-$p - Name of part/section of a work (R)
-$r - Key for music (NR)
-$s - Version (NR)
-$t - Title of a work (NR)
-$0 - Authority record control number or standard number (R)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
-
-XML ENTITY: rdau:P60367 titleOfResource 
-
-* 			
-*/	
-			
-			
-/* TODO
- * 
- * FIELD 240 - Uniform Title (again)
-
-Subfield Codes
-$a - Uniform title (NR)
-$d - Date of treaty signing (R)
-$f - Date of a work (NR)
-$g - Miscellaneous information (R)
-$h - Medium (NR)
-$k - Form subheading (R)
-$l - Language of a work (NR)
-$m - Medium of performance for music (R)
-$n - Number of part/section of a work (R)
-$o - Arranged statement for music (NR)
-$p - Name of part/section of a work (R)
-$r - Key for music (NR)
-$s - Version (NR)
-$0 - Authority record control number or standard number (R)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
-
-XML ENTITY: rdau:P60367 titleOfResource
-
- * 			
- */	
 	
-
-/* TODO
- * 
- * FIELD 243 - Collective Uniform Title
-
-Subfield Codes
-$a - Uniform title (NR)
-$d - Date of treaty signing (R)
-$f - Date of a work (NR)
-$g - Miscellaneous information (R)
-$h - Medium (NR)
-$k - Form subheading (R)
-$l - Language of a work (NR)
-$m - Medium of performance for music (R)
-$n - Number of part/section of a work (R)
-$o - Arranged statement for music (NR)
-$p - Name of part/section of a work (R)
-$r - Key for music (NR)
-$s - Version (NR)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
-
-XML ENTITY: rdau:P60516 titleProperOfSeries
-
- * 			
- */	
-
-
-/* TODO
- * 
- * FIELD 246 - Varrying Form of Title
-
-Subfield Codes
-$a - Title proper/short title (NR)
-$b - Remainder of title (NR)
-$f - Date or sequential designation (NR)
-$g - Miscellaneous information (R)
-$h - Medium (NR)
-$i - Display text (NR)
-$n - Number of part/section of a work (R)
-$p - Name of part/section of a work (R)
-$5 - Institution to which field applies (NR)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
-
-XML ENTITY: rdau:P60355 variantTitle
-
- * 			
- */				
-
-			
-/* TODO
- * 
- * FIELD 247 - Former Title
-
-Subfield Codes
-$a - Title (NR)
-$b - Remainder of title (NR)
-$f - Date or sequential designation (NR)
-$g - Miscellaneous information (R)
-$h - Medium (NR)
-$n - Number of part/section of a work (R)
-$p - Name of part/section of a work (R)
-$x - International Standard Serial Number (NR)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
-
-XML ENTITY: rdau:P60358 earlierTitleProper
-
- * 			
- */	
-			
-		
 			// if 245 title
 			if (fieldType.equals("245")) {
 				// get raw value
@@ -325,6 +181,161 @@ XML ENTITY: rdau:P60358 earlierTitleProper
 				}
 
 			}
+			
+			/* TODO
+			 * 
+			 * FIELD 210 - Abbreviated Title
+
+			Subfield Codes
+			$a - Abbreviated title (NR) 
+			$b - Qualifying information (NR) 
+			$2 - Source (R)
+
+			XML ENTITY: rdau:P60359  abbreviatedTitle
+			
+			String abrvTitle = ""; // rdau:abbreviatedTitle
+
+			 * 			
+			 */	
+
+						
+			/* TODO
+			 * 
+			 * FIELD 130 & 730 - Uniform Title
+
+			Subfield Codes
+			$a - Uniform title (NR)
+			$d - Date of treaty signing (R)
+			$f - Date of a work (NR)
+			$g - Miscellaneous information (R)
+			$h - Medium (NR)
+			$k - Form subheading (R)
+			$l - Language of a work (NR)
+			$m - Medium of performance for music (R)
+			$n - Number of part/section of a work (R)
+			$o - Arranged statement for music (NR)
+			$p - Name of part/section of a work (R)
+			$r - Key for music (NR)
+			$s - Version (NR)
+			$t - Title of a work (NR)
+			$0 - Authority record control number or standard number (R)
+			$6 - Linkage (NR)
+			$8 - Field link and sequence number (R)
+
+			XML ENTITY: rdau:P60367 titleOfResource 
+			
+			String uniformTitle = ""; // rdau:titleOfResource
+
+			* 			
+			*/	
+						
+						
+			/* TODO
+			 * 
+			 * FIELD 240 - Uniform Title (again)
+
+			Subfield Codes
+			$a - Uniform title (NR)
+			$d - Date of treaty signing (R)
+			$f - Date of a work (NR)
+			$g - Miscellaneous information (R)
+			$h - Medium (NR)
+			$k - Form subheading (R)
+			$l - Language of a work (NR)
+			$m - Medium of performance for music (R)
+			$n - Number of part/section of a work (R)
+			$o - Arranged statement for music (NR)
+			$p - Name of part/section of a work (R)
+			$r - Key for music (NR)
+			$s - Version (NR)
+			$0 - Authority record control number or standard number (R)
+			$6 - Linkage (NR)
+			$8 - Field link and sequence number (R)
+
+			XML ENTITY: rdau:P60367 titleOfResource
+			
+			String uniformTitleTwoForty = ""; // rdau:titleOfResource
+
+			 * 			
+			 */	
+				
+
+			/* TODO
+			 * 
+			 * FIELD 243 - Collective Uniform Title
+
+			Subfield Codes
+			$a - Uniform title (NR)
+			$d - Date of treaty signing (R)
+			$f - Date of a work (NR)
+			$g - Miscellaneous information (R)
+			$h - Medium (NR)
+			$k - Form subheading (R)
+			$l - Language of a work (NR)
+			$m - Medium of performance for music (R)
+			$n - Number of part/section of a work (R)
+			$o - Arranged statement for music (NR)
+			$p - Name of part/section of a work (R)
+			$r - Key for music (NR)
+			$s - Version (NR)
+			$6 - Linkage (NR)
+			$8 - Field link and sequence number (R)
+
+			XML ENTITY: rdau:P60516 titleProperOfSeries
+			
+			String seriesUniformTitle = ""; // rdau:titleProperOfSeries
+
+			 * 			
+			 */	
+
+
+			/* TODO
+			 * 
+			 * FIELD 246 - Varrying Form of Title
+
+			Subfield Codes
+			$a - Title proper/short title (NR)
+			$b - Remainder of title (NR)
+			$f - Date or sequential designation (NR)
+			$g - Miscellaneous information (R)
+			$h - Medium (NR)
+			$i - Display text (NR)
+			$n - Number of part/section of a work (R)
+			$p - Name of part/section of a work (R)
+			$5 - Institution to which field applies (NR)
+			$6 - Linkage (NR)
+			$8 - Field link and sequence number (R)
+
+			XML ENTITY: rdau:P60355 variantTitle
+			
+			String variantTitle = ""; // rdau:variantTitle
+
+			 * 			
+			 */				
+
+						
+			/* TODO
+			 * 
+			 * FIELD 247 - Former Title
+
+			Subfield Codes
+			$a - Title (NR)
+			$b - Remainder of title (NR)
+			$f - Date or sequential designation (NR)
+			$g - Miscellaneous information (R)
+			$h - Medium (NR)
+			$n - Number of part/section of a work (R)
+			$p - Name of part/section of a work (R)
+			$x - International Standard Serial Number (NR)
+			$6 - Linkage (NR)
+			$8 - Field link and sequence number (R)
+
+			XML ENTITY: rdau:P60358 earlierTitleProper
+			
+			String formerTitle = ""; // rdau:earlierTitleProper
+
+			 * 			
+			 */				
 			
 			// if 008 date
 			if (fieldType.equals("008")) {
@@ -373,11 +384,13 @@ $n - Language code of original libretto (R)
 
 XML ENTITY: dc:language
 
+String languageCode = ""; // dc:language
+
  * 
  */
 			
 			// if 100 author
-			if (fieldType.equals("100")) {
+			if (fieldType.equals("100") || fieldType.equals("700")) {
 				String thisAuthor = "";
 				// get raw value
 				String rawValue = sqlObj.getFieldByID(fieldID);;
@@ -454,94 +467,93 @@ XML ENTITY: dc:language
 
 				authorArray.add(retVal);
 			}
-	
+		
+			// corporate author
+			if (fieldType.equals("110") || fieldType.equals("710")) {
+				ArrayList<String> retValc = new ArrayList<String>();
+				String subAc = "";
+				String subEc = "";
+				ArrayList<String> subFieldAc = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int ia=0;ia < subFieldAc.size();ia++) {
+					subAc = subFieldAc.get(ia);
+				}
+				ArrayList<String> subFieldEc = sqlObj.selectSubFieldValuesByID(fieldID, "e");
+				for (int ia=0;ia < subFieldEc.size();ia++) {
+					subEc =  subFieldEc.get(ia);
+				}
+				
+				String upperEc = subEc.toUpperCase();
+				retValc.add(upperEc);
+				retValc.add(subAc);
+				authorArray.add(retValc);
+			}
 			
-/* 100 & 700 personal author fields
- * 
+			// meeting as author
+			// if 111 or 711 author
+			if (fieldType.equals("100") || fieldType.equals("700")) {
+				String thisAuthorm = "";
+				// get subfields
+				String subAm = "";
+				String subBm = "";
+				String subCm = "";
+				String subDm = "";
+				String subJm = "";
+				ArrayList<String> retValm = new ArrayList<String>();
+				
+				ArrayList<String> subFieldAm = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int ia=0;ia < subFieldAm.size();ia++) {
+					subAm = subFieldAm.get(ia);
+				}
+				ArrayList<String> subFieldBm = sqlObj.selectSubFieldValuesByID(fieldID, "b");
+				for (int ia=0;ia < subFieldBm.size();ia++) {
+					subBm =  subFieldBm.get(ia);
+				}
+				ArrayList<String> subFieldCm = sqlObj.selectSubFieldValuesByID(fieldID, "c");
+				for (int ia=0;ia < subFieldCm.size();ia++) {
+					subCm =  subFieldCm.get(ia);
+				}
+				ArrayList<String> subFieldDm = sqlObj.selectSubFieldValuesByID(fieldID, "d");
+				for (int ia=0;ia < subFieldDm.size();ia++) {
+					subDm =  subFieldDm.get(ia);
+				}
+				ArrayList<String> subFieldJm = sqlObj.selectSubFieldValuesByID(fieldID, "j");
+				for (int ia=0;ia < subFieldJm.size();ia++) {
+					subJm =  subFieldJm.get(ia);
+				}
+				
+				String seperatorm = ", ";
+				if (subAm  != null && subAm.length() > 0) {
+					thisAuthorm = subAm;
+					if (subBm != null && subBm.length() > 0 ) {
+						thisAuthorm = thisAuthorm + seperatorm + subBm;
+					} 
+					if (subCm != null && subCm.length() > 0 ) {
+						thisAuthorm = thisAuthorm + seperatorm + subCm;
+					} 
+					if (subDm != null && subDm.length() > 0 ) {
+						thisAuthorm = thisAuthorm + seperatorm + subDm;
+					} 
+				} else {
+					thisAuthorm = "Authored at Unknown Meeting";
+				}
+				
+				thisAuthorm = fixAmper(thisAuthorm);
+				
+				if (subJm != null && subJm.length() == 0) {
+					subJm = "AUT";
+				}
+				
+				String upperJm = subJm.toUpperCase();
+				retValm.add(upperJm);
+				retValm.add(thisAuthorm);
 
-$a - Personal name (NR)
-$b - Numeration (NR)
-$c - Titles and words associated with a name (R)
-$d - Dates associated with a name (NR)
-$e - Relator term (R)
-$f - Date of a work (NR)
-$g - Miscellaneous information (R)
-$j - Attribution qualifier (R)
-$k - Form subheading (R)
-$l - Language of a work (NR)
-$n - Number of part/section of a work (R)
-$p - Name of part/section of a work (R)
-$q - Fuller form of name (NR)
-$t - Title of a work (NR)
-$u - Affiliation (NR)
-$0 - Authority record control number or standard number (R)
-$4 - Relationship (R)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
-
-XML ENTITY: <role:AUT>AUTHOR</role:AUT>
-
- * 			
- */
+				authorArray.add(retValm);
+			}
 			
-/* TODO
- * 
- * FIELD 110 & 710 - Corporate Author
-
-Subfield Codes
-$a - Corporate name or jurisdiction name as entry element (NR)
-$b - Subordinate unit (R)
-$c - Location of meeting (R)
-$d - Date of meeting or treaty signing (R)
-$e - Relator term (R)
-$f - Date of a work (NR)
-$g - Miscellaneous information (R)
-$k - Form subheading (R)
-$l - Language of a work (NR)
-$n - Number of part/section/meeting (R)
-$p - Name of part/section of a work (R)
-$t - Title of a work (NR)
-$u - Affiliation (NR)
-$0 - Authority record control number or standard number (R)
-$4 - Relationship (R)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
-
-XML ENTITY: <role:AUT>AUTHOR</role:AUT>
-
- * 			
- */
-			
-/* TODO
- * 
- * FIELD 111 & 711 - Meeting Name
-
-Subfield Codes
-$a - Meeting name or jurisdiction name as entry element (NR)
-$c - Location of meeting (R)
-$d - Date of meeting (NR)
-$e - Subordinate unit (R)
-$f - Date of a work (NR)
-$g - Miscellaneous information (R)
-$j - Relator term (R)
-$k - Form subheading (R)
-$l - Language of a work (NR)
-$n - Number of part/section/meeting (R)
-$p - Name of part/section of a work (R)
-$q - Name of meeting following jurisdiction name entry element (NR)
-$t - Title of a work (NR)
-$u - Affiliation (NR)
-$0 - Authority record control number or standard number (R)
-$4 - Relationship (R)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
-
-XML ENTITY: <role:AUT>AUTHOR</role:AUT>
-
- * 			
- */
 			
 
+			
+			
 /* TODO
  * 
  * FIELD 250 - Edition Statement
@@ -554,6 +566,8 @@ $6 - Linkage (NR)
 $8 - Field link and sequence number (R)
 
 XML ENTITY: rdau:P60329 editionStatement
+
+String editionStatement = ""; // rdau:editionStatement
 
  * 			
  */
@@ -574,6 +588,10 @@ $3 - Materials specified (NR)
 
 XML ENTITY: dct:publisher
 
+String editionStatement = ""; // dct:publisher
+
+Subfield b can go into a <role:PBL>
+
 Also see if I can parse into a relater role <role:PBL> 
 
 *
@@ -592,7 +610,9 @@ $3 - Materials specified (NR)
 
 XML ENTITY: dct:publisher
 
-Also see if I can parse into a relater role <role:CRE>
+String prodInfo = ""; // dct:publisher
+
+Subfield b can go into a <role:CRE>
 
  * 
  */
@@ -609,6 +629,8 @@ $6 - Linkage (NR)
 $8 - Field link and sequence number (R) 
 
 XML ENTITY: rdau:P60129 noteOnFrequency
+
+String formerPubFreq = ""; // rdau:noteOnFrequency
 
  * 
  */	
@@ -632,8 +654,11 @@ $8 - Field link and sequence number (R)
 
 XML ENTITY: dct:format
 
+String physDesc = ""; // dct:format
+
  * 
  */
+			
 			
 /* TODO
  * 
@@ -650,6 +675,8 @@ $6 - Linkage (NR)
 $8 - Field link and sequence number (R)
 
 XML ENTITY: <dc:type>
+
+String contentType = ""; // dct:type
 
 * 
 */	
@@ -671,6 +698,8 @@ $8 - Field link and sequence number (R)
 
 XML ENTITY: dct:format
 
+String mediaType = ""; // dct:format
+
 * 
 */	
 
@@ -690,6 +719,8 @@ $6 - Linkage (NR)
 $8 - Field link and sequence number (R)
 
 XML ENTITY: dct:medium
+
+String carrierType = ""; // dct:type
 
 * 
 */	
@@ -742,6 +773,8 @@ $8 - Field link and sequence number (R)
 
 XML ENTITY: <dc:coverage> (make sure indexer is fixed to take multiple)
 
+String associatedPlace = ""; // dc:coverage
+
 * 
 */	
 
@@ -761,6 +794,8 @@ $6 - Linkage (NR)
 $8 - Field link and sequence number (R)
 
 XML ENTITY: dct:created
+
+String creationEpoch = ""; // dct:created
 
 * 
 */
