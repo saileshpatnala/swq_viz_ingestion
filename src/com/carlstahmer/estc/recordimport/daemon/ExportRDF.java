@@ -103,12 +103,15 @@ public class ExportRDF {
 		rdfHeader = rdfHeader + "    xmlns:dc=\"http://purl.org/dc/elements/1.1/#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:foaf=\"http://xmlns.com/foaf/0.1/#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:geo=\"http://www.w3.org/2003/01/geo/wgs84_pos/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:rdau=\"http://rdaregistry.info/Elements/u/#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:reg=\"http://metadataregistry.org/uri/profile/RegAp/#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:role=\"http://www.loc.gov/loc.terms/relators/\"\n";
 		rdfHeader = rdfHeader + "    xmlns:bf=\"http://bibframe.org/vocab/\"\n";
 		rdfHeader = rdfHeader + "    xmlns:relators=\"http://id.loc.gov/vocabulary/relators/\"\n";
 		rdfHeader = rdfHeader + "    xmlns:collex=\"http://www.collex.org/schema#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:skos=\"http://www.w3.org/2004/02/skos/core#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:scm=\"http://schema.org/\" >\n";
 		
 		// make footer
@@ -143,7 +146,157 @@ public class ExportRDF {
 			// loop through the fields and process
 			Integer fieldID = fieldsArray.get(i);
 			String fieldType = sqlObj.selectFieldType(fieldID);
+
+/* TODO
+ * thumbnail -> <collex:thumbnail rdf:resource="">
+ * eg -> <collex:thumbnail rdf:resource="http://YOUR_PUBLICATION.ORG/THUMBNAIL.JPG"/>
+ */
 			
+			
+/* TODO
+ * 
+ * FIELD 210 - Abbreviated Title
+
+Subfield Codes
+$a - Abbreviated title (NR) 
+$b - Qualifying information (NR) 
+$2 - Source (R)
+
+XML ENTITY: rdau:P60359  abbreviatedTitle
+
+ * 			
+ */	
+
+			
+/* TODO
+ * 
+ * FIELD 130 & 730 - Uniform Title
+
+Subfield Codes
+$a - Uniform title (NR)
+$d - Date of treaty signing (R)
+$f - Date of a work (NR)
+$g - Miscellaneous information (R)
+$h - Medium (NR)
+$k - Form subheading (R)
+$l - Language of a work (NR)
+$m - Medium of performance for music (R)
+$n - Number of part/section of a work (R)
+$o - Arranged statement for music (NR)
+$p - Name of part/section of a work (R)
+$r - Key for music (NR)
+$s - Version (NR)
+$t - Title of a work (NR)
+$0 - Authority record control number or standard number (R)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: rdau:P60367 titleOfResource 
+
+* 			
+*/	
+			
+			
+/* TODO
+ * 
+ * FIELD 240 - Uniform Title (again)
+
+Subfield Codes
+$a - Uniform title (NR)
+$d - Date of treaty signing (R)
+$f - Date of a work (NR)
+$g - Miscellaneous information (R)
+$h - Medium (NR)
+$k - Form subheading (R)
+$l - Language of a work (NR)
+$m - Medium of performance for music (R)
+$n - Number of part/section of a work (R)
+$o - Arranged statement for music (NR)
+$p - Name of part/section of a work (R)
+$r - Key for music (NR)
+$s - Version (NR)
+$0 - Authority record control number or standard number (R)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: rdau:P60367 titleOfResource
+
+ * 			
+ */	
+	
+
+/* TODO
+ * 
+ * FIELD 243 - Collective Uniform Title
+
+Subfield Codes
+$a - Uniform title (NR)
+$d - Date of treaty signing (R)
+$f - Date of a work (NR)
+$g - Miscellaneous information (R)
+$h - Medium (NR)
+$k - Form subheading (R)
+$l - Language of a work (NR)
+$m - Medium of performance for music (R)
+$n - Number of part/section of a work (R)
+$o - Arranged statement for music (NR)
+$p - Name of part/section of a work (R)
+$r - Key for music (NR)
+$s - Version (NR)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: rdau:P60516 titleProperOfSeries
+
+ * 			
+ */	
+
+
+/* TODO
+ * 
+ * FIELD 246 - Varrying Form of Title
+
+Subfield Codes
+$a - Title proper/short title (NR)
+$b - Remainder of title (NR)
+$f - Date or sequential designation (NR)
+$g - Miscellaneous information (R)
+$h - Medium (NR)
+$i - Display text (NR)
+$n - Number of part/section of a work (R)
+$p - Name of part/section of a work (R)
+$5 - Institution to which field applies (NR)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: rdau:P60355 variantTitle
+
+ * 			
+ */				
+
+			
+/* TODO
+ * 
+ * FIELD 247 - Former Title
+
+Subfield Codes
+$a - Title (NR)
+$b - Remainder of title (NR)
+$f - Date or sequential designation (NR)
+$g - Miscellaneous information (R)
+$h - Medium (NR)
+$n - Number of part/section of a work (R)
+$p - Name of part/section of a work (R)
+$x - International Standard Serial Number (NR)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: rdau:P60358 earlierTitleProper
+
+ * 			
+ */	
+			
+		
 			// if 245 title
 			if (fieldType.equals("245")) {
 				// get raw value
@@ -201,6 +354,27 @@ public class ExportRDF {
 					}
 				}
 			}
+			
+/* TODO
+ * 
+ * FIELD 41 & 765 - Language Code
+ 
+$a - Language code of text/sound track or separate title (R)
+$b - Language code of summary or abstract (R)
+$d - Language code of sung or spoken text (R)
+$e - Language code of librettos (R)
+$f - Language code of table of contents (R)
+$g - Language code of accompanying material other than librettos (R)
+$h - Language code of original (R)
+$j - Language code of subtitles or captions (R)
+$k - Language code of intermediate translations (R)
+$m - Language code of original accompanying materials other than librettos (R)
+$n - Language code of original libretto (R)
+
+XML ENTITY: dc:language
+
+ * 
+ */
 			
 			// if 100 author
 			if (fieldType.equals("100")) {
@@ -280,6 +454,337 @@ public class ExportRDF {
 
 				authorArray.add(retVal);
 			}
+	
+			
+/* 100 & 700 personal author fields
+ * 
+
+$a - Personal name (NR)
+$b - Numeration (NR)
+$c - Titles and words associated with a name (R)
+$d - Dates associated with a name (NR)
+$e - Relator term (R)
+$f - Date of a work (NR)
+$g - Miscellaneous information (R)
+$j - Attribution qualifier (R)
+$k - Form subheading (R)
+$l - Language of a work (NR)
+$n - Number of part/section of a work (R)
+$p - Name of part/section of a work (R)
+$q - Fuller form of name (NR)
+$t - Title of a work (NR)
+$u - Affiliation (NR)
+$0 - Authority record control number or standard number (R)
+$4 - Relationship (R)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: <role:AUT>AUTHOR</role:AUT>
+
+ * 			
+ */
+			
+/* TODO
+ * 
+ * FIELD 110 & 710 - Corporate Author
+
+Subfield Codes
+$a - Corporate name or jurisdiction name as entry element (NR)
+$b - Subordinate unit (R)
+$c - Location of meeting (R)
+$d - Date of meeting or treaty signing (R)
+$e - Relator term (R)
+$f - Date of a work (NR)
+$g - Miscellaneous information (R)
+$k - Form subheading (R)
+$l - Language of a work (NR)
+$n - Number of part/section/meeting (R)
+$p - Name of part/section of a work (R)
+$t - Title of a work (NR)
+$u - Affiliation (NR)
+$0 - Authority record control number or standard number (R)
+$4 - Relationship (R)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: <role:AUT>AUTHOR</role:AUT>
+
+ * 			
+ */
+			
+/* TODO
+ * 
+ * FIELD 111 & 711 - Meeting Name
+
+Subfield Codes
+$a - Meeting name or jurisdiction name as entry element (NR)
+$c - Location of meeting (R)
+$d - Date of meeting (NR)
+$e - Subordinate unit (R)
+$f - Date of a work (NR)
+$g - Miscellaneous information (R)
+$j - Relator term (R)
+$k - Form subheading (R)
+$l - Language of a work (NR)
+$n - Number of part/section/meeting (R)
+$p - Name of part/section of a work (R)
+$q - Name of meeting following jurisdiction name entry element (NR)
+$t - Title of a work (NR)
+$u - Affiliation (NR)
+$0 - Authority record control number or standard number (R)
+$4 - Relationship (R)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: <role:AUT>AUTHOR</role:AUT>
+
+ * 			
+ */
+			
+
+/* TODO
+ * 
+ * FIELD 250 - Edition Statement
+
+Subfield Codes
+$a - Edition statement (NR)
+$b - Remainder of edition statement (NR)
+$3 - Materials specified (NR)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: rdau:P60329 editionStatement
+
+ * 			
+ */
+			
+			
+/* TODO
+ * 
+ * FIELD 260 - Imprint
+ * 
+Subfield Codes
+$a - Place of publication, distribution, etc. (R)
+$b - Name of publisher, distributor, etc. (R)
+$c - Date of publication, distribution, etc. (R)
+$e - Place of manufacture (R)
+$f - Manufacturer (R)
+$g - Date of manufacture (R)
+$3 - Materials specified (NR)
+
+XML ENTITY: dct:publisher
+
+Also see if I can parse into a relater role <role:PBL> 
+
+*
+*/
+			
+/* TODO
+ * 
+ * Field 264 - Production info (like imprint for manufactured goods)
+ * 
+ 
+Subfield Codes
+$a - Place of production, publication, distribution, manufacture (R)
+$b - Name of producer, publisher, distributor, manufacturer (R)
+$c - Date of production, publication, distribution, manufacture, or copyright notice (R)
+$3 - Materials specified (NR)
+
+XML ENTITY: dct:publisher
+
+Also see if I can parse into a relater role <role:CRE>
+
+ * 
+ */
+			
+/* TODO
+ * 
+ * Field 321 - Former Publication Frequency
+ * 
+ 
+Subfield Codes
+$a - Former publication frequency (NR) 
+$b - Dates of former publication frequency (NR) 
+$6 - Linkage (NR) 
+$8 - Field link and sequence number (R) 
+
+XML ENTITY: rdau:P60129 noteOnFrequency
+
+ * 
+ */	
+			
+					
+/* TODO
+ * 
+ * Field 300 - Physical Description
+ * 
+ 
+Subfield Codes
+$a - Extent (R)
+$b - Other physical details (NR)
+$c - Dimensions (R)
+$e - Accompanying material (NR)
+$f - Type of unit (R)
+$g - Size of unit (R)
+$3 - Materials specified (NR)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: dct:format
+
+ * 
+ */
+			
+/* TODO
+ * 
+ * Field 336 - Content Type
+ * 
+ 
+Subfield Codes
+$a - Content type term (R)
+$b - Content type code (R)
+$0 - Authority record control number or standard number (R)
+$2 - Source (NR)
+$3 - Materials specified (NR)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: <dc:type>
+
+* 
+*/	
+			
+
+/* TODO
+ * 
+ * Field 337 - Media Type
+ * 
+ 
+Subfield Codes
+$a - Media type term (R)
+$b - Media type code (R)
+$0 - Authority record control number or standard number (R)
+$2 - Source (NR)
+$3 - Materials specified (NR)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: dct:format
+
+* 
+*/	
+
+			
+/* TODO
+ * 
+ * Field 338 - Carrier Type
+ * 
+
+Subfield Codes
+$a - Carrier type term (R)
+$b - Carrier type code (R)
+$0 - Authority record control number or standard number (R)
+$2 - Source (NR)
+$3 - Materials specified (NR)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: dct:medium
+
+* 
+*/	
+
+			
+/* TODO
+ * 
+ * Field 362 - Sequence of Dates
+ * 
+
+Subfield Codes
+$a - Dates of publication and/or sequential designation (NR) 
+$z - Source of information (NR) 
+$6 - Linkage (NR) 
+$8 - Field link and sequence number (R) 
+
+XML ENTITY:
+
+  <dc:date>
+    <collex:date>
+      <rdfs:label>1890-99 (circa)</rdfs:label>
+      <rdf:value>189u</rdf:value>
+    </collex:date>
+  </dc:date>
+
+* 
+*/	
+
+
+/* TODO
+ * 
+ * Field 370 - Associated Place
+ * 
+
+Subfield Codes
+$c - Associated country (R)
+$f - Other associated place (R)
+$g - Place of origin of work or expression (R)
+$i - Relationship information (R)
+$s - Start period (NR)
+$t - End period (NR)
+$u - Uniform Resource Identifier (R)
+$v - Source of information (R)
+$0 - Authority record control number or standard number (R)
+$2 - Source of term (NR)
+$3 - Materials specified (NR)
+$4 - Relationship (R)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: <dc:coverage> (make sure indexer is fixed to take multiple)
+
+* 
+*/	
+
+			
+/* TODO
+ * 
+ * Field 388 - Time Period of Creation
+ * 
+
+Subfield Codes
+
+$a - Time period of creation term (R)
+$0 - Authority record control number or standard number (R)
+$2 - Source of term (NR)
+$3 - Materials specified (NR)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: dct:created
+
+* 
+*/
+			
+/* TODO
+ * 
+ * Field 490 - Series Statement
+ * 
+
+Subfield Codes
+
+$a - Series statement (R)
+$l - Library of Congress call number (NR)
+$v - Volume/sequential designation (R)
+$x - International Standard Serial Number (R)
+$3 - Materials specified (NR)
+$6 - Linkage (NR)
+$8 - Field link and sequence number (R)
+
+XML ENTITY: treat like a 500
+
+* 
+*/
+			
 			
 			// do 600 (subject term - personal name)
 			if (fieldType.equals("600")) {
@@ -364,6 +869,19 @@ public class ExportRDF {
 				}
 
 			}
+			
+			/* TODO
+			 * 
+			 * Field 752 same as 651 but hierarchical.  Break up into individual entries.
+			 * 
+
+			XML ENTITY: same as above
+
+			* 
+			*/	
+	
+			
+			
 			
 			// do 653 (subject term - Uncontrolled)
 			if (fieldType.equals("653")) {
@@ -608,7 +1126,14 @@ public class ExportRDF {
 				}
 			}
 			
-			// 510 notes
+/* TODO
+			501
+			504
+			505
+			509
+*/
+			
+			// 510 notes -- Indexing service that indexes the item
 			if (fieldType.equals("510")) {
 				// get raw value
 				String rawValue = sqlObj.getFieldByID(fieldID);
@@ -638,6 +1163,23 @@ public class ExportRDF {
 	
 				fiveHundTenNotes.add(fixAmper(retString));
 			}
+			
+/* TODO
+			515
+			520
+			521
+			522
+			525
+			530
+			533
+			534
+			535
+			539
+			546
+			550
+			555
+			561
+*/
 
 		}
 		
@@ -767,6 +1309,11 @@ public class ExportRDF {
 			rdfString = rdfString + "        <bf:hasInstance>" + children.get(ihch) + "</bf:hasInstance>\n";
 			ihch++;
 		}
+		
+		
+		
+		///  digSur never gets set.  Need to feed field 856 into here
+		
 		
 		// add digital surrogates
 		for (int ids=0;ids < surrogateSub.size();ids++) {
