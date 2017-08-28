@@ -148,7 +148,6 @@ public class ExportRDF {
 		String seriesUniformTitle = ""; // rdau:titleProperOfSeries
 		String variantTitle = ""; // rdau:variantTitle
 		String formerTitle = ""; // rdau:earlierTitleProper
-		String languageCode = ""; // dc:language
 		String editionStatement = ""; // rdau:editionStatement
 		String prodInfo = ""; // dct:publisher
 		String formerPubFreq = ""; // rdau:noteOnFrequency
@@ -161,6 +160,8 @@ public class ExportRDF {
 		String estcThumbnail = ""; // collex:thumbnail rdf:resource=""
 		ArrayList<String> seriesStatment = new ArrayList<String>(); //   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
 		ArrayList<String> uniformTitle = new ArrayList<String>(); //   rdau:titleOfResource
+		ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
+
 
 
 
@@ -324,28 +325,21 @@ public class ExportRDF {
 				}
 			}
 			
-/* TODO
- * 
- * FIELD 41 & 765 - Language Code
- 
-$a - Language code of text/sound track or separate title (R)
-$b - Language code of summary or abstract (R)
-$d - Language code of sung or spoken text (R)
-$e - Language code of librettos (R)
-$f - Language code of table of contents (R)
-$g - Language code of accompanying material other than librettos (R)
-$h - Language code of original (R)
-$j - Language code of subtitles or captions (R)
-$k - Language code of intermediate translations (R)
-$m - Language code of original accompanying materials other than librettos (R)
-$n - Language code of original libretto (R)
-
-XML ENTITY: dc:language
-
-String languageCode = ""; // dc:language
-
- * 
- */
+			
+			// if 41 or 765 - Language Code - ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
+			if (fieldType.equals("41") || fieldType.equals("765")) {
+				// get subfields
+				String fCode = "";
+				ArrayList<String> subFieldAl = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int ial=0;ial < subFieldAl.size();ial++) {
+					fCode = fixAmper(subFieldAl.get(ial));
+				}
+				if (fCode != null && fCode.length() > 0) {
+					languageCode.add(fCode)
+				}
+			}			
+			
+			
 			
 			// if 100 author
 			if (fieldType.equals("100") || fieldType.equals("700")) {
@@ -508,90 +502,64 @@ String languageCode = ""; // dc:language
 				authorArray.add(retValm);
 			}
 			
+			// if FIELD 250 - Edition Statement - String editionStatement = ""; // rdau:editionStatement
+			if (fieldType.equals("250")) {
+				ArrayList<String> subFieldAes = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int iales=0;iales < subFieldAes.size();iales++) {
+					editionStatement = fixAmper(subFieldAes.get(iales));
+				}
+			}				
 			
 
+			// if FIELD 264 - Production info (like imprint for manufactured goods) - String prodInfo = ""; // dct:publisher
+			if (fieldType.equals("260")) {
+				ArrayList<String> retValman = new ArrayList<String>();
+				ArrayList<String> subFieldAman = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int impman=0;impman < subFieldAman.size();impman++) {
+					prodInfo = fixAmper(subFieldAman.get(impman));
+				}
+				ArrayList<String> subFieldBman = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int impmanb=0;impmanb < subFieldBman.size();impmanb++) {
+					String manSubB = "";
+					manSubB = fixAmper(subFieldBman.get(impmanb));
+					if (manSubB  != null && manSubB.length() > 0) {
+						retValman.add("CRE");
+						retValman.add(manSubB);
+						authorArray.add(retValman);
+					}
+					
+				}			
+			}
 			
 			
-/* TODO
- * 
- * FIELD 250 - Edition Statement
-
-Subfield Codes
-$a - Edition statement (NR)
-$b - Remainder of edition statement (NR)
-$3 - Materials specified (NR)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
-
-XML ENTITY: rdau:P60329 editionStatement
-
-String editionStatement = ""; // rdau:editionStatement
-
- * 			
- */
-			
-			
-/* TODO
- * 
- * FIELD 260 - Imprint
- * 
-Subfield Codes
-$a - Place of publication, distribution, etc. (R)
-$b - Name of publisher, distributor, etc. (R)
-$c - Date of publication, distribution, etc. (R)
-$e - Place of manufacture (R)
-$f - Manufacturer (R)
-$g - Date of manufacture (R)
-$3 - Materials specified (NR)
-
-XML ENTITY: dct:publisher
-
-String editionStatement = ""; // dct:publisher
-
-Subfield b can go into a <role:PBL>
-
-Also see if I can parse into a relater role <role:PBL> 
-
-*
-*/
-			
-/* TODO
- * 
- * Field 264 - Production info (like imprint for manufactured goods)
- * 
- 
-Subfield Codes
-$a - Place of production, publication, distribution, manufacture (R)
-$b - Name of producer, publisher, distributor, manufacturer (R)
-$c - Date of production, publication, distribution, manufacture, or copyright notice (R)
-$3 - Materials specified (NR)
-
-XML ENTITY: dct:publisher
-
-String prodInfo = ""; // dct:publisher
-
-Subfield b can go into a <role:CRE>
-
- * 
- */
-			
-/* TODO
- * 
- * Field 321 - Former Publication Frequency
- * 
- 
-Subfield Codes
-$a - Former publication frequency (NR) 
-$b - Dates of former publication frequency (NR) 
-$6 - Linkage (NR) 
-$8 - Field link and sequence number (R) 
-
-XML ENTITY: rdau:P60129 noteOnFrequency
-
-String formerPubFreq = ""; // rdau:noteOnFrequency
-
- * 
- */	
+			// if FIELD 260 - Imprint - String editionStatement = ""; // dct:publisher
+			if (fieldType.equals("260")) {
+				ArrayList<String> retValimp = new ArrayList<String>();
+				ArrayList<String> subFieldAimp = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int imp=0;imp < subFieldAimp.size();imp++) {
+					editionStatement = fixAmper(subFieldAimp.get(imp));
+				}
+				ArrayList<String> subFieldBimp = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int impb=0;impb < subFieldBimp.size();impb++) {
+					String impSubB = "";
+					impSubB = fixAmper(subFieldBimp.get(impb));
+					if (impSubB  != null && impSubB.length() > 0) {
+						retValimp.add("PBL");
+						retValimp.add(impSubB);
+						authorArray.add(retValimp);
+					}
+					
+				}			
+			}	
+						
+		
+			// if FIELD 321 - Former Publication Frequency - String formerPubFreq = ""; // rdau:noteOnFrequency
+			if (fieldType.equals("321")) {
+				ArrayList<String> subFieldAps = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int ialfpf=0;ialfpf < subFieldAps.size();ialfpf++) {
+					formerPubFreq = fixAmper(subFieldAps.get(ialfpf));
+				}
+			}	
 			
 					
 /* TODO
@@ -616,29 +584,139 @@ String physDesc = ""; // dct:format
 
  * 
  */
+			// IF Field 300 - Physical Description - String physDesc = ""; // dct:format
+			if (fieldType.equals("100") || fieldType.equals("700")) {
+				int valueBefore = 0;
+				String thisPDNote = "";
+				// get subfields
+				String subApd = "";
+				String subBpd = "";
+				String subCpd = "";
+				String subEpd = "";
+				String subFpd = "";
+				String subGpd = "";
+				
+				ArrayList<String> subFieldApd = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int i=0;i < subFieldApd.size();i++) {
+					subApd = subFieldApd.get(i);
+				}
+				ArrayList<String> subFieldBpd = sqlObj.selectSubFieldValuesByID(fieldID, "b");
+				for (int i=0;i < subFieldBpd.size();i++) {
+					subBpd =  subFieldBpd.get(i);
+				}
+				ArrayList<String> subFieldCpd = sqlObj.selectSubFieldValuesByID(fieldID, "c");
+				for (int i=0;i < subFieldCpd.size();i++) {
+					subCpd =  subFieldCpd.get(i);
+				}
+				ArrayList<String> subFieldEpd = sqlObj.selectSubFieldValuesByID(fieldID, "e");
+				for (int i=0;i < subFieldEpd.size();i++) {
+					subEpd =  subFieldEpd.get(i);
+				}
+				ArrayList<String> subFieldFpd = sqlObj.selectSubFieldValuesByID(fieldID, "f");
+				for (int i=0;i < subFieldFpd.size();i++) {
+					subFpd =  subFieldFpd.get(i);
+				}
+				ArrayList<String> subFieldGpd = sqlObj.selectSubFieldValuesByID(fieldID, "g");
+				for (int i=0;i < subFieldGpd.size();i++) {
+					subGpd =  subFieldGpd.get(i);
+				}
+				
+				
+				if (subApd  != null && subApd.length() > 0) {
+					if (valueBefore == 0) {
+						thisPDNote = thisPDNote + ". ";
+					}
+					thisPDNote = thisPDNote + subApd;
+					valueBefore++;
+				}
+				if (subBpd  != null && subBpd.length() > 0) {
+					if (valueBefore == 0) {
+						thisPDNote = thisPDNote + ". ";
+					}
+					thisPDNote = thisPDNote + subBpd;
+					valueBefore++;
+				}
+				if (subCpd  != null && subCpd.length() > 0) {
+					if (valueBefore == 0) {
+						thisPDNote = thisPDNote + ". ";
+					}
+					thisPDNote = thisPDNote + "Dimensions: " + subCpd;
+					valueBefore++;
+				}
+				if (subEpd  != null && subEpd.length() > 0) {
+					if (valueBefore == 0) {
+						thisPDNote = thisPDNote + ". ";
+					}
+					thisPDNote = thisPDNote + "Accompanying material: " + subEpd;
+					valueBefore++;
+				}	
+				if (subFpd  != null && subFpd.length() > 0) {
+					if (valueBefore == 0) {
+						thisPDNote = thisPDNote + ". ";
+					}
+					thisPDNote = thisPDNote + "Type of unit: " + subFpd;
+					valueBefore++;
+				}
+				if (subGpd  != null && subGpd.length() > 0) {
+					if (valueBefore == 0) {
+						thisPDNote = thisPDNote + ". ";
+					}
+					thisPDNote = thisPDNote + "Size of unit: " + subGpd;
+					valueBefore++;
+				}				
+				if (valueBefore == 0) {
+					thisPDNote = thisPDNote + ".";
+				}
+
+				physDesc = thisPDNote;
+			}		
+			
+
+		
+			// IF Field 336 - Content Type - String contentType = ""; // dct:type
+			if (fieldType.equals("100") || fieldType.equals("700")) {
+				int valueBeforeCt = 0;
+				String thisCtNote = "";
+				// get subfields
+				String subAct = "";
+				String subBct = "";
+
+				ArrayList<String> subFieldAct = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int i=0;i < subFieldAct.size();i++) {
+					subAct = subFieldAct.get(i);
+				}
+				ArrayList<String> subFieldBct = sqlObj.selectSubFieldValuesByID(fieldID, "b");
+				for (int i=0;i < subFieldBct.size();i++) {
+					subBct =  subFieldBct.get(i);
+				}
+				
+				
+				if (subAct  != null && subAct.length() > 0) {
+					if (valueBeforeCt == 0) {
+						thisCtNote = thisCtNote + ". ";
+					}
+					thisCtNote = thisCtNote + subApd;
+					valueBeforeCt++;
+				}
+				if (subBct  != null && subBct.length() > 0) {
+					if (valueBeforeCt == 0) {
+						thisCtNote = thisPDNote + ". ";
+					}
+					thisCtNote = thisCtNote + subBpd;
+					valueBeforeCt++;
+				}
+			
+				if (valueBeforeCt == 0) {
+					thisCtNote = thisCtNote + ".";
+				}
+
+				contentType = thisCtNote;
+			}					
 			
 			
-/* TODO
- * 
- * Field 336 - Content Type
- * 
- 
-Subfield Codes
-$a - Content type term (R)
-$b - Content type code (R)
-$0 - Authority record control number or standard number (R)
-$2 - Source (NR)
-$3 - Materials specified (NR)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
-
-XML ENTITY: <dc:type>
-
-String contentType = ""; // dct:type
-
-* 
-*/	
 			
+			
+	
 
 /* TODO
  * 
