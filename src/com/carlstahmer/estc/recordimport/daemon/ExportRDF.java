@@ -109,6 +109,7 @@ public class ExportRDF {
 		rdfHeader = rdfHeader + "    xmlns:reg=\"http://metadataregistry.org/uri/profile/RegAp/#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:role=\"http://www.loc.gov/loc.terms/relators/\"\n";
 		rdfHeader = rdfHeader + "    xmlns:bf=\"http://bibframe.org/vocab/\"\n";
+		rdfHeader = rdfHeader + "    xmlns:isbdu=\"http://iflastandards.info/ns/isbd/unc/elements/\"\n";
 		rdfHeader = rdfHeader + "    xmlns:relators=\"http://id.loc.gov/vocabulary/relators/\"\n";
 		rdfHeader = rdfHeader + "    xmlns:collex=\"http://www.collex.org/schema#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:skos=\"http://www.w3.org/2004/02/skos/core#\"\n";
@@ -140,6 +141,32 @@ public class ExportRDF {
 		ArrayList<String> surrogateSub = new ArrayList<String>();
 		String estcID = "";
 		
+		
+		// newly added fields
+		String abrvTitle = ""; // rdau:abbreviatedTitle
+		String uniformTitleTwoForty = ""; // rdau:titleOfResource
+		String seriesUniformTitle = ""; // rdau:titleProperOfSeries
+		String variantTitle = ""; // rdau:variantTitle
+		String formerTitle = ""; // rdau:earlierTitleProper
+		String languageCode = ""; // dc:language
+		String editionStatement = ""; // rdau:editionStatement
+		String prodInfo = ""; // dct:publisher
+		String formerPubFreq = ""; // rdau:noteOnFrequency
+		String physDesc = ""; // dct:format
+		String contentType = ""; // dct:type
+		String mediaType = ""; // dct:format
+		String carrierType = ""; // dct:type
+		String associatedPlace = ""; // dc:coverage
+		String creationEpoch = ""; // dct:created
+		String estcThumbnail = ""; // collex:thumbnail rdf:resource=""
+		ArrayList<String> seriesStatment = new ArrayList<String>(); //   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
+		ArrayList<String> uniformTitle = new ArrayList<String>(); //   rdau:titleOfResource
+
+
+
+					
+		
+		
 		// Get all of the fields associated with this record
 		ArrayList<Integer> fieldsArray = sqlObj.selectRecordFieldIds(recordID);
 		for (int i=0;i < fieldsArray.size();i++) {
@@ -148,11 +175,17 @@ public class ExportRDF {
 			String fieldType = sqlObj.selectFieldType(fieldID);
 
 /* TODO
- * thumbnail -> <collex:thumbnail rdf:resource="">
+ * saved as field 1000
+ * thumbnail -> <collex:thumbnail rdf:resource="">  
+ * String estcThumbnail
  * eg -> <collex:thumbnail rdf:resource="http://YOUR_PUBLICATION.ORG/THUMBNAIL.JPG"/>
  */
-			
-	
+			// if 1000 Thumbnail image
+			if (fieldType.equals("1000")) {
+				// get raw value
+				estcThumbnail = sqlObj.getFieldByID(fieldID);;
+			}
+				
 			// if 245 title
 			if (fieldType.equals("245")) {
 				// get raw value
@@ -182,160 +215,85 @@ public class ExportRDF {
 
 			}
 			
-			/* TODO
-			 * 
-			 * FIELD 210 - Abbreviated Title
+			// if 210  abbreviated title - rdau:abbreviatedTitle
+			if (fieldType.equals("210")) {
+				// get raw value
+				String rawAbrevTitleValue = sqlObj.getFieldByID(fieldID);;
+				// get subfields
+				String abrevTitleA = "";
+				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int ia=0;ia < subFieldA.size();ia++) {
+					abrevTitleA = fixAmper(subFieldA.get(ia));
+				}
+				if (abrevTitleA != null && abrevTitleA.length() > 0) {
+					abrvTitle = abrevTitleA;
+				} else if (rawAbrevTitleValue != null && rawAbrevTitleValue.length() > 0) {
+					finalTitle = rawAbrevTitleValue;
+				}
+			}
+		
+			// if 130 & 730 & 240 - Uniform Title - uniformTitle - rdau:titleOfResource
+			if (fieldType.equals("130") || fieldType.equals("730") || fieldType.equals("240")) {
+				ArrayList<String> subFieldAut = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int iaut=0;iaut < subFieldAut.size();iaut++) {
+					uniformTitle.add(fixAmper(subFieldAut.get(iaut)));
+				}
+			}
 
-			Subfield Codes
-			$a - Abbreviated title (NR) 
-			$b - Qualifying information (NR) 
-			$2 - Source (R)
+			// if 243 - Collective Uniform Title - String seriesUniformTitle = ""; // rdau:titleProperOfSeries
+			if (fieldType.equals("243")) {
+				ArrayList<String> subFieldtps = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int itps=0;itps < subFieldtps.size();itps++) {
+					seriesUniformTitle = fixAmper(subFieldtps.get(itps));
+				}
+			}
 
-			XML ENTITY: rdau:P60359  abbreviatedTitle
-			
-			String abrvTitle = ""; // rdau:abbreviatedTitle
+			// if 246 - Varrying Form of Title - String variantTitle = ""; // rdau:variantTitle
+			if (fieldType.equals("246")) {
+				// get subfields
+				String varTitleA = "";
+				String varTitleB = "";
+				String finalVTitle = "";
+				ArrayList<String> subFieldAv = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int ia=0;ia < subFieldAv.size();ia++) {
+					varTitleA = fixAmper(subFieldAv.get(ia));
+				}
+				ArrayList<String> subFielBv = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int ia=0;ia < subFielBv.size();ia++) {
+					varTitleB = fixAmper(subFielBv.get(ia));
+				}
+				if (varTitleA != null && varTitleA.length() > 0) {
+					finalVTitle = varTitleA;
+					if (varTitleB != null && varTitleB.length() > 0) {
+						finalVTitle = finalVTitle + " - " + varTitleB;
+					}
+					variantTitle = finalVTitle;
+				}
+			}
 
-			 * 			
-			 */	
+			// if 247 - Former Title - String formerTitle = ""; // rdau:earlierTitleProper
+			if (fieldType.equals("247")) {
+				// get subfields
+				String fTitleA = "";
+				String fTitleB = "";
+				String finalFTitle = "";
+				ArrayList<String> subFieldAf = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int ia=0;ia < subFieldAf.size();ia++) {
+					fTitleA = fixAmper(subFieldAf.get(ia));
+				}
+				ArrayList<String> subFielBf = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int ia=0;ia < subFielBf.size();ia++) {
+					fTitleB = fixAmper(subFielBf.get(ia));
+				}
+				if (fTitleA != null && fTitleA.length() > 0) {
+					finalFTitle = fTitleA;
+					if (fTitleB != null && fTitleB.length() > 0) {
+						finalFTitle = finalFTitle + " - " + fTitleB;
+					}
+					formerTitle = finalFTitle;
+				}
+			}
 
-						
-			/* TODO
-			 * 
-			 * FIELD 130 & 730 - Uniform Title
-
-			Subfield Codes
-			$a - Uniform title (NR)
-			$d - Date of treaty signing (R)
-			$f - Date of a work (NR)
-			$g - Miscellaneous information (R)
-			$h - Medium (NR)
-			$k - Form subheading (R)
-			$l - Language of a work (NR)
-			$m - Medium of performance for music (R)
-			$n - Number of part/section of a work (R)
-			$o - Arranged statement for music (NR)
-			$p - Name of part/section of a work (R)
-			$r - Key for music (NR)
-			$s - Version (NR)
-			$t - Title of a work (NR)
-			$0 - Authority record control number or standard number (R)
-			$6 - Linkage (NR)
-			$8 - Field link and sequence number (R)
-
-			XML ENTITY: rdau:P60367 titleOfResource 
-			
-			String uniformTitle = ""; // rdau:titleOfResource
-
-			* 			
-			*/	
-						
-						
-			/* TODO
-			 * 
-			 * FIELD 240 - Uniform Title (again)
-
-			Subfield Codes
-			$a - Uniform title (NR)
-			$d - Date of treaty signing (R)
-			$f - Date of a work (NR)
-			$g - Miscellaneous information (R)
-			$h - Medium (NR)
-			$k - Form subheading (R)
-			$l - Language of a work (NR)
-			$m - Medium of performance for music (R)
-			$n - Number of part/section of a work (R)
-			$o - Arranged statement for music (NR)
-			$p - Name of part/section of a work (R)
-			$r - Key for music (NR)
-			$s - Version (NR)
-			$0 - Authority record control number or standard number (R)
-			$6 - Linkage (NR)
-			$8 - Field link and sequence number (R)
-
-			XML ENTITY: rdau:P60367 titleOfResource
-			
-			String uniformTitleTwoForty = ""; // rdau:titleOfResource
-
-			 * 			
-			 */	
-				
-
-			/* TODO
-			 * 
-			 * FIELD 243 - Collective Uniform Title
-
-			Subfield Codes
-			$a - Uniform title (NR)
-			$d - Date of treaty signing (R)
-			$f - Date of a work (NR)
-			$g - Miscellaneous information (R)
-			$h - Medium (NR)
-			$k - Form subheading (R)
-			$l - Language of a work (NR)
-			$m - Medium of performance for music (R)
-			$n - Number of part/section of a work (R)
-			$o - Arranged statement for music (NR)
-			$p - Name of part/section of a work (R)
-			$r - Key for music (NR)
-			$s - Version (NR)
-			$6 - Linkage (NR)
-			$8 - Field link and sequence number (R)
-
-			XML ENTITY: rdau:P60516 titleProperOfSeries
-			
-			String seriesUniformTitle = ""; // rdau:titleProperOfSeries
-
-			 * 			
-			 */	
-
-
-			/* TODO
-			 * 
-			 * FIELD 246 - Varrying Form of Title
-
-			Subfield Codes
-			$a - Title proper/short title (NR)
-			$b - Remainder of title (NR)
-			$f - Date or sequential designation (NR)
-			$g - Miscellaneous information (R)
-			$h - Medium (NR)
-			$i - Display text (NR)
-			$n - Number of part/section of a work (R)
-			$p - Name of part/section of a work (R)
-			$5 - Institution to which field applies (NR)
-			$6 - Linkage (NR)
-			$8 - Field link and sequence number (R)
-
-			XML ENTITY: rdau:P60355 variantTitle
-			
-			String variantTitle = ""; // rdau:variantTitle
-
-			 * 			
-			 */				
-
-						
-			/* TODO
-			 * 
-			 * FIELD 247 - Former Title
-
-			Subfield Codes
-			$a - Title (NR)
-			$b - Remainder of title (NR)
-			$f - Date or sequential designation (NR)
-			$g - Miscellaneous information (R)
-			$h - Medium (NR)
-			$n - Number of part/section of a work (R)
-			$p - Name of part/section of a work (R)
-			$x - International Standard Serial Number (NR)
-			$6 - Linkage (NR)
-			$8 - Field link and sequence number (R)
-
-			XML ENTITY: rdau:P60358 earlierTitleProper
-			
-			String formerTitle = ""; // rdau:earlierTitleProper
-
-			 * 			
-			 */				
 			
 			// if 008 date
 			if (fieldType.equals("008")) {
@@ -817,6 +775,8 @@ $8 - Field link and sequence number (R)
 
 XML ENTITY: treat like a 500
 
+Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
+
 * 
 */
 			
@@ -1162,10 +1122,10 @@ XML ENTITY: treat like a 500
 			}
 			
 /* TODO
-			501
-			504
-			505
-			509
+			501 - same as 500
+			504 - same as 500
+			505 - same as 500
+			509 - same as 500
 */
 			
 			// 510 notes -- Indexing service that indexes the item
@@ -1200,7 +1160,7 @@ XML ENTITY: treat like a 500
 			}
 			
 /* TODO
-			515
+			515 -- all as 550's
 			520
 			521
 			522
@@ -1346,10 +1306,10 @@ XML ENTITY: treat like a 500
 		}
 		
 		
-		
-		///  digSur never gets set.  Need to feed field 856 into here
-		
-		
+		/* TODO
+		 * digSur never gets set.  Need to feed field 856 into here
+		 */
+
 		// add digital surrogates
 		for (int ids=0;ids < surrogateSub.size();ids++) {
 			String digSur = surrogateSub.get(ids);
