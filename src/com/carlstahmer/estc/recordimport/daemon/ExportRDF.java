@@ -161,7 +161,7 @@ public class ExportRDF {
 		ArrayList<String> seriesStatment = new ArrayList<String>(); //   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
 		ArrayList<String> uniformTitle = new ArrayList<String>(); //   rdau:titleOfResource
 		ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
-
+		ArrayList<String> associatedPlaces = new ArrayList<String>(); //   dc:coverage
 
 
 
@@ -177,6 +177,8 @@ public class ExportRDF {
 
 /* TODO
  * saved as field 1000
+ * OR 856 $z
+ * OR 856 $s and $f
  * thumbnail -> <collex:thumbnail rdf:resource="">  
  * String estcThumbnail
  * eg -> <collex:thumbnail rdf:resource="http://YOUR_PUBLICATION.ORG/THUMBNAIL.JPG"/>
@@ -195,12 +197,12 @@ public class ExportRDF {
 				String titleA = "";
 				String titleB = "";
 				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int ia=0;ia < subFieldA.size();ia++) {
-					titleA = fixAmper(subFieldA.get(ia));
+				for (i=0;i < subFieldA.size();i++) {
+					titleA = fixAmper(subFieldA.get(i));
 				}
 				ArrayList<String> subFieldB = sqlObj.selectSubFieldValuesByID(fieldID, "b");
-				for (int ia=0;ia < subFieldB.size();ia++) {
-					titleB =  fixAmper(subFieldB.get(ia));
+				for (i=0;i < subFieldB.size();i++) {
+					titleB =  fixAmper(subFieldB.get(i));
 				}
 				
 				if (titleA != null && titleA.length() > 0) {
@@ -223,8 +225,8 @@ public class ExportRDF {
 				// get subfields
 				String abrevTitleA = "";
 				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int ia=0;ia < subFieldA.size();ia++) {
-					abrevTitleA = fixAmper(subFieldA.get(ia));
+				for (i=0;i < subFieldA.size();i++) {
+					abrevTitleA = fixAmper(subFieldA.get(i));
 				}
 				if (abrevTitleA != null && abrevTitleA.length() > 0) {
 					abrvTitle = abrevTitleA;
@@ -236,16 +238,16 @@ public class ExportRDF {
 			// if 130 & 730 & 240 - Uniform Title - uniformTitle - rdau:titleOfResource
 			if (fieldType.equals("130") || fieldType.equals("730") || fieldType.equals("240")) {
 				ArrayList<String> subFieldAut = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int iaut=0;iaut < subFieldAut.size();iaut++) {
-					uniformTitle.add(fixAmper(subFieldAut.get(iaut)));
+				for (i=0;i < subFieldAut.size();i++) {
+					uniformTitle.add(fixAmper(subFieldAut.get(i)));
 				}
 			}
 
 			// if 243 - Collective Uniform Title - String seriesUniformTitle = ""; // rdau:titleProperOfSeries
 			if (fieldType.equals("243")) {
 				ArrayList<String> subFieldtps = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int itps=0;itps < subFieldtps.size();itps++) {
-					seriesUniformTitle = fixAmper(subFieldtps.get(itps));
+				for (i=0;i < subFieldtps.size();i++) {
+					seriesUniformTitle = fixAmper(subFieldtps.get(i));
 				}
 			}
 
@@ -256,12 +258,12 @@ public class ExportRDF {
 				String varTitleB = "";
 				String finalVTitle = "";
 				ArrayList<String> subFieldAv = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int ia=0;ia < subFieldAv.size();ia++) {
-					varTitleA = fixAmper(subFieldAv.get(ia));
+				for (i=0;i < subFieldAv.size();i++) {
+					varTitleA = fixAmper(subFieldAv.get(i));
 				}
 				ArrayList<String> subFielBv = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int ia=0;ia < subFielBv.size();ia++) {
-					varTitleB = fixAmper(subFielBv.get(ia));
+				for (i=0;i < subFielBv.size();i++) {
+					varTitleB = fixAmper(subFielBv.get(i));
 				}
 				if (varTitleA != null && varTitleA.length() > 0) {
 					finalVTitle = varTitleA;
@@ -279,12 +281,12 @@ public class ExportRDF {
 				String fTitleB = "";
 				String finalFTitle = "";
 				ArrayList<String> subFieldAf = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int ia=0;ia < subFieldAf.size();ia++) {
-					fTitleA = fixAmper(subFieldAf.get(ia));
+				for (i=0;i < subFieldAf.size();i++) {
+					fTitleA = fixAmper(subFieldAf.get(i));
 				}
 				ArrayList<String> subFielBf = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int ia=0;ia < subFielBf.size();ia++) {
-					fTitleB = fixAmper(subFielBf.get(ia));
+				for (i=0;i < subFielBf.size();i++) {
+					fTitleB = fixAmper(subFielBf.get(i));
 				}
 				if (fTitleA != null && fTitleA.length() > 0) {
 					finalFTitle = fTitleA;
@@ -331,11 +333,11 @@ public class ExportRDF {
 				// get subfields
 				String fCode = "";
 				ArrayList<String> subFieldAl = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int ial=0;ial < subFieldAl.size();ial++) {
-					fCode = fixAmper(subFieldAl.get(ial));
+				for (i=0;i < subFieldAl.size();i++) {
+					fCode = fixAmper(subFieldAl.get(i));
 				}
 				if (fCode != null && fCode.length() > 0) {
-					languageCode.add(fCode)
+					languageCode.add(fCode);
 				}
 			}			
 			
@@ -356,24 +358,24 @@ public class ExportRDF {
 				ArrayList<String> retVal = new ArrayList<String>();
 				
 				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int ia=0;ia < subFieldA.size();ia++) {
-					subA = subFieldA.get(ia);
+				for (i=0;i < subFieldA.size();i++) {
+					subA = subFieldA.get(i);
 				}
 				ArrayList<String> subFieldB = sqlObj.selectSubFieldValuesByID(fieldID, "b");
-				for (int ia=0;ia < subFieldB.size();ia++) {
-					subB =  subFieldB.get(ia);
+				for (i=0;i < subFieldB.size();i++) {
+					subB =  subFieldB.get(i);
 				}
 				ArrayList<String> subFieldC = sqlObj.selectSubFieldValuesByID(fieldID, "c");
-				for (int ia=0;ia < subFieldC.size();ia++) {
-					subC =  subFieldC.get(ia);
+				for (i=0;i < subFieldC.size();i++) {
+					subC =  subFieldC.get(i);
 				}
 				ArrayList<String> subFieldD = sqlObj.selectSubFieldValuesByID(fieldID, "d");
-				for (int ia=0;ia < subFieldD.size();ia++) {
-					subD =  subFieldD.get(ia);
+				for (i=0;i < subFieldD.size();i++) {
+					subD =  subFieldD.get(i);
 				}
 				ArrayList<String> subFieldE = sqlObj.selectSubFieldValuesByID(fieldID, "e");
-				for (int ia=0;ia < subFieldE.size();ia++) {
-					subE =  subFieldE.get(ia);
+				for (i=0;i < subFieldE.size();i++) {
+					subE =  subFieldE.get(i);
 				}
 				
 				String seperator = " ";
@@ -426,12 +428,12 @@ public class ExportRDF {
 				String subAc = "";
 				String subEc = "";
 				ArrayList<String> subFieldAc = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int ia=0;ia < subFieldAc.size();ia++) {
-					subAc = subFieldAc.get(ia);
+				for (i=0;i < subFieldAc.size();i++) {
+					subAc = subFieldAc.get(i);
 				}
 				ArrayList<String> subFieldEc = sqlObj.selectSubFieldValuesByID(fieldID, "e");
-				for (int ia=0;ia < subFieldEc.size();ia++) {
-					subEc =  subFieldEc.get(ia);
+				for (i=0;i < subFieldEc.size();i++) {
+					subEc =  subFieldEc.get(i);
 				}
 				
 				String upperEc = subEc.toUpperCase();
@@ -453,24 +455,24 @@ public class ExportRDF {
 				ArrayList<String> retValm = new ArrayList<String>();
 				
 				ArrayList<String> subFieldAm = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int ia=0;ia < subFieldAm.size();ia++) {
-					subAm = subFieldAm.get(ia);
+				for (i=0;i < subFieldAm.size();i++) {
+					subAm = subFieldAm.get(i);
 				}
 				ArrayList<String> subFieldBm = sqlObj.selectSubFieldValuesByID(fieldID, "b");
-				for (int ia=0;ia < subFieldBm.size();ia++) {
-					subBm =  subFieldBm.get(ia);
+				for (i=0;i < subFieldBm.size();i++) {
+					subBm =  subFieldBm.get(i);
 				}
 				ArrayList<String> subFieldCm = sqlObj.selectSubFieldValuesByID(fieldID, "c");
-				for (int ia=0;ia < subFieldCm.size();ia++) {
-					subCm =  subFieldCm.get(ia);
+				for (i=0;i < subFieldCm.size();i++) {
+					subCm =  subFieldCm.get(i);
 				}
 				ArrayList<String> subFieldDm = sqlObj.selectSubFieldValuesByID(fieldID, "d");
-				for (int ia=0;ia < subFieldDm.size();ia++) {
-					subDm =  subFieldDm.get(ia);
+				for (i=0;i < subFieldDm.size();i++) {
+					subDm =  subFieldDm.get(i);
 				}
 				ArrayList<String> subFieldJm = sqlObj.selectSubFieldValuesByID(fieldID, "j");
-				for (int ia=0;ia < subFieldJm.size();ia++) {
-					subJm =  subFieldJm.get(ia);
+				for (i=0;i < subFieldJm.size();i++) {
+					subJm =  subFieldJm.get(i);
 				}
 				
 				String seperatorm = ", ";
@@ -556,34 +558,12 @@ public class ExportRDF {
 			// if FIELD 321 - Former Publication Frequency - String formerPubFreq = ""; // rdau:noteOnFrequency
 			if (fieldType.equals("321")) {
 				ArrayList<String> subFieldAps = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int ialfpf=0;ialfpf < subFieldAps.size();ialfpf++) {
-					formerPubFreq = fixAmper(subFieldAps.get(ialfpf));
+				for (i=0;i < subFieldAps.size();i++) {
+					formerPubFreq = fixAmper(subFieldAps.get(i));
 				}
 			}	
 			
-					
-/* TODO
- * 
- * Field 300 - Physical Description
- * 
- 
-Subfield Codes
-$a - Extent (R)
-$b - Other physical details (NR)
-$c - Dimensions (R)
-$e - Accompanying material (NR)
-$f - Type of unit (R)
-$g - Size of unit (R)
-$3 - Materials specified (NR)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
 
-XML ENTITY: dct:format
-
-String physDesc = ""; // dct:format
-
- * 
- */
 			// IF Field 300 - Physical Description - String physDesc = ""; // dct:format
 			if (fieldType.equals("100") || fieldType.equals("700")) {
 				int valueBefore = 0;
@@ -597,27 +577,27 @@ String physDesc = ""; // dct:format
 				String subGpd = "";
 				
 				ArrayList<String> subFieldApd = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int i=0;i < subFieldApd.size();i++) {
+				for (i=0;i < subFieldApd.size();i++) {
 					subApd = subFieldApd.get(i);
 				}
 				ArrayList<String> subFieldBpd = sqlObj.selectSubFieldValuesByID(fieldID, "b");
-				for (int i=0;i < subFieldBpd.size();i++) {
+				for (i=0;i < subFieldBpd.size();i++) {
 					subBpd =  subFieldBpd.get(i);
 				}
 				ArrayList<String> subFieldCpd = sqlObj.selectSubFieldValuesByID(fieldID, "c");
-				for (int i=0;i < subFieldCpd.size();i++) {
+				for (i=0;i < subFieldCpd.size();i++) {
 					subCpd =  subFieldCpd.get(i);
 				}
 				ArrayList<String> subFieldEpd = sqlObj.selectSubFieldValuesByID(fieldID, "e");
-				for (int i=0;i < subFieldEpd.size();i++) {
+				for (i=0;i < subFieldEpd.size();i++) {
 					subEpd =  subFieldEpd.get(i);
 				}
 				ArrayList<String> subFieldFpd = sqlObj.selectSubFieldValuesByID(fieldID, "f");
-				for (int i=0;i < subFieldFpd.size();i++) {
+				for (i=0;i < subFieldFpd.size();i++) {
 					subFpd =  subFieldFpd.get(i);
 				}
 				ArrayList<String> subFieldGpd = sqlObj.selectSubFieldValuesByID(fieldID, "g");
-				for (int i=0;i < subFieldGpd.size();i++) {
+				for (i=0;i < subFieldGpd.size();i++) {
 					subGpd =  subFieldGpd.get(i);
 				}
 				
@@ -682,11 +662,11 @@ String physDesc = ""; // dct:format
 				String subBct = "";
 
 				ArrayList<String> subFieldAct = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int i=0;i < subFieldAct.size();i++) {
+				for (i=0;i < subFieldAct.size();i++) {
 					subAct = subFieldAct.get(i);
 				}
 				ArrayList<String> subFieldBct = sqlObj.selectSubFieldValuesByID(fieldID, "b");
-				for (int i=0;i < subFieldBct.size();i++) {
+				for (i=0;i < subFieldBct.size();i++) {
 					subBct =  subFieldBct.get(i);
 				}
 				
@@ -695,14 +675,14 @@ String physDesc = ""; // dct:format
 					if (valueBeforeCt == 0) {
 						thisCtNote = thisCtNote + ". ";
 					}
-					thisCtNote = thisCtNote + subApd;
+					thisCtNote = thisCtNote + subAct;
 					valueBeforeCt++;
 				}
 				if (subBct  != null && subBct.length() > 0) {
 					if (valueBeforeCt == 0) {
-						thisCtNote = thisPDNote + ". ";
+						thisCtNote = thisCtNote + ". ";
 					}
-					thisCtNote = thisCtNote + subBpd;
+					thisCtNote = thisCtNote + subBct;
 					valueBeforeCt++;
 				}
 			
@@ -714,105 +694,132 @@ String physDesc = ""; // dct:format
 			}					
 			
 			
+			// IF Field 338 - Carrier Type - String carrierType = ""; // dct:type
+			if (fieldType.equals("338")) {
+				String thisCrtNote = "";
+				ArrayList<String> subFieldAcrt = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFieldAcrt.size();i++) {
+					thisCrtNote = subFieldAcrt.get(i);
+				}
+				if (thisCrtNote  != null && thisCrtNote.length() > 0) {
+					carrierType = thisCrtNote;
+				}
+			}
 			
+			// IF Field 362 - Sequence Dates
+			if (fieldType.equals("362")) {
+				// get subfields
+				String seqNote = "";
+				ArrayList<String> subFieldAsq = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				ArrayList<String> subFieldZsq = sqlObj.selectSubFieldValuesByID(fieldID, "z");
+				for (i=0;i < subFieldAsq.size();i++) {
+					seqNote = "Date Sequence: " + subFieldAsq.get(i) + ".";
+					if (subFieldZsq.size() >= i) {
+						seqNote = " Source: " + subFieldZsq.get(i) + ".";
+					}
+					if (seqNote != null && seqNote.length() > 0) {
+						fiveHundNotes.add(fixAmper(seqNote));
+					}
+				}
+			}
 			
-	
+			// IF Field 370 - Associated Place -- ArrayList<String> associatedPlaces; // dc:coverage + 500 note
+			if (fieldType.equals("370")) {
+				String subCap = "";
+				String subFap = "";
+				String subGap = "";
+				String subIap = "";
+				String subSap = "";
+				String subTap = "";
+				String subVap = "";
 
-/* TODO
- * 
- * Field 337 - Media Type
- * 
- 
-Subfield Codes
-$a - Media type term (R)
-$b - Media type code (R)
-$0 - Authority record control number or standard number (R)
-$2 - Source (NR)
-$3 - Materials specified (NR)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
-
-XML ENTITY: dct:format
-
-String mediaType = ""; // dct:format
-
-* 
-*/	
-
+				ArrayList<String> subFieldCap = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFieldCap.size();i++) {
+					subCap = subFieldCap.get(i);
+				}
+				ArrayList<String> subFieldFap = sqlObj.selectSubFieldValuesByID(fieldID, "e");
+				for (i=0;i < subFieldFap.size();i++) {
+					subFap =  subFieldFap.get(i);
+				}
+				ArrayList<String> subFieldGap = sqlObj.selectSubFieldValuesByID(fieldID, "e");
+				for (i=0;i < subFieldGap.size();i++) {
+					subGap =  subFieldGap.get(i);
+				}
+				ArrayList<String> subFieldIap = sqlObj.selectSubFieldValuesByID(fieldID, "e");
+				for (i=0;i < subFieldIap.size();i++) {
+					subIap =  subFieldIap.get(i);
+				}
+				ArrayList<String> subFieldSap = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFieldSap.size();i++) {
+					subSap = subFieldSap.get(i);
+				}
+				ArrayList<String> subFieldTap = sqlObj.selectSubFieldValuesByID(fieldID, "e");
+				for (i=0;i < subFieldTap.size();i++) {
+					subTap =  subFieldTap.get(i);
+				}
+				ArrayList<String> subFieldVap = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFieldVap.size();i++) {
+					subVap = subFieldVap.get(i);
+				}
+				
+				int didBefore = 0;
+				String thisApNote = "";
+				if (subCap  != null && subCap.length() > 0) {
+					if (didBefore == 0) {
+						thisApNote = thisApNote + ". ";
+					}
+					thisApNote = thisApNote + "Associated Country: " + subCap;
+					didBefore++;
+					associatedPlaces.add(fixAmper(subCap));
+				}
+				if (subFap  != null && subFap.length() > 0) {
+					if (didBefore == 0) {
+						thisApNote = thisApNote + ". ";
+					}
+					thisApNote = thisApNote + "Other Associated Place: " + subFap;
+					didBefore++;
+					associatedPlaces.add(fixAmper(subFap));
+				}	
+				if (subGap  != null && subGap.length() > 0) {
+					if (didBefore == 0) {
+						thisApNote = thisApNote + ". ";
+					}
+					thisApNote = thisApNote + "Place of Origin: " + subGap;
+					didBefore++;
+					associatedPlaces.add(fixAmper(subGap));
+				}	
+				if (subIap  != null && subIap.length() > 0) {
+					if (didBefore == 0) {
+						thisApNote = thisApNote + ". ";
+					}
+					thisApNote = thisApNote + "Relationship: " + subIap;
+					didBefore++;
+				}	
+				if (subSap  != null && subSap.length() > 0) {
+					if (didBefore == 0) {
+						thisApNote = thisApNote + ". ";
+					}
+					thisApNote = thisApNote + "Start: " + subSap;
+					didBefore++;
+				}	
+				if (subTap  != null && subTap.length() > 0) {
+					if (didBefore == 0) {
+						thisApNote = thisApNote + ". ";
+					}
+					thisApNote = thisApNote + "End: " + subTap;
+					didBefore++;
+				}
+				if (subVap  != null && subVap.length() > 0) {
+					if (didBefore == 0) {
+						thisApNote = thisApNote + ". ";
+					}
+					thisApNote = thisApNote + "Source: " + subVap;
+					didBefore++;
+				}
+				
+				fiveHundNotes.add(fixAmper(thisApNote));
 			
-/* TODO
- * 
- * Field 338 - Carrier Type
- * 
-
-Subfield Codes
-$a - Carrier type term (R)
-$b - Carrier type code (R)
-$0 - Authority record control number or standard number (R)
-$2 - Source (NR)
-$3 - Materials specified (NR)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
-
-XML ENTITY: dct:medium
-
-String carrierType = ""; // dct:type
-
-* 
-*/	
-
-			
-/* TODO
- * 
- * Field 362 - Sequence of Dates
- * 
-
-Subfield Codes
-$a - Dates of publication and/or sequential designation (NR) 
-$z - Source of information (NR) 
-$6 - Linkage (NR) 
-$8 - Field link and sequence number (R) 
-
-XML ENTITY:
-
-  <dc:date>
-    <collex:date>
-      <rdfs:label>1890-99 (circa)</rdfs:label>
-      <rdf:value>189u</rdf:value>
-    </collex:date>
-  </dc:date>
-
-* 
-*/	
-
-
-/* TODO
- * 
- * Field 370 - Associated Place
- * 
-
-Subfield Codes
-$c - Associated country (R)
-$f - Other associated place (R)
-$g - Place of origin of work or expression (R)
-$i - Relationship information (R)
-$s - Start period (NR)
-$t - End period (NR)
-$u - Uniform Resource Identifier (R)
-$v - Source of information (R)
-$0 - Authority record control number or standard number (R)
-$2 - Source of term (NR)
-$3 - Materials specified (NR)
-$4 - Relationship (R)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
-
-XML ENTITY: <dc:coverage> (make sure indexer is fixed to take multiple)
-
-String associatedPlace = ""; // dc:coverage
-
-* 
-*/	
+			}			
 
 			
 /* TODO
@@ -1043,8 +1050,8 @@ Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonograph
 				// get subfields
 				String subA = "";
 				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int iag=0;iag < subFieldA.size();iag++) {
-					subA = subFieldA.get(iag);
+				for (i=0;i < subFieldA.size();i++) {
+					subA = subFieldA.get(i);
 				}
 				if (subA != null && subA.length() > 0) {
 					workingValue = subA;
@@ -1064,8 +1071,8 @@ Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonograph
 				// get subfields
 				String subA = "";
 				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int iag=0;iag < subFieldA.size();iag++) {
-					subA = subFieldA.get(iag);
+				for (i=0;i < subFieldA.size();i++) {
+					subA = subFieldA.get(i);
 				}
 				if (subA != null && subA.length() > 0) {
 					workingValue = subA;
@@ -1089,32 +1096,32 @@ Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonograph
 				String subG = "";
 				String subH = "";
 				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int iag=0;iag < subFieldA.size();iag++) {
-					subA = fixAmper(subFieldA.get(iag));
+				for (i=0;i < subFieldA.size();i++) {
+					subA = fixAmper(subFieldA.get(i));
 				}
 				ArrayList<String> subFieldB = sqlObj.selectSubFieldValuesByID(fieldID, "b");
-				for (int iag=0;iag < subFieldB.size();iag++) {
-					subB = fixAmper(subFieldB.get(iag));
+				for (i=0;i < subFieldB.size();i++) {
+					subB = fixAmper(subFieldB.get(i));
 				}
 				ArrayList<String> subFieldC = sqlObj.selectSubFieldValuesByID(fieldID, "c");
-				for (int iag=0;iag < subFieldC.size();iag++) {
-					subC = fixAmper(subFieldC.get(iag));
+				for (i=0;i < subFieldC.size();i++) {
+					subC = fixAmper(subFieldC.get(i));
 				}	
 				ArrayList<String> subFieldD = sqlObj.selectSubFieldValuesByID(fieldID, "d");
-				for (int iag=0;iag < subFieldD.size();iag++) {
-					subD = fixAmper(subFieldD.get(iag));
+				for (i=0;i < subFieldD.size();i++) {
+					subD = fixAmper(subFieldD.get(i));
 				}
 				ArrayList<String> subFieldF = sqlObj.selectSubFieldValuesByID(fieldID, "f");
-				for (int iag=0;iag < subFieldF.size();iag++) {
-					subF = fixAmper(subFieldF.get(iag));
+				for (i=0;i < subFieldF.size();i++) {
+					subF = fixAmper(subFieldF.get(i));
 				}
 				ArrayList<String> subFieldG = sqlObj.selectSubFieldValuesByID(fieldID, "g");
-				for (int iag=0;iag < subFieldG.size();iag++) {
-					subG = fixAmper(subFieldG.get(iag));
+				for (i=0;i < subFieldG.size();i++) {
+					subG = fixAmper(subFieldG.get(i));
 				}
 				ArrayList<String> subFieldH = sqlObj.selectSubFieldValuesByID(fieldID, "h");
-				for (int iag=0;iag < subFieldH.size();iag++) {
-					subH = fixAmper(subFieldH.get(iag));
+				for (i=0;i < subFieldH.size();i++) {
+					subH = fixAmper(subFieldH.get(i));
 				}
 				
 				String seperator = "--";
@@ -1188,8 +1195,8 @@ Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonograph
 				// get subfields
 				String note = "";
 				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int in=0;in < subFieldA.size();in++) {
-					note = subFieldA.get(in);
+				for (i=0;i < subFieldA.size();i++) {
+					note = subFieldA.get(i);
 				}
 				
 				if (note != null && note.length() > 0) {
@@ -1214,12 +1221,12 @@ Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonograph
 				String subA = "";
 				String subC = "";
 				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int in=0;in < subFieldA.size();in++) {
-					subA = subFieldA.get(in);
+				for (i=0;i < subFieldA.size();i++) {
+					subA = subFieldA.get(i);
 				}
 				ArrayList<String> subFieldC = sqlObj.selectSubFieldValuesByID(fieldID, "c");
-				for (int in=0;in < subFieldC.size();in++) {
-					subC = subFieldC.get(in);
+				for (i=0;i < subFieldC.size();i++) {
+					subC = subFieldC.get(i);
 				}
 				
 				String retString = "";
