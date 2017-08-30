@@ -158,6 +158,7 @@ public class ExportRDF {
 		String associatedPlace = ""; // dc:coverage
 		String creationEpoch = ""; // dct:created
 		String estcThumbnail = ""; // collex:thumbnail rdf:resource=""
+		String dcRights = ""; // dct:rights
 		ArrayList<String> seriesStatment = new ArrayList<String>(); //   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
 		ArrayList<String> uniformTitle = new ArrayList<String>(); //   rdau:titleOfResource
 		ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
@@ -836,28 +837,7 @@ public class ExportRDF {
 					creationEpoch = thisTPC;
 				}
 			}
-			
-/* TODO
- * 
- * Field 490 - Series Statement
- * 
-
-Subfield Codes
-
-$a - Series statement (R)
-$l - Library of Congress call number (NR)
-$v - Volume/sequential designation (R)
-$x - International Standard Serial Number (R)
-$3 - Materials specified (NR)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
-
-XML ENTITY: treat like a 500
-
-Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
-
-* 
-*/
+	
 			
 			// IF Field 490 - Series Statement -- Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
 			if (fieldType.equals("370")) {
@@ -1002,22 +982,24 @@ Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonograph
 				String thisSubjectString = getSubject(recordID, "651", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
 					subjectTerms.add(fixAmper(thisSubjectString));
+					coverage.add(fixAmper(thisSubjectString));
 				}
 
 			}
-			
-			/* TODO
-			 * 
-			 * Field 752 same as 651 but hierarchical.  Break up into individual entries.
-			 * 
-
-			XML ENTITY: same as above
-
-			* 
-			*/	
 	
-			
-			
+			// do 752 (subject term - Hierarchical Geographic Name)
+			if (fieldType.equals("752")) {
+				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
+				subFieldsToInclude.add("a");
+				String thisSubjectString = getSubject(recordID, "651", subFieldsToInclude, " ");
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					String[] arrayPlaces = thisSubjectString.split("--");
+					for (i=0;i < arrayPlaces.size();i++) {
+						subjectTerms.add(fixAmper(arrayPlaces[i].trim()));
+						coverage.add(fixAmper(arrayPlaces[i].trim()));
+					}
+				}
+			}
 			
 			// do 653 (subject term - Uncontrolled)
 			if (fieldType.equals("653")) {
@@ -1244,8 +1226,8 @@ Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonograph
 
 			}
 			
-			// 500 notes
-			if (fieldType.equals("500")) {
+			// 5xx notes
+			if (fieldType.matches("5\\d\\d")) {	
 				// get raw value
 				String rawValue = sqlObj.getFieldByID(fieldID);
 				// get subfields
@@ -1256,66 +1238,115 @@ Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonograph
 				}
 				
 				if (note != null && note.length() > 0) {
-					fiveHundNotes.add(fixAmper(note));
-				} else if (rawValue != null && rawValue.length() > 0) {
-					fiveHundNotes.add(fixAmper(rawValue));
-				}
-			}
-			
-/* TODO
-			501 - same as 500
-			504 - same as 500
-			505 - same as 500
-			509 - same as 500
-*/
-			
-			// 510 notes -- Indexing service that indexes the item
-			if (fieldType.equals("510")) {
-				// get raw value
-				String rawValue = sqlObj.getFieldByID(fieldID);
-				// get subfields
-				String subA = "";
-				String subC = "";
-				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldA.size();i++) {
-					subA = subFieldA.get(i);
-				}
-				ArrayList<String> subFieldC = sqlObj.selectSubFieldValuesByID(fieldID, "c");
-				for (i=0;i < subFieldC.size();i++) {
-					subC = subFieldC.get(i);
-				}
-				
-				String retString = "";
-				if (subA != null && subA.length() > 0) {
-					if (subC != null && subC.length() > 0) {
-						retString = subA + " " + subC;
-					} else {
-						String trimmedSubA = removeFinalComma(subA);
-						retString = trimmedSubA;
+					String baseNote = fixAmper(note);
+					if (fieldType.equals("504")) {
+						baseNote = "Bibliography: " + baseNote;
+					} else if (fieldType.equals("505")) {
+						baseNote = "Formatted Contents: " + baseNote;
+					} else if (fieldType.equals("506")) {
+						baseNote = "Restrictions on Access: " + baseNote;
+					} else if (fieldType.equals("507")) {
+						baseNote = "Scale Note for Graphic Material: " + baseNote;
+					} else if (fieldType.equals("508")) {
+						baseNote = "Creation/Production Credits: " + baseNote;
+					} else if (fieldType.equals("510")) {
+						baseNote = "Citation/References: " + baseNote;
+					} else if (fieldType.equals("511")) {
+						baseNote = "Participant or Performer: " + baseNote;
+					} else if (fieldType.equals("513")) {
+						baseNote = "Type of Report and Period Covered: " + baseNote;
+					} else if (fieldType.equals("514")) {
+						baseNote = "Data Quality Note: " + baseNote;
+					} else if (fieldType.equals("515")) {
+						baseNote = "Numbering Peculiarities: " + baseNote;
+					} else if (fieldType.equals("516")) {
+						baseNote = "Type of Computer File or Data: " + baseNote;
+					} else if (fieldType.equals("518")) {
+						baseNote = "Date/Time and Place of an Event: " + baseNote;
+					} else if (fieldType.equals("520")) {
+						baseNote = "Summary, etc.: " + baseNote;
+					} else if (fieldType.equals("521")) {
+						baseNote = "Target Audience: " + baseNote;
+					} else if (fieldType.equals("522")) {
+						baseNote = "Geographic Coverage: " + baseNote;
+					} else if (fieldType.equals("524")) {
+						baseNote = "Preferred Citation of Described Materials: " + baseNote;
+					} else if (fieldType.equals("525")) {
+						baseNote = "Supplement: " + baseNote;
+					} else if (fieldType.equals("526")) {
+						baseNote = "Study Program Information: " + baseNote;
+					} else if (fieldType.equals("530")) {
+						baseNote = "Additional Physical Form: " + baseNote;
+					} else if (fieldType.equals("533")) {
+						baseNote = "Reproduction: " + baseNote;
+					} else if (fieldType.equals("534")) {
+						baseNote = "Original Version: " + baseNote;
+					} else if (fieldType.equals("535")) {
+						baseNote = "Location of Originals/Duplicates: " + baseNote;
+					} else if (fieldType.equals("536")) {
+						baseNote = "Funding Information: " + baseNote;
+					} else if (fieldType.equals("538")) {
+						baseNote = "System Details: " + baseNote;
+					} else if (fieldType.equals("540")) {
+						baseNote = "Immediate Source of Acquisition: " + baseNote;
+					} else if (fieldType.equals("542")) {
+						baseNote = "Information Relating to Copyright Status: " + baseNote;
+					} else if (fieldType.equals("544")) {
+						baseNote = "Location of Other Archival Materials: " + baseNote;
+					} else if (fieldType.equals("545")) {
+						baseNote = "Biographical or Historical Data: " + baseNote;
+					} else if (fieldType.equals("546")) {
+						baseNote = "Language: " + baseNote;
+					} else if (fieldType.equals("547")) {
+						baseNote = "Former Title Complexity: " + baseNote;
+					} else if (fieldType.equals("550")) {
+						baseNote = "Issuing Body: " + baseNote;
+					} else if (fieldType.equals("552")) {
+						baseNote = "Entity and Attribute Information: " + baseNote;
+					} else if (fieldType.equals("555")) {
+						baseNote = "Cumulative Index/Finding Aids: " + baseNote;
+					} else if (fieldType.equals("555")) {
+						baseNote = "Information About Documentation: " + baseNote;
+					} else if (fieldType.equals("561")) {
+						baseNote = "Ownership and Custodial History: " + baseNote;
+					} else if (fieldType.equals("562")) {
+						baseNote = "Copy and Version Identification: " + baseNote;
+					} else if (fieldType.equals("563")) {
+						baseNote = "Binding Information: " + baseNote;
+					} else if (fieldType.equals("565")) {
+						baseNote = "Case File Characteristics: " + baseNote;
+					} else if (fieldType.equals("567")) {
+						baseNote = "Methodology: " + baseNote;
+					} else if (fieldType.equals("580")) {
+						baseNote = "Linking Entry Complexity: " + baseNote;
+					} else if (fieldType.equals("581")) {
+						baseNote = "Publications About Described Materials: " + baseNote;
+					} else if (fieldType.equals("583")) {
+						baseNote = "Action: " + baseNote;
+					} else if (fieldType.equals("584")) {
+						baseNote = "Accumulation and Frequency of Use: " + baseNote;
+					} else if (fieldType.equals("585")) {
+						baseNote = "Exhibitions: " + baseNote;
+					} else if (fieldType.equals("586")) {
+						baseNote = "Awards: " + baseNote;
+					} else if (fieldType.equals("588")) {
+						baseNote = "Source of Description: " + baseNote;
 					}
-				} else {
-					retString = rawValue;
+					
+					if (fieldType.matches("59\\d")) {	
+						baseNote = "Local Note: " + baseNote;
+					}
+					
+					if (fieldType.equals("540")) {
+						dcRights = fixAmper(baseNote);
+						baseNote = "";
+					}
+					
+					if (baseNote != null && baseNote.length() > 0) {
+						fiveHundNotes.add(fixAmper(baseNote));
+					}
 				}
-	
-				fiveHundTenNotes.add(fixAmper(retString));
 			}
-			
-/* TODO
-			515 -- all as 550's
-			520
-			521
-			522
-			525
-			530
-			533
-			534
-			535
-			539
-			546
-			550
-			555
-			561
-*/
 
 		}
 		
