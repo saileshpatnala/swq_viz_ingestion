@@ -603,48 +603,48 @@ public class ExportRDF {
 				
 				
 				if (subApd  != null && subApd.length() > 0) {
-					if (valueBefore == 0) {
+					if (valueBefore != 0) {
 						thisPDNote = thisPDNote + ". ";
 					}
 					thisPDNote = thisPDNote + subApd;
 					valueBefore++;
 				}
 				if (subBpd  != null && subBpd.length() > 0) {
-					if (valueBefore == 0) {
+					if (valueBefore != 0) {
 						thisPDNote = thisPDNote + ". ";
 					}
 					thisPDNote = thisPDNote + subBpd;
 					valueBefore++;
 				}
 				if (subCpd  != null && subCpd.length() > 0) {
-					if (valueBefore == 0) {
+					if (valueBefore != 0) {
 						thisPDNote = thisPDNote + ". ";
 					}
 					thisPDNote = thisPDNote + "Dimensions: " + subCpd;
 					valueBefore++;
 				}
 				if (subEpd  != null && subEpd.length() > 0) {
-					if (valueBefore == 0) {
+					if (valueBefore != 0) {
 						thisPDNote = thisPDNote + ". ";
 					}
 					thisPDNote = thisPDNote + "Accompanying material: " + subEpd;
 					valueBefore++;
 				}	
 				if (subFpd  != null && subFpd.length() > 0) {
-					if (valueBefore == 0) {
+					if (valueBefore != 0) {
 						thisPDNote = thisPDNote + ". ";
 					}
 					thisPDNote = thisPDNote + "Type of unit: " + subFpd;
 					valueBefore++;
 				}
 				if (subGpd  != null && subGpd.length() > 0) {
-					if (valueBefore == 0) {
+					if (valueBefore != 0) {
 						thisPDNote = thisPDNote + ". ";
 					}
 					thisPDNote = thisPDNote + "Size of unit: " + subGpd;
 					valueBefore++;
 				}				
-				if (valueBefore == 0) {
+				if (valueBefore != 0) {
 					thisPDNote = thisPDNote + ".";
 				}
 
@@ -686,7 +686,7 @@ public class ExportRDF {
 					valueBeforeCt++;
 				}
 			
-				if (valueBeforeCt == 0) {
+				if (valueBeforeCt != 0) {
 					thisCtNote = thisCtNote + ".";
 				}
 
@@ -765,7 +765,7 @@ public class ExportRDF {
 				int didBefore = 0;
 				String thisApNote = "";
 				if (subCap  != null && subCap.length() > 0) {
-					if (didBefore == 0) {
+					if (didBefore != 0) {
 						thisApNote = thisApNote + ". ";
 					}
 					thisApNote = thisApNote + "Associated Country: " + subCap;
@@ -773,7 +773,7 @@ public class ExportRDF {
 					associatedPlaces.add(fixAmper(subCap));
 				}
 				if (subFap  != null && subFap.length() > 0) {
-					if (didBefore == 0) {
+					if (didBefore != 0) {
 						thisApNote = thisApNote + ". ";
 					}
 					thisApNote = thisApNote + "Other Associated Place: " + subFap;
@@ -781,7 +781,7 @@ public class ExportRDF {
 					associatedPlaces.add(fixAmper(subFap));
 				}	
 				if (subGap  != null && subGap.length() > 0) {
-					if (didBefore == 0) {
+					if (didBefore != 0) {
 						thisApNote = thisApNote + ". ";
 					}
 					thisApNote = thisApNote + "Place of Origin: " + subGap;
@@ -789,32 +789,35 @@ public class ExportRDF {
 					associatedPlaces.add(fixAmper(subGap));
 				}	
 				if (subIap  != null && subIap.length() > 0) {
-					if (didBefore == 0) {
+					if (didBefore != 0) {
 						thisApNote = thisApNote + ". ";
 					}
 					thisApNote = thisApNote + "Relationship: " + subIap;
 					didBefore++;
 				}	
 				if (subSap  != null && subSap.length() > 0) {
-					if (didBefore == 0) {
+					if (didBefore != 0) {
 						thisApNote = thisApNote + ". ";
 					}
 					thisApNote = thisApNote + "Start: " + subSap;
 					didBefore++;
 				}	
 				if (subTap  != null && subTap.length() > 0) {
-					if (didBefore == 0) {
+					if (didBefore != 0) {
 						thisApNote = thisApNote + ". ";
 					}
 					thisApNote = thisApNote + "End: " + subTap;
 					didBefore++;
 				}
 				if (subVap  != null && subVap.length() > 0) {
-					if (didBefore == 0) {
+					if (didBefore != 0) {
 						thisApNote = thisApNote + ". ";
 					}
 					thisApNote = thisApNote + "Source: " + subVap;
 					didBefore++;
+				}
+				if (didBefore != 0) {
+					thisPDNote = thisPDNote + ".";
 				}
 				
 				fiveHundNotes.add(fixAmper(thisApNote));
@@ -822,26 +825,17 @@ public class ExportRDF {
 			}			
 
 			
-/* TODO
- * 
- * Field 388 - Time Period of Creation
- * 
-
-Subfield Codes
-
-$a - Time period of creation term (R)
-$0 - Authority record control number or standard number (R)
-$2 - Source of term (NR)
-$3 - Materials specified (NR)
-$6 - Linkage (NR)
-$8 - Field link and sequence number (R)
-
-XML ENTITY: dct:created
-
-String creationEpoch = ""; // dct:created
-
-* 
-*/
+			// If Field 388 - Time Period of Creation - String creationEpoch = ""; // dct:created
+			if (fieldType.equals("388")) {
+				String thisTPC = "";
+				ArrayList<String> subFielAtpc = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFielAtpc.size();i++) {
+					thisTPC = subFielAtpc.get(i);
+				}
+				if (thisCrtNote  != null && thisCrtNote.length() > 0) {
+					creationEpoch = thisTPC;
+				}
+			}
 			
 /* TODO
  * 
@@ -864,6 +858,68 @@ Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonograph
 
 * 
 */
+			
+			// IF Field 490 - Series Statement -- Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
+			if (fieldType.equals("370")) {
+				String subAss = "";
+				String subLss = "";
+				String subVss = "";
+				String subXss = "";
+
+				ArrayList<String> subFieldAss = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFieldAss.size();i++) {
+					subAss = subFieldAss.get(i);
+				}
+				ArrayList<String> subFieldLss = sqlObj.selectSubFieldValuesByID(fieldID, "l");
+				for (i=0;i < subFieldLss.size();i++) {
+					subLss =  subFieldLss.get(i);
+				}
+				ArrayList<String> subFieldVss = sqlObj.selectSubFieldValuesByID(fieldID, "v");
+				for (i=0;i < subFieldVss.size();i++) {
+					subVss =  subFieldVss.get(i);
+				}
+				ArrayList<String> subFieldXss = sqlObj.selectSubFieldValuesByID(fieldID, "x");
+				for (i=0;i < subFieldXss.size();i++) {
+					subXss =  subFieldXss.get(i);
+				}
+				
+				int didBeforeSs = 0;
+				String thisSsNote = "";
+				if (subAss  != null && subAss.length() > 0) {
+					if (didBeforeSs != 0) {
+						thisSsNote = thisSsNote + ". ";
+					}
+					thisSsNote = thisSsNote + "Series Statement: " + subAss;
+					didBeforeSs++;
+				}
+				if (subLss  != null && subLss.length() > 0) {
+					if (didBeforeSs != 0) {
+						thisSsNote = thisSsNote + ". ";
+					}
+					thisSsNote = thisSsNote + "Library of Congress Call Number: " + subLss;
+					didBeforeSs++;
+				}
+				if (subVss  != null && subVss.length() > 0) {
+					if (didBeforeSs != 0) {
+						thisSsNote = thisSsNote + ". ";
+					}
+					thisSsNote = thisSsNote + "Volume/Sequence Number: " + subVss;
+					didBeforeSs++;
+				}
+				if (subXss  != null && subXss.length() > 0) {
+					if (didBeforeSs != 0) {
+						thisSsNote = thisSsNote + ". ";
+					}
+					 = thisSsNote + "International Standard Serial Number: " + subXss;
+					didBeforeSs++;
+				}
+				
+				
+				if (thisSsNote  != null && thisSsNote.length() > 0) {
+					seriesStatment.add(fixAmper(thisSsNote));
+				}
+			
+			}			
 			
 			
 			// do 600 (subject term - personal name)
