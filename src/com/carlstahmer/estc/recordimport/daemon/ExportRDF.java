@@ -173,115 +173,6 @@ public class ExportRDF {
 			String fieldType = sqlObj.selectFieldType(fieldID);
 			
 			int i = 0;
-				
-			// if 245 title
-			if (fieldType.equals("245")) {
-				// get raw value
-				String rawValue = sqlObj.getFieldByID(fieldID);;
-				// get subfields
-				String titleA = "";
-				String titleB = "";
-				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldA.size();i++) {
-					titleA = fixAmper(subFieldA.get(i));
-				}
-				ArrayList<String> subFieldB = sqlObj.selectSubFieldValuesByID(fieldID, "b");
-				for (i=0;i < subFieldB.size();i++) {
-					titleB =  fixAmper(subFieldB.get(i));
-				}
-				
-				if (titleA != null && titleA.length() > 0) {
-					finalTitle = titleA;
-					if (titleB != null && titleB.length() > 0) {
-						finalTitle = finalTitle + " " + titleB;
-					}
-				} else if (rawValue != null && rawValue.length() > 0) {
-					finalTitle = rawValue;
-				} else {
-					finalTitle = "Utitled or Title not Known";
-				}
-
-			}
-			
-			// if 210  abbreviated title - rdau:abbreviatedTitle
-			if (fieldType.equals("210")) {
-				// get raw value
-				String rawAbrevTitleValue = sqlObj.getFieldByID(fieldID);;
-				// get subfields
-				String abrevTitleA = "";
-				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldA.size();i++) {
-					abrevTitleA = fixAmper(subFieldA.get(i));
-				}
-				if (abrevTitleA != null && abrevTitleA.length() > 0) {
-					abrvTitle = abrevTitleA;
-				} else if (rawAbrevTitleValue != null && rawAbrevTitleValue.length() > 0) {
-					finalTitle = rawAbrevTitleValue;
-				}
-			}
-		
-			// if 130 & 730 & 240 - Uniform Title - uniformTitle - rdau:titleOfResource
-			if (fieldType.equals("130") || fieldType.equals("730") || fieldType.equals("240")) {
-				ArrayList<String> subFieldAut = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldAut.size();i++) {
-					uniformTitle.add(fixAmper(subFieldAut.get(i)));
-				}
-			}
-
-			// if 243 - Collective Uniform Title - String seriesUniformTitle = ""; // rdau:titleProperOfSeries
-			if (fieldType.equals("243")) {
-				ArrayList<String> subFieldtps = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldtps.size();i++) {
-					seriesUniformTitle = fixAmper(subFieldtps.get(i));
-				}
-			}
-
-			// if 246 - Varrying Form of Title - String variantTitle = ""; // rdau:variantTitle
-			if (fieldType.equals("246")) {
-				// get subfields
-				String varTitleA = "";
-				String varTitleB = "";
-				String finalVTitle = "";
-				ArrayList<String> subFieldAv = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldAv.size();i++) {
-					varTitleA = fixAmper(subFieldAv.get(i));
-				}
-				ArrayList<String> subFielBv = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFielBv.size();i++) {
-					varTitleB = fixAmper(subFielBv.get(i));
-				}
-				if (varTitleA != null && varTitleA.length() > 0) {
-					finalVTitle = varTitleA;
-					if (varTitleB != null && varTitleB.length() > 0) {
-						finalVTitle = finalVTitle + " - " + varTitleB;
-					}
-					variantTitle = finalVTitle;
-				}
-			}
-
-			// if 247 - Former Title - String formerTitle = ""; // rdau:earlierTitleProper
-			if (fieldType.equals("247")) {
-				// get subfields
-				String fTitleA = "";
-				String fTitleB = "";
-				String finalFTitle = "";
-				ArrayList<String> subFieldAf = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldAf.size();i++) {
-					fTitleA = fixAmper(subFieldAf.get(i));
-				}
-				ArrayList<String> subFielBf = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFielBf.size();i++) {
-					fTitleB = fixAmper(subFielBf.get(i));
-				}
-				if (fTitleA != null && fTitleA.length() > 0) {
-					finalFTitle = fTitleA;
-					if (fTitleB != null && fTitleB.length() > 0) {
-						finalFTitle = finalFTitle + " - " + fTitleB;
-					}
-					formerTitle = finalFTitle;
-				}
-			}
-
 			
 			// if 008 date
 			if (fieldType.equals("008")) {
@@ -312,9 +203,8 @@ public class ExportRDF {
 				}
 			}
 			
-			
-			// if 41 or 765 - Language Code - ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
-			if (fieldType.equals("41") || fieldType.equals("765")) {
+			// if 041 or 765 - Language Code - ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
+			if (fieldType.equals("041") || fieldType.equals("765")) {
 				// get subfields
 				String fCode = "";
 				ArrayList<String> subFieldAl = sqlObj.selectSubFieldValuesByID(fieldID, "a");
@@ -324,11 +214,9 @@ public class ExportRDF {
 				if (fCode != null && fCode.length() > 0) {
 					languageCode.add(fCode);
 				}
-			}			
+			}	
 			
-			
-			
-			// if 100 author
+			// if 100 author or 700
 			if (fieldType.equals("100") || fieldType.equals("700")) {
 				String thisAuthor = "";
 				// get raw value
@@ -429,7 +317,7 @@ public class ExportRDF {
 			
 			// meeting as author
 			// if 111 or 711 author
-			if (fieldType.equals("100") || fieldType.equals("700")) {
+			if (fieldType.equals("111") || fieldType.equals("700")) {
 				String thisAuthorm = "";
 				// get subfields
 				String subAm = "";
@@ -488,6 +376,114 @@ public class ExportRDF {
 
 				authorArray.add(retValm);
 			}
+		
+			// if 130 & 730 & 240 - Uniform Title - uniformTitle - rdau:titleOfResource
+			if (fieldType.equals("130") || fieldType.equals("730") || fieldType.equals("240")) {
+				ArrayList<String> subFieldAut = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFieldAut.size();i++) {
+					uniformTitle.add(fixAmper(subFieldAut.get(i)));
+				}
+			}
+			
+			// if 210  abbreviated title - rdau:abbreviatedTitle
+			if (fieldType.equals("210")) {
+				// get raw value
+				String rawAbrevTitleValue = sqlObj.getFieldByID(fieldID);;
+				// get subfields
+				String abrevTitleA = "";
+				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFieldA.size();i++) {
+					abrevTitleA = fixAmper(subFieldA.get(i));
+				}
+				if (abrevTitleA != null && abrevTitleA.length() > 0) {
+					abrvTitle = abrevTitleA;
+				} else if (rawAbrevTitleValue != null && rawAbrevTitleValue.length() > 0) {
+					finalTitle = rawAbrevTitleValue;
+				}
+			}
+			
+			// if 243 - Collective Uniform Title - String seriesUniformTitle = ""; // rdau:titleProperOfSeries
+			if (fieldType.equals("243")) {
+				ArrayList<String> subFieldtps = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFieldtps.size();i++) {
+					seriesUniformTitle = fixAmper(subFieldtps.get(i));
+				}
+			}
+			
+			// if 245 title
+			if (fieldType.equals("245")) {
+				// get raw value
+				String rawValue = sqlObj.getFieldByID(fieldID);;
+				// get subfields
+				String titleA = "";
+				String titleB = "";
+				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFieldA.size();i++) {
+					titleA = fixAmper(subFieldA.get(i));
+				}
+				ArrayList<String> subFieldB = sqlObj.selectSubFieldValuesByID(fieldID, "b");
+				for (i=0;i < subFieldB.size();i++) {
+					titleB =  fixAmper(subFieldB.get(i));
+				}
+				
+				if (titleA != null && titleA.length() > 0) {
+					finalTitle = titleA;
+					if (titleB != null && titleB.length() > 0) {
+						finalTitle = finalTitle + " " + titleB;
+					}
+				} else if (rawValue != null && rawValue.length() > 0) {
+					finalTitle = rawValue;
+				} else {
+					finalTitle = "Utitled or Title not Known";
+				}
+
+			}
+
+			// if 246 - Varying Form of Title - String variantTitle = ""; // rdau:variantTitle
+			if (fieldType.equals("246")) {
+				// get subfields
+				String varTitleA = "";
+				String varTitleB = "";
+				String finalVTitle = "";
+				ArrayList<String> subFieldAv = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFieldAv.size();i++) {
+					varTitleA = fixAmper(subFieldAv.get(i));
+				}
+				ArrayList<String> subFielBv = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFielBv.size();i++) {
+					varTitleB = fixAmper(subFielBv.get(i));
+				}
+				if (varTitleA != null && varTitleA.length() > 0) {
+					finalVTitle = varTitleA;
+					if (varTitleB != null && varTitleB.length() > 0) {
+						finalVTitle = finalVTitle + " - " + varTitleB;
+					}
+					variantTitle = finalVTitle;
+				}
+			}
+
+			// if 247 - Former Title - String formerTitle = ""; // rdau:earlierTitleProper
+			if (fieldType.equals("247")) {
+				// get subfields
+				String fTitleA = "";
+				String fTitleB = "";
+				String finalFTitle = "";
+				ArrayList<String> subFieldAf = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFieldAf.size();i++) {
+					fTitleA = fixAmper(subFieldAf.get(i));
+				}
+				ArrayList<String> subFielBf = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFielBf.size();i++) {
+					fTitleB = fixAmper(subFielBf.get(i));
+				}
+				if (fTitleA != null && fTitleA.length() > 0) {
+					finalFTitle = fTitleA;
+					if (fTitleB != null && fTitleB.length() > 0) {
+						finalFTitle = finalFTitle + " - " + fTitleB;
+					}
+					formerTitle = finalFTitle;
+				}
+			}		
 			
 			// if FIELD 250 - Edition Statement - String editionStatement = ""; // rdau:editionStatement
 			if (fieldType.equals("250")) {
@@ -495,8 +491,27 @@ public class ExportRDF {
 				for (int iales=0;iales < subFieldAes.size();iales++) {
 					editionStatement = fixAmper(subFieldAes.get(iales));
 				}
-			}				
+			}
 			
+			// if FIELD 260 - Imprint - String editionStatement = ""; // dct:publisher
+			if (fieldType.equals("260")) {
+				ArrayList<String> retValimp = new ArrayList<String>();
+				ArrayList<String> subFieldAimp = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int imp=0;imp < subFieldAimp.size();imp++) {
+					editionStatement = fixAmper(subFieldAimp.get(imp));
+				}
+				ArrayList<String> subFieldBimp = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (int impb=0;impb < subFieldBimp.size();impb++) {
+					String impSubB = "";
+					impSubB = fixAmper(subFieldBimp.get(impb));
+					if (impSubB  != null && impSubB.length() > 0) {
+						retValimp.add("PBL");
+						retValimp.add(impSubB);
+						authorArray.add(retValimp);
+					}
+					
+				}			
+			}	
 
 			// if FIELD 264 - Production info (like imprint for manufactured goods) - String prodInfo = ""; // dct:publisher
 			if (fieldType.equals("260")) {
@@ -518,37 +533,6 @@ public class ExportRDF {
 				}			
 			}
 			
-			
-			// if FIELD 260 - Imprint - String editionStatement = ""; // dct:publisher
-			if (fieldType.equals("260")) {
-				ArrayList<String> retValimp = new ArrayList<String>();
-				ArrayList<String> subFieldAimp = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int imp=0;imp < subFieldAimp.size();imp++) {
-					editionStatement = fixAmper(subFieldAimp.get(imp));
-				}
-				ArrayList<String> subFieldBimp = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int impb=0;impb < subFieldBimp.size();impb++) {
-					String impSubB = "";
-					impSubB = fixAmper(subFieldBimp.get(impb));
-					if (impSubB  != null && impSubB.length() > 0) {
-						retValimp.add("PBL");
-						retValimp.add(impSubB);
-						authorArray.add(retValimp);
-					}
-					
-				}			
-			}	
-						
-		
-			// if FIELD 321 - Former Publication Frequency - String formerPubFreq = ""; // rdau:noteOnFrequency
-			if (fieldType.equals("321")) {
-				ArrayList<String> subFieldAps = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldAps.size();i++) {
-					formerPubFreq = fixAmper(subFieldAps.get(i));
-				}
-			}	
-			
-
 			// IF Field 300 - Physical Description - String physDesc = ""; // dct:format
 			if (fieldType.equals("100") || fieldType.equals("700")) {
 				int valueBefore = 0;
@@ -634,10 +618,17 @@ public class ExportRDF {
 				}
 
 				physDesc = thisPDNote;
-			}		
-			
-
+			}
+						
 		
+			// if FIELD 321 - Former Publication Frequency - String formerPubFreq = ""; // rdau:noteOnFrequency
+			if (fieldType.equals("321")) {
+				ArrayList<String> subFieldAps = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFieldAps.size();i++) {
+					formerPubFreq = fixAmper(subFieldAps.get(i));
+				}
+			}	
+				
 			// IF Field 336 - Content Type - String contentType = ""; // dct:type
 			if (fieldType.equals("100") || fieldType.equals("700")) {
 				int valueBeforeCt = 0;
@@ -884,332 +875,7 @@ public class ExportRDF {
 					seriesStatment.add(fixAmper(thisSsNote));
 				}
 			
-			}			
-			
-			
-			// do 600 (subject term - personal name)
-			if (fieldType.equals("600")) {
-				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
-				subFieldsToInclude.add("a");
-				subFieldsToInclude.add("c");
-				subFieldsToInclude.add("d");
-				String thisSubjectString = getSubject(recordID, "600", subFieldsToInclude, " ");
-				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
-				}
-
-			}
-			
-			// do 610 (subject term - corporate name)
-			if (fieldType.equals("610")) {
-				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
-				subFieldsToInclude.add("a");
-				String thisSubjectString = getSubject(recordID, "610", subFieldsToInclude, " ");
-				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
-				}
-
-			}
-			
-			// do 611 (subject term - meeting)
-			if (fieldType.equals("611")) {
-				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
-				subFieldsToInclude.add("a");
-				subFieldsToInclude.add("b");
-				subFieldsToInclude.add("c");
-				String thisSubjectString = getSubject(recordID, "611", subFieldsToInclude, " ");
-				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
-				}
-
-			}
-			
-			// do 630 (subject term - Uniform Title)
-			if (fieldType.equals("630")) {
-				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
-				subFieldsToInclude.add("a");
-				String thisSubjectString = getSubject(recordID, "630", subFieldsToInclude, " ");
-				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
-				}
-
-			}
-			
-			// do 648 (subject term - Chronological Term)
-			if (fieldType.equals("648")) {
-				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
-				subFieldsToInclude.add("a");
-				String thisSubjectString = getSubject(recordID, "648", subFieldsToInclude, " ");
-				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
-				}
-
-			}
-			
-			// do 650 (subject term - Topical Term)
-			if (fieldType.equals("650")) {
-				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
-				subFieldsToInclude.add("a");
-				subFieldsToInclude.add("b");
-				subFieldsToInclude.add("c");
-				subFieldsToInclude.add("d");
-				String thisSubjectString = getSubject(recordID, "650", subFieldsToInclude, " ");
-				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
-				}
-
-			}
-			
-			// do 651 (subject term - Geographic Name)
-			if (fieldType.equals("651")) {
-				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
-				subFieldsToInclude.add("a");
-				String thisSubjectString = getSubject(recordID, "651", subFieldsToInclude, " ");
-				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
-					coverage.add(fixAmper(thisSubjectString));
-				}
-
-			}
-	
-			// do 752 (subject term - Hierarchical Geographic Name)
-			if (fieldType.equals("752")) {
-				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
-				subFieldsToInclude.add("a");
-				String thisSubjectString = getSubject(recordID, "651", subFieldsToInclude, " ");
-				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					String[] arrayPlaces = thisSubjectString.split("--");
-					for (i=0;i < arrayPlaces.length;i++) {
-						subjectTerms.add(fixAmper(arrayPlaces[i].trim()));
-						coverage.add(fixAmper(arrayPlaces[i].trim()));
-					}
-				}
-			}
-			
-			// do 653 (subject term - Uncontrolled)
-			if (fieldType.equals("653")) {
-				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
-				subFieldsToInclude.add("a");
-				String thisSubjectString = getSubject(recordID, "653", subFieldsToInclude, " ");
-				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
-				}
-
-			}
-			
-			// do 654 (subject term - Faceted topical term)
-			if (fieldType.equals("654")) {
-				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
-				subFieldsToInclude.add("a");
-				subFieldsToInclude.add("b");
-				String thisSubjectString = getSubject(recordID, "654", subFieldsToInclude, " ");
-				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
-				}
-
-			}
-			
-			// do 656 (subject term - Occupation)
-			if (fieldType.equals("656")) {
-				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
-				subFieldsToInclude.add("a");
-				String thisSubjectString = getSubject(recordID, "656", subFieldsToInclude, " ");
-				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
-				}
-
-			}
-			
-			// do 657 (subject term - Function)
-			if (fieldType.equals("657")) {
-				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
-				subFieldsToInclude.add("a");
-				String thisSubjectString = getSubject(recordID, "657", subFieldsToInclude, " ");
-				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
-				}
-
-			}
-			
-			// do 658 (subject term - Curriculum Objective)
-			if (fieldType.equals("658")) {
-				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
-				subFieldsToInclude.add("a");
-				subFieldsToInclude.add("b");
-				String thisSubjectString = getSubject(recordID, "658", subFieldsToInclude, " ");
-				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
-				}
-
-			}
-			
-			// do 662 (subject term - Hierarchical place name)
-			if (fieldType.equals("662")) {
-				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
-				subFieldsToInclude.add("a");
-				subFieldsToInclude.add("b");
-				subFieldsToInclude.add("c");
-				subFieldsToInclude.add("d");
-				subFieldsToInclude.add("f");
-				subFieldsToInclude.add("g");
-				subFieldsToInclude.add("h");
-				String thisSubjectString = getSubject(recordID, "662", subFieldsToInclude, " ");
-				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
-				}
-
-			}
-			
-			// digital surrogates
-			if (fieldType.equals("856")) {
-				surrogateSub = sqlObj.selectSubFieldValuesByID(fieldID, "u");
-			}
-			
-			// collex:genre
-			if (fieldType.equals("655")) {
-				String workingValue = "";
-				// get raw value
-				String rawValue = sqlObj.getFieldByID(fieldID);;
-				// get subfields
-				String subA = "";
-				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldA.size();i++) {
-					subA = subFieldA.get(i);
-				}
-				if (subA != null && subA.length() > 0) {
-					workingValue = subA;
-				} else if (rawValue != null && rawValue.length() > 0) {
-					workingValue = rawValue;
-				}
-				
-				// remove trailing period
-				genre = fixAmper(workingValue);
-			}
-			
-			// dc:coverage
-			if (fieldType.equals("751")) {
-				String workingValue = "";
-				// get raw value
-				String rawValue = sqlObj.getFieldByID(fieldID);;
-				// get subfields
-				String subA = "";
-				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldA.size();i++) {
-					subA = subFieldA.get(i);
-				}
-				if (subA != null && subA.length() > 0) {
-					workingValue = subA;
-				} else if (rawValue != null && rawValue.length() > 0) {
-					workingValue = rawValue;
-				}
-				coverage.add(fixAmper(workingValue));
-			}
-			
-			// dc:coverage - hierarchical
-			if (fieldType.equals("752")) {
-				String workingValue = "";
-				// get raw value
-				String rawValue = sqlObj.getFieldByID(fieldID);;
-				// get subfields
-				String subA = "";
-				String subB = "";
-				String subC = "";
-				String subD = "";
-				String subF = "";
-				String subG = "";
-				String subH = "";
-				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldA.size();i++) {
-					subA = fixAmper(subFieldA.get(i));
-				}
-				ArrayList<String> subFieldB = sqlObj.selectSubFieldValuesByID(fieldID, "b");
-				for (i=0;i < subFieldB.size();i++) {
-					subB = fixAmper(subFieldB.get(i));
-				}
-				ArrayList<String> subFieldC = sqlObj.selectSubFieldValuesByID(fieldID, "c");
-				for (i=0;i < subFieldC.size();i++) {
-					subC = fixAmper(subFieldC.get(i));
-				}	
-				ArrayList<String> subFieldD = sqlObj.selectSubFieldValuesByID(fieldID, "d");
-				for (i=0;i < subFieldD.size();i++) {
-					subD = fixAmper(subFieldD.get(i));
-				}
-				ArrayList<String> subFieldF = sqlObj.selectSubFieldValuesByID(fieldID, "f");
-				for (i=0;i < subFieldF.size();i++) {
-					subF = fixAmper(subFieldF.get(i));
-				}
-				ArrayList<String> subFieldG = sqlObj.selectSubFieldValuesByID(fieldID, "g");
-				for (i=0;i < subFieldG.size();i++) {
-					subG = fixAmper(subFieldG.get(i));
-				}
-				ArrayList<String> subFieldH = sqlObj.selectSubFieldValuesByID(fieldID, "h");
-				for (i=0;i < subFieldH.size();i++) {
-					subH = fixAmper(subFieldH.get(i));
-				}
-				
-				String seperator = "--";
-				boolean notFirst = false;
-				if (subA != null && subA.length() > 0) {
-					if (notFirst) {
-						workingValue = workingValue + seperator;
-					}
-					workingValue = workingValue + subA;
-					notFirst = true;
-				}
-				if (subB != null && subB.length() > 0) {
-					if (notFirst) {
-						workingValue = workingValue + seperator;
-					}
-					workingValue = workingValue + subB;
-					notFirst = true;
-				}
-				if (subC != null && subC.length() > 0) {
-					if (notFirst) {
-						workingValue = workingValue + seperator;
-					}
-					workingValue = workingValue + subC;
-					notFirst = true;
-				}
-				if (subD != null && subD.length() > 0) {
-					if (notFirst) {
-						workingValue = workingValue + seperator;
-					}
-					workingValue = workingValue + subD;
-					notFirst = true;
-				}
-				if (subF != null && subF.length() > 0) {
-					if (notFirst) {
-						workingValue = workingValue + seperator;
-					}
-					workingValue = workingValue + subF;
-					notFirst = true;
-				}
-				if (subG != null && subG.length() > 0) {
-					if (notFirst) {
-						workingValue = workingValue + seperator;
-					}
-					workingValue = workingValue + subG;
-					notFirst = true;
-				}
-				if (subH != null && subH.length() > 0) {
-					if (notFirst) {
-						workingValue = workingValue + seperator;
-					}
-					workingValue = workingValue + subH;
-					notFirst = true;
-				}
-					
-					
-				if ((workingValue != null) && (workingValue.length() == 0) && (rawValue != null) &&  (rawValue.length() > 0)) {
-					workingValue = rawValue;
-				}
-				
-				if (workingValue != null && workingValue.length() > 0) {
-					String trimmedValue = removeFinalComma(workingValue);
-					coverage.add(fixAmper(trimmedValue));
-				}
-
-			}
+			}	
 			
 			// 5xx notes
 			if (fieldType.matches("5\\d\\d")) {	
@@ -1331,6 +997,332 @@ public class ExportRDF {
 						fiveHundNotes.add(fixAmper(baseNote));
 					}
 				}
+			}
+			
+			
+			// do 600 (subject term - personal name)
+			if (fieldType.equals("600")) {
+				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
+				subFieldsToInclude.add("a");
+				subFieldsToInclude.add("c");
+				subFieldsToInclude.add("d");
+				String thisSubjectString = getSubject(recordID, "600", subFieldsToInclude, " ");
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
+				}
+
+			}
+			
+			// do 610 (subject term - corporate name)
+			if (fieldType.equals("610")) {
+				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
+				subFieldsToInclude.add("a");
+				String thisSubjectString = getSubject(recordID, "610", subFieldsToInclude, " ");
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
+				}
+
+			}
+			
+			// do 611 (subject term - meeting)
+			if (fieldType.equals("611")) {
+				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
+				subFieldsToInclude.add("a");
+				subFieldsToInclude.add("b");
+				subFieldsToInclude.add("c");
+				String thisSubjectString = getSubject(recordID, "611", subFieldsToInclude, " ");
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
+				}
+
+			}
+			
+			// do 630 (subject term - Uniform Title)
+			if (fieldType.equals("630")) {
+				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
+				subFieldsToInclude.add("a");
+				String thisSubjectString = getSubject(recordID, "630", subFieldsToInclude, " ");
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
+				}
+
+			}
+			
+			// do 648 (subject term - Chronological Term)
+			if (fieldType.equals("648")) {
+				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
+				subFieldsToInclude.add("a");
+				String thisSubjectString = getSubject(recordID, "648", subFieldsToInclude, " ");
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
+				}
+
+			}
+			
+			// do 650 (subject term - Topical Term)
+			if (fieldType.equals("650")) {
+				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
+				subFieldsToInclude.add("a");
+				subFieldsToInclude.add("b");
+				subFieldsToInclude.add("c");
+				subFieldsToInclude.add("d");
+				String thisSubjectString = getSubject(recordID, "650", subFieldsToInclude, " ");
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
+				}
+
+			}
+			
+			// do 651 (subject term - Geographic Name)
+			if (fieldType.equals("651")) {
+				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
+				subFieldsToInclude.add("a");
+				String thisSubjectString = getSubject(recordID, "651", subFieldsToInclude, " ");
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
+					coverage.add(fixAmper(thisSubjectString));
+				}
+
+			}
+			
+			// do 653 (subject term - Uncontrolled)
+			if (fieldType.equals("653")) {
+				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
+				subFieldsToInclude.add("a");
+				String thisSubjectString = getSubject(recordID, "653", subFieldsToInclude, " ");
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
+				}
+
+			}
+			
+			// do 654 (subject term - Faceted topical term)
+			if (fieldType.equals("654")) {
+				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
+				subFieldsToInclude.add("a");
+				subFieldsToInclude.add("b");
+				String thisSubjectString = getSubject(recordID, "654", subFieldsToInclude, " ");
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
+				}
+
+			}
+			
+			// collex:genre
+			if (fieldType.equals("655")) {
+				String workingValue = "";
+				// get raw value
+				String rawValue = sqlObj.getFieldByID(fieldID);;
+				// get subfields
+				String subA = "";
+				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFieldA.size();i++) {
+					subA = subFieldA.get(i);
+				}
+				if (subA != null && subA.length() > 0) {
+					workingValue = subA;
+				} else if (rawValue != null && rawValue.length() > 0) {
+					workingValue = rawValue;
+				}
+				
+				// remove trailing period
+				genre = fixAmper(workingValue);
+			}
+			
+			// do 656 (subject term - Occupation)
+			if (fieldType.equals("656")) {
+				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
+				subFieldsToInclude.add("a");
+				String thisSubjectString = getSubject(recordID, "656", subFieldsToInclude, " ");
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
+				}
+
+			}
+			
+			// do 657 (subject term - Function)
+			if (fieldType.equals("657")) {
+				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
+				subFieldsToInclude.add("a");
+				String thisSubjectString = getSubject(recordID, "657", subFieldsToInclude, " ");
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
+				}
+
+			}
+			
+			// do 658 (subject term - Curriculum Objective)
+			if (fieldType.equals("658")) {
+				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
+				subFieldsToInclude.add("a");
+				subFieldsToInclude.add("b");
+				String thisSubjectString = getSubject(recordID, "658", subFieldsToInclude, " ");
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
+				}
+
+			}
+			
+			// do 662 (subject term - Hierarchical place name)
+			if (fieldType.equals("662")) {
+				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
+				subFieldsToInclude.add("a");
+				subFieldsToInclude.add("b");
+				subFieldsToInclude.add("c");
+				subFieldsToInclude.add("d");
+				subFieldsToInclude.add("f");
+				subFieldsToInclude.add("g");
+				subFieldsToInclude.add("h");
+				String thisSubjectString = getSubject(recordID, "662", subFieldsToInclude, " ");
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					subjectTerms.add(fixAmper(thisSubjectString));
+				}
+			}
+			
+			// dc:coverage
+			if (fieldType.equals("751")) {
+				String workingValue = "";
+				// get raw value
+				String rawValue = sqlObj.getFieldByID(fieldID);;
+				// get subfields
+				String subA = "";
+				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFieldA.size();i++) {
+					subA = subFieldA.get(i);
+				}
+				if (subA != null && subA.length() > 0) {
+					workingValue = subA;
+				} else if (rawValue != null && rawValue.length() > 0) {
+					workingValue = rawValue;
+				}
+				coverage.add(fixAmper(workingValue));
+			}
+	
+			// do 752 (subject term - Hierarchical Geographic Name)
+			if (fieldType.equals("752")) {
+				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
+				subFieldsToInclude.add("a");
+				String thisSubjectString = getSubject(recordID, "651", subFieldsToInclude, " ");
+				if (thisSubjectString != null && thisSubjectString.length() > 0) {
+					String[] arrayPlaces = thisSubjectString.split("--");
+					for (i=0;i < arrayPlaces.length;i++) {
+						subjectTerms.add(fixAmper(arrayPlaces[i].trim()));
+						coverage.add(fixAmper(arrayPlaces[i].trim()));
+					}
+				}
+			}
+			
+			/* Original 752 - only puts in coverage, not subject terms
+			// dc:coverage - hierarchical
+			if (fieldType.equals("752")) {
+				String workingValue = "";
+				// get raw value
+				String rawValue = sqlObj.getFieldByID(fieldID);;
+				// get subfields
+				String subA = "";
+				String subB = "";
+				String subC = "";
+				String subD = "";
+				String subF = "";
+				String subG = "";
+				String subH = "";
+				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				for (i=0;i < subFieldA.size();i++) {
+					subA = fixAmper(subFieldA.get(i));
+				}
+				ArrayList<String> subFieldB = sqlObj.selectSubFieldValuesByID(fieldID, "b");
+				for (i=0;i < subFieldB.size();i++) {
+					subB = fixAmper(subFieldB.get(i));
+				}
+				ArrayList<String> subFieldC = sqlObj.selectSubFieldValuesByID(fieldID, "c");
+				for (i=0;i < subFieldC.size();i++) {
+					subC = fixAmper(subFieldC.get(i));
+				}	
+				ArrayList<String> subFieldD = sqlObj.selectSubFieldValuesByID(fieldID, "d");
+				for (i=0;i < subFieldD.size();i++) {
+					subD = fixAmper(subFieldD.get(i));
+				}
+				ArrayList<String> subFieldF = sqlObj.selectSubFieldValuesByID(fieldID, "f");
+				for (i=0;i < subFieldF.size();i++) {
+					subF = fixAmper(subFieldF.get(i));
+				}
+				ArrayList<String> subFieldG = sqlObj.selectSubFieldValuesByID(fieldID, "g");
+				for (i=0;i < subFieldG.size();i++) {
+					subG = fixAmper(subFieldG.get(i));
+				}
+				ArrayList<String> subFieldH = sqlObj.selectSubFieldValuesByID(fieldID, "h");
+				for (i=0;i < subFieldH.size();i++) {
+					subH = fixAmper(subFieldH.get(i));
+				}
+				
+				String seperator = "--";
+				boolean notFirst = false;
+				if (subA != null && subA.length() > 0) {
+					if (notFirst) {
+						workingValue = workingValue + seperator;
+					}
+					workingValue = workingValue + subA;
+					notFirst = true;
+				}
+				if (subB != null && subB.length() > 0) {
+					if (notFirst) {
+						workingValue = workingValue + seperator;
+					}
+					workingValue = workingValue + subB;
+					notFirst = true;
+				}
+				if (subC != null && subC.length() > 0) {
+					if (notFirst) {
+						workingValue = workingValue + seperator;
+					}
+					workingValue = workingValue + subC;
+					notFirst = true;
+				}
+				if (subD != null && subD.length() > 0) {
+					if (notFirst) {
+						workingValue = workingValue + seperator;
+					}
+					workingValue = workingValue + subD;
+					notFirst = true;
+				}
+				if (subF != null && subF.length() > 0) {
+					if (notFirst) {
+						workingValue = workingValue + seperator;
+					}
+					workingValue = workingValue + subF;
+					notFirst = true;
+				}
+				if (subG != null && subG.length() > 0) {
+					if (notFirst) {
+						workingValue = workingValue + seperator;
+					}
+					workingValue = workingValue + subG;
+					notFirst = true;
+				}
+				if (subH != null && subH.length() > 0) {
+					if (notFirst) {
+						workingValue = workingValue + seperator;
+					}
+					workingValue = workingValue + subH;
+					notFirst = true;
+				}
+					
+					
+				if ((workingValue != null) && (workingValue.length() == 0) && (rawValue != null) &&  (rawValue.length() > 0)) {
+					workingValue = rawValue;
+				}
+				
+				if (workingValue != null && workingValue.length() > 0) {
+					String trimmedValue = removeFinalComma(workingValue);
+					coverage.add(fixAmper(trimmedValue));
+				}
+
+			}
+			*/
+			
+			// digital surrogates
+			if (fieldType.equals("856")) {
+				surrogateSub = sqlObj.selectSubFieldValuesByID(fieldID, "u");
 			}
 			
 			/* TODO
