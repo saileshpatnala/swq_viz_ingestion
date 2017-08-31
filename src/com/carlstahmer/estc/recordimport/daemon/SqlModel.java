@@ -601,7 +601,7 @@ public class SqlModel {
 		String strSql = "SELECT records.id FROM records" +
 				" WHERE records.exported = 0" +
 				" AND records.type = 1" +
-				" ORDER BY records.id ASC";
+				" ORDER BY records.id ASC LIMIT 1000";
 		
 		if (!connOpen) {
 			this.openConnection();

@@ -1443,9 +1443,9 @@ public class ExportRDF {
 				// TODO: Write out Holding RDF
 				try {
 					// write out the rdf
-					PrintWriter holdingWriter = new PrintWriter( configObj.writeDir + "/hold_" + uniqueHoldingID + ".rdf", "UTF-8");
-					holdingWriter.print(holdingRDF);
-					holdingWriter.close();
+//					PrintWriter holdingWriter = new PrintWriter( configObj.writeDir + "/hold_" + uniqueHoldingID + ".rdf", "UTF-8");
+//					holdingWriter.print(holdingRDF);
+//					holdingWriter.close();
 					
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
@@ -1465,7 +1465,7 @@ public class ExportRDF {
 			}
 			
 			// mark the holding record as exported
-			sqlObj.updateExported(holdingRecordID);
+//			sqlObj.updateExported(holdingRecordID);
 			ihr++;
 		
 		}
@@ -1494,12 +1494,12 @@ public class ExportRDF {
 		
 		// TODO: write out bib rdf
 		try {
-			PrintWriter bibWriter = new PrintWriter( configObj.writeDir + "/bib_" + itemID + ".rdf", "UTF-8");
-			bibWriter.print(bibRDF);
-			bibWriter.close();
+//			PrintWriter bibWriter = new PrintWriter( configObj.writeDir + "/bib_" + itemID + ".rdf", "UTF-8");
+//			bibWriter.print(bibRDF);
+//			bibWriter.close();
 			// if i'm here than we didn't throw an error so 
 			// so mark the record as exported
-			sqlObj.updateExported(recordID);
+//			sqlObj.updateExported(recordID);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			System.out.println("Error exporting record " + recordID + " holding item " + itemID);

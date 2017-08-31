@@ -236,14 +236,14 @@ public class ProcessManager {
 			// filter for date and language
 			// check for ESTC numbers
 			
-			//System.out.println("I'm here");
+			// System.out.println("I'm here");
 			
 			// The scope checker code below has been checked and is working
 			// ScopeChecker myScopeCheck = new ScopeChecker(config, sqlObj);
 			// boolean thisScopeCheck = myScopeCheck.applyScopeFilter();
 			
-//			ExportRDF rdfExporter = new ExportRDF(config, sqlObj);
-//			rdfExporter.makeRDFAllBibs("estc.bl.uk");
+			ExportRDF rdfExporter = new ExportRDF(config, sqlObj);
+			rdfExporter.makeRDFAllBibs("estc.bl.uk");
 			
 			
 			// MergeHoldings myMergeHoldings = new MergeHoldings(config, sqlObj);
