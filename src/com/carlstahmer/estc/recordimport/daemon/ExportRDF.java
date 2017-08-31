@@ -174,8 +174,9 @@ public class ExportRDF {
 			
 			int i = 0;
 			
-			// if 008 date
-			if (fieldType.equals("008")) {
+	
+			if (fieldType.equals("008")) { 
+				// if 008 date
 				// get raw value
 				String rawZeroZeroEight = sqlObj.getFieldByNumber(recordID, "008");
 				if (rawZeroZeroEight != null && rawZeroZeroEight.length() > 13 ) {
@@ -201,10 +202,8 @@ public class ExportRDF {
 						}
 					}
 				}
-			}
-			
-			// if 041 or 765 - Language Code - ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
-			if (fieldType.equals("041") || fieldType.equals("765")) {
+			} else if (fieldType.equals("041") || fieldType.equals("765")) {
+				// if 041 or 765 - Language Code - ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
 				// get subfields
 				String fCode = "";
 				ArrayList<String> subFieldAl = sqlObj.selectSubFieldValuesByID(fieldID, "a");
@@ -214,10 +213,8 @@ public class ExportRDF {
 				if (fCode != null && fCode.length() > 0) {
 					languageCode.add(fCode);
 				}
-			}	
-			
-			// if 100 author or 700
-			if (fieldType.equals("100") || fieldType.equals("700")) {
+			} else if (fieldType.equals("100") || fieldType.equals("700")) {
+				// if 100 author or 700
 				String thisAuthor = "";
 				// get raw value
 				String rawValue = sqlObj.getFieldByID(fieldID);;
@@ -293,10 +290,8 @@ public class ExportRDF {
 				retVal.add(thisAuthor);
 
 				authorArray.add(retVal);
-			}
-		
-			// corporate author
-			if (fieldType.equals("110") || fieldType.equals("710")) {
+			} else if (fieldType.equals("110") || fieldType.equals("710")) {
+				// corporate author
 				ArrayList<String> retValc = new ArrayList<String>();
 				String subAc = "";
 				String subEc = "";
@@ -313,11 +308,7 @@ public class ExportRDF {
 				retValc.add(upperEc);
 				retValc.add(subAc);
 				authorArray.add(retValc);
-			}
-			
-			// meeting as author
-			// if 111 or 711 author
-			if (fieldType.equals("111") || fieldType.equals("700")) {
+			} else if (fieldType.equals("111") || fieldType.equals("700")) {
 				String thisAuthorm = "";
 				// get subfields
 				String subAm = "";
@@ -375,18 +366,15 @@ public class ExportRDF {
 				retValm.add(thisAuthorm);
 
 				authorArray.add(retValm);
-			}
-		
-			// if 130 & 730 & 240 - Uniform Title - uniformTitle - rdau:titleOfResource
-			if (fieldType.equals("130") || fieldType.equals("730") || fieldType.equals("240")) {
+			} else if (fieldType.equals("130") || fieldType.equals("730") || fieldType.equals("240")) {
+				// if 130 & 730 & 240 - Uniform Title - uniformTitle - rdau:titleOfResource
 				ArrayList<String> subFieldAut = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFieldAut.size();i++) {
 					uniformTitle.add(fixAmper(subFieldAut.get(i)));
 				}
-			}
-			
-			// if 210  abbreviated title - rdau:abbreviatedTitle
-			if (fieldType.equals("210")) {
+			} else if (fieldType.equals("210")) {
+				// if 210  abbreviated title - rdau:abbreviatedTitle
+				
 				// get raw value
 				String rawAbrevTitleValue = sqlObj.getFieldByID(fieldID);;
 				// get subfields
@@ -400,18 +388,16 @@ public class ExportRDF {
 				} else if (rawAbrevTitleValue != null && rawAbrevTitleValue.length() > 0) {
 					finalTitle = rawAbrevTitleValue;
 				}
-			}
-			
-			// if 243 - Collective Uniform Title - String seriesUniformTitle = ""; // rdau:titleProperOfSeries
-			if (fieldType.equals("243")) {
+			} else if (fieldType.equals("243")) {
+				// if 243 - Collective Uniform Title - String seriesUniformTitle = ""; // rdau:titleProperOfSeries
+				
 				ArrayList<String> subFieldtps = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFieldtps.size();i++) {
 					seriesUniformTitle = fixAmper(subFieldtps.get(i));
 				}
-			}
-			
-			// if 245 title
-			if (fieldType.equals("245")) {
+			} else if (fieldType.equals("245")) {
+				// if 245 title
+				
 				// get raw value
 				String rawValue = sqlObj.getFieldByID(fieldID);;
 				// get subfields
@@ -437,10 +423,9 @@ public class ExportRDF {
 					finalTitle = "Utitled or Title not Known";
 				}
 
-			}
-
-			// if 246 - Varying Form of Title - String variantTitle = ""; // rdau:variantTitle
-			if (fieldType.equals("246")) {
+			} else if (fieldType.equals("246")) {
+				// if 246 - Varying Form of Title - String variantTitle = ""; // rdau:variantTitle
+				
 				// get subfields
 				String varTitleA = "";
 				String varTitleB = "";
@@ -460,10 +445,9 @@ public class ExportRDF {
 					}
 					variantTitle = finalVTitle;
 				}
-			}
-
-			// if 247 - Former Title - String formerTitle = ""; // rdau:earlierTitleProper
-			if (fieldType.equals("247")) {
+			} else if (fieldType.equals("247")) {
+				// if 247 - Former Title - String formerTitle = ""; // rdau:earlierTitleProper
+				
 				// get subfields
 				String fTitleA = "";
 				String fTitleB = "";
@@ -483,18 +467,16 @@ public class ExportRDF {
 					}
 					formerTitle = finalFTitle;
 				}
-			}		
-			
-			// if FIELD 250 - Edition Statement - String editionStatement = ""; // rdau:editionStatement
-			if (fieldType.equals("250")) {
+			} else if (fieldType.equals("250")) {
+				// if FIELD 250 - Edition Statement - String editionStatement = ""; // rdau:editionStatement
+				
 				ArrayList<String> subFieldAes = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (int iales=0;iales < subFieldAes.size();iales++) {
 					editionStatement = fixAmper(subFieldAes.get(iales));
 				}
-			}
-			
-			// if FIELD 260 - Imprint - String editionStatement = ""; // dct:publisher
-			if (fieldType.equals("260")) {
+			} else if (fieldType.equals("260")) {
+				// if FIELD 260 - Imprint - String editionStatement = ""; // dct:publisher
+				
 				ArrayList<String> retValimp = new ArrayList<String>();
 				ArrayList<String> subFieldAimp = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (int imp=0;imp < subFieldAimp.size();imp++) {
@@ -511,10 +493,9 @@ public class ExportRDF {
 					}
 					
 				}			
-			}	
-
-			// if FIELD 264 - Production info (like imprint for manufactured goods) - String prodInfo = ""; // dct:publisher
-			if (fieldType.equals("260")) {
+			} else if (fieldType.equals("260")) {
+				// if FIELD 264 - Production info (like imprint for manufactured goods) - String prodInfo = ""; // dct:publisher
+				
 				ArrayList<String> retValman = new ArrayList<String>();
 				ArrayList<String> subFieldAman = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (int impman=0;impman < subFieldAman.size();impman++) {
@@ -531,10 +512,9 @@ public class ExportRDF {
 					}
 					
 				}			
-			}
-			
-			// IF Field 300 - Physical Description - String physDesc = ""; // dct:format
-			if (fieldType.equals("100") || fieldType.equals("700")) {
+			} else if (fieldType.equals("100") || fieldType.equals("700")) {
+				// IF Field 300 - Physical Description - String physDesc = ""; // dct:format
+				
 				int valueBefore = 0;
 				String thisPDNote = "";
 				// get subfields
@@ -618,19 +598,16 @@ public class ExportRDF {
 				}
 
 				physDesc = thisPDNote;
-			}
-						
-		
-			// if FIELD 321 - Former Publication Frequency - String formerPubFreq = ""; // rdau:noteOnFrequency
-			if (fieldType.equals("321")) {
+			} else if (fieldType.equals("321")) {
+				// if FIELD 321 - Former Publication Frequency - String formerPubFreq = ""; // rdau:noteOnFrequency
+				
 				ArrayList<String> subFieldAps = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFieldAps.size();i++) {
 					formerPubFreq = fixAmper(subFieldAps.get(i));
 				}
-			}	
+			} else if (fieldType.equals("100") || fieldType.equals("700")) {
+				// IF Field 336 - Content Type - String contentType = ""; // dct:type
 				
-			// IF Field 336 - Content Type - String contentType = ""; // dct:type
-			if (fieldType.equals("100") || fieldType.equals("700")) {
 				int valueBeforeCt = 0;
 				String thisCtNote = "";
 				// get subfields
@@ -667,11 +644,9 @@ public class ExportRDF {
 				}
 
 				contentType = thisCtNote;
-			}					
-			
-			
-			// IF Field 338 - Carrier Type - String carrierType = ""; // dct:type
-			if (fieldType.equals("338")) {
+			} else if (fieldType.equals("338")) {
+				// IF Field 338 - Carrier Type - String carrierType = ""; // dct:type
+				
 				String thisCrtNote = "";
 				ArrayList<String> subFieldAcrt = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFieldAcrt.size();i++) {
@@ -680,10 +655,9 @@ public class ExportRDF {
 				if (thisCrtNote  != null && thisCrtNote.length() > 0) {
 					carrierType = thisCrtNote;
 				}
-			}
-			
-			// IF Field 362 - Sequence Dates
-			if (fieldType.equals("362")) {
+			} else if (fieldType.equals("362")) {
+				// IF Field 362 - Sequence Dates
+				
 				// get subfields
 				String seqNote = "";
 				ArrayList<String> subFieldAsq = sqlObj.selectSubFieldValuesByID(fieldID, "a");
@@ -697,10 +671,9 @@ public class ExportRDF {
 						fiveHundNotes.add(fixAmper(seqNote));
 					}
 				}
-			}
-			
-			// IF Field 370 - Associated Place -- ArrayList<String> associatedPlaces; // dc:coverage + 500 note
-			if (fieldType.equals("370")) {
+			} else if (fieldType.equals("370")) {
+				// IF Field 370 - Associated Place -- ArrayList<String> associatedPlaces; // dc:coverage + 500 note
+				
 				String subCap = "";
 				String subFap = "";
 				String subGap = "";
@@ -798,11 +771,9 @@ public class ExportRDF {
 				
 				fiveHundNotes.add(fixAmper(thisApNote));
 			
-			}			
-
-			
-			// If Field 388 - Time Period of Creation - String creationEpoch = ""; // dct:created
-			if (fieldType.equals("388")) {
+			} else if (fieldType.equals("388")) {
+				// If Field 388 - Time Period of Creation - String creationEpoch = ""; // dct:created
+				
 				String thisTPC = "";
 				ArrayList<String> subFielAtpc = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFielAtpc.size();i++) {
@@ -811,11 +782,9 @@ public class ExportRDF {
 				if (thisTPC  != null && thisTPC.length() > 0) {
 					creationEpoch = thisTPC;
 				}
-			}
-	
-			
-			// IF Field 490 - Series Statement -- Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
-			if (fieldType.equals("370")) {
+			} else if (fieldType.equals("490")) {
+				// IF Field 490 - Series Statement -- Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
+				
 				String subAss = "";
 				String subLss = "";
 				String subVss = "";
@@ -875,12 +844,9 @@ public class ExportRDF {
 					seriesStatment.add(fixAmper(thisSsNote));
 				}
 			
-			}	
-			
-			// 5xx notes
-			if (fieldType.matches("5\\d\\d")) {	
-				// get raw value
-				String rawValue = sqlObj.getFieldByID(fieldID);
+			} else if (fieldType.matches("5\\d\\d")) {	
+				// 5xx notes
+				
 				// get subfields
 				String note = "";
 				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
@@ -997,11 +963,9 @@ public class ExportRDF {
 						fiveHundNotes.add(fixAmper(baseNote));
 					}
 				}
-			}
-			
-			
-			// do 600 (subject term - personal name)
-			if (fieldType.equals("600")) {
+			} else if (fieldType.equals("600")) {
+				// do 600 (subject term - personal name)
+				
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				subFieldsToInclude.add("c");
@@ -1011,10 +975,9 @@ public class ExportRDF {
 					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
-			}
-			
-			// do 610 (subject term - corporate name)
-			if (fieldType.equals("610")) {
+			} else if (fieldType.equals("610")) {
+				// do 610 (subject term - corporate name)
+				
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "610", subFieldsToInclude, " ");
@@ -1022,10 +985,9 @@ public class ExportRDF {
 					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
-			}
-			
-			// do 611 (subject term - meeting)
-			if (fieldType.equals("611")) {
+			} else if (fieldType.equals("611")) {
+				// do 611 (subject term - meeting)
+				
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				subFieldsToInclude.add("b");
@@ -1035,10 +997,9 @@ public class ExportRDF {
 					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
-			}
-			
-			// do 630 (subject term - Uniform Title)
-			if (fieldType.equals("630")) {
+			} else if (fieldType.equals("630")) {
+				// do 630 (subject term - Uniform Title)
+				
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "630", subFieldsToInclude, " ");
@@ -1046,10 +1007,9 @@ public class ExportRDF {
 					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
-			}
-			
-			// do 648 (subject term - Chronological Term)
-			if (fieldType.equals("648")) {
+			} if (fieldType.equals("648")) {
+				// do 648 (subject term - Chronological Term)
+				
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "648", subFieldsToInclude, " ");
@@ -1057,10 +1017,9 @@ public class ExportRDF {
 					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
-			}
-			
-			// do 650 (subject term - Topical Term)
-			if (fieldType.equals("650")) {
+			} else if (fieldType.equals("650")) {
+				// do 650 (subject term - Topical Term)
+				
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				subFieldsToInclude.add("b");
@@ -1071,10 +1030,9 @@ public class ExportRDF {
 					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
-			}
-			
-			// do 651 (subject term - Geographic Name)
-			if (fieldType.equals("651")) {
+			} else if (fieldType.equals("651")) {
+				// do 651 (subject term - Geographic Name)
+				
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "651", subFieldsToInclude, " ");
@@ -1083,10 +1041,9 @@ public class ExportRDF {
 					coverage.add(fixAmper(thisSubjectString));
 				}
 
-			}
-			
-			// do 653 (subject term - Uncontrolled)
-			if (fieldType.equals("653")) {
+			} else if (fieldType.equals("653")) {
+				// do 653 (subject term - Uncontrolled)
+				
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "653", subFieldsToInclude, " ");
@@ -1094,10 +1051,9 @@ public class ExportRDF {
 					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
-			}
-			
-			// do 654 (subject term - Faceted topical term)
-			if (fieldType.equals("654")) {
+			} else if (fieldType.equals("654")) {
+				// do 654 (subject term - Faceted topical term)
+				
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				subFieldsToInclude.add("b");
@@ -1106,10 +1062,9 @@ public class ExportRDF {
 					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
-			}
-			
-			// collex:genre
-			if (fieldType.equals("655")) {
+			} else if (fieldType.equals("655")) {
+				// collex:genre
+				
 				String workingValue = "";
 				// get raw value
 				String rawValue = sqlObj.getFieldByID(fieldID);;
@@ -1127,10 +1082,9 @@ public class ExportRDF {
 				
 				// remove trailing period
 				genre = fixAmper(workingValue);
-			}
-			
-			// do 656 (subject term - Occupation)
-			if (fieldType.equals("656")) {
+			} else if (fieldType.equals("656")) {
+				// do 656 (subject term - Occupation)
+				
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "656", subFieldsToInclude, " ");
@@ -1138,10 +1092,9 @@ public class ExportRDF {
 					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
-			}
-			
-			// do 657 (subject term - Function)
-			if (fieldType.equals("657")) {
+			} else if (fieldType.equals("657")) {
+				// do 657 (subject term - Function)
+				
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "657", subFieldsToInclude, " ");
@@ -1149,10 +1102,9 @@ public class ExportRDF {
 					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
-			}
-			
-			// do 658 (subject term - Curriculum Objective)
-			if (fieldType.equals("658")) {
+			} else if (fieldType.equals("658")) {
+				// do 658 (subject term - Curriculum Objective)
+				
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				subFieldsToInclude.add("b");
@@ -1161,10 +1113,9 @@ public class ExportRDF {
 					subjectTerms.add(fixAmper(thisSubjectString));
 				}
 
-			}
-			
-			// do 662 (subject term - Hierarchical place name)
-			if (fieldType.equals("662")) {
+			} else if (fieldType.equals("662")) {
+				// do 662 (subject term - Hierarchical place name)
+				
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				subFieldsToInclude.add("b");
@@ -1177,10 +1128,9 @@ public class ExportRDF {
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
 					subjectTerms.add(fixAmper(thisSubjectString));
 				}
-			}
-			
-			// dc:coverage
-			if (fieldType.equals("751")) {
+			} else if (fieldType.equals("751")) {
+				// dc:coverage
+				
 				String workingValue = "";
 				// get raw value
 				String rawValue = sqlObj.getFieldByID(fieldID);;
@@ -1196,10 +1146,9 @@ public class ExportRDF {
 					workingValue = rawValue;
 				}
 				coverage.add(fixAmper(workingValue));
-			}
-	
-			// do 752 (subject term - Hierarchical Geographic Name)
-			if (fieldType.equals("752")) {
+			} else if (fieldType.equals("752")) {
+				// do 752 (subject term - Hierarchical Geographic Name)
+							
 				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "651", subFieldsToInclude, " ");
@@ -1320,8 +1269,9 @@ public class ExportRDF {
 			}
 			*/
 			
-			// digital surrogates
-			if (fieldType.equals("856")) {
+			else if (fieldType.equals("856")) {
+				// digital surrogates
+				
 				surrogateSub = sqlObj.selectSubFieldValuesByID(fieldID, "u");
 			}
 			
@@ -1334,7 +1284,7 @@ public class ExportRDF {
 			 * eg -> <collex:thumbnail rdf:resource="http://YOUR_PUBLICATION.ORG/THUMBNAIL.JPG"/>
 			 */
 			// if 1000 Thumbnail image
-			if (fieldType.equals("1000")) {
+			else if (fieldType.equals("1000")) {
 				// get raw value
 				estcThumbnail = sqlObj.getFieldByID(fieldID);;
 			}
