@@ -162,33 +162,17 @@ public class ExportRDF {
 		ArrayList<String> seriesStatment = new ArrayList<String>(); //   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
 		ArrayList<String> uniformTitle = new ArrayList<String>(); //   rdau:titleOfResource
 		ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
-		ArrayList<String> associatedPlaces = new ArrayList<String>(); //   dc:coverage
-
-
-
-					
+		ArrayList<String> associatedPlaces = new ArrayList<String>(); //   dc:coverage				
 		
 		
 		// Get all of the fields associated with this record
 		ArrayList<Integer> fieldsArray = sqlObj.selectRecordFieldIds(recordID);
-		for (int i=0;i < fieldsArray.size();i++) {
+		for (int ix=0;ix < fieldsArray.size();ix++) {
 			// loop through the fields and process
-			Integer fieldID = fieldsArray.get(i);
+			Integer fieldID = fieldsArray.get(ix);
 			String fieldType = sqlObj.selectFieldType(fieldID);
-
-/* TODO
- * saved as field 1000
- * OR 856 $z
- * OR 856 $s and $f
- * thumbnail -> <collex:thumbnail rdf:resource="">  
- * String estcThumbnail
- * eg -> <collex:thumbnail rdf:resource="http://YOUR_PUBLICATION.ORG/THUMBNAIL.JPG"/>
- */
-			// if 1000 Thumbnail image
-			if (fieldType.equals("1000")) {
-				// get raw value
-				estcThumbnail = sqlObj.getFieldByID(fieldID);;
-			}
+			
+			int i = 0;
 				
 			// if 245 title
 			if (fieldType.equals("245")) {
@@ -818,7 +802,7 @@ public class ExportRDF {
 					didBefore++;
 				}
 				if (didBefore != 0) {
-					thisPDNote = thisPDNote + ".";
+					thisApNote = thisApNote + ".";
 				}
 				
 				fiveHundNotes.add(fixAmper(thisApNote));
@@ -833,7 +817,7 @@ public class ExportRDF {
 				for (i=0;i < subFielAtpc.size();i++) {
 					thisTPC = subFielAtpc.get(i);
 				}
-				if (thisCrtNote  != null && thisCrtNote.length() > 0) {
+				if (thisTPC  != null && thisTPC.length() > 0) {
 					creationEpoch = thisTPC;
 				}
 			}
@@ -886,11 +870,12 @@ public class ExportRDF {
 					thisSsNote = thisSsNote + "Volume/Sequence Number: " + subVss;
 					didBeforeSs++;
 				}
+				
 				if (subXss  != null && subXss.length() > 0) {
 					if (didBeforeSs != 0) {
 						thisSsNote = thisSsNote + ". ";
 					}
-					 = thisSsNote + "International Standard Serial Number: " + subXss;
+					thisSsNote = thisSsNote + "International Standard Serial Number: " + subXss;
 					didBeforeSs++;
 				}
 				
@@ -994,7 +979,7 @@ public class ExportRDF {
 				String thisSubjectString = getSubject(recordID, "651", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
 					String[] arrayPlaces = thisSubjectString.split("--");
-					for (i=0;i < arrayPlaces.size();i++) {
+					for (i=0;i < arrayPlaces.length;i++) {
 						subjectTerms.add(fixAmper(arrayPlaces[i].trim()));
 						coverage.add(fixAmper(arrayPlaces[i].trim()));
 					}
@@ -1347,6 +1332,20 @@ public class ExportRDF {
 					}
 				}
 			}
+			
+			/* TODO
+			 * saved as field 1000
+			 * OR 856 $z
+			 * OR 856 $s and $f
+			 * thumbnail -> <collex:thumbnail rdf:resource="">  
+			 * String estcThumbnail
+			 * eg -> <collex:thumbnail rdf:resource="http://YOUR_PUBLICATION.ORG/THUMBNAIL.JPG"/>
+			 */
+			// if 1000 Thumbnail image
+			if (fieldType.equals("1000")) {
+				// get raw value
+				estcThumbnail = sqlObj.getFieldByID(fieldID);;
+			}
 
 		}
 		
@@ -1439,13 +1438,14 @@ public class ExportRDF {
 								
 				// now construct an rdf output for this holding:
 				String holdingRDF = rdfHeader + rdfAboutHolding + rdfString + rdfStringAdditions + parentAssoc + rdfFooter;
-				
+
+				/*
 				// TODO: Write out Holding RDF
 				try {
 					// write out the rdf
-//					PrintWriter holdingWriter = new PrintWriter( configObj.writeDir + "/hold_" + uniqueHoldingID + ".rdf", "UTF-8");
-//					holdingWriter.print(holdingRDF);
-//					holdingWriter.close();
+					PrintWriter holdingWriter = new PrintWriter( configObj.writeDir + "/hold_" + uniqueHoldingID + ".rdf", "UTF-8");
+					holdingWriter.print(holdingRDF);
+					holdingWriter.close();
 					
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
@@ -1456,6 +1456,7 @@ public class ExportRDF {
 					System.out.println("Error exporting record " + holdingRecordID + " holding item " + uniqueHoldingID);
 					e.printStackTrace();
 				}
+				*/
 				
 				//System.out.println(holdingRDF);
 				System.out.println("Processed holding record " + holdingRecordID + " item " + uniqueHoldingID);
@@ -1492,11 +1493,12 @@ public class ExportRDF {
 		
 		String bibRDF = rdfHeader + rdfAbout + rdfString + rdfFooter;
 		
+		
 		// TODO: write out bib rdf
 		try {
-//			PrintWriter bibWriter = new PrintWriter( configObj.writeDir + "/bib_" + itemID + ".rdf", "UTF-8");
-//			bibWriter.print(bibRDF);
-//			bibWriter.close();
+			PrintWriter bibWriter = new PrintWriter( configObj.writeDir + "/bib_" + itemID + ".rdf", "UTF-8");
+			bibWriter.print(bibRDF);
+			bibWriter.close();
 			// if i'm here than we didn't throw an error so 
 			// so mark the record as exported
 //			sqlObj.updateExported(recordID);
@@ -1509,6 +1511,7 @@ public class ExportRDF {
 			System.out.println("Error exporting record " + recordID + " holding item " + itemID);
 			e.printStackTrace();
 		}
+		
 		
 		// System.out.println(bibRDF);
 		System.out.println("Processed bib record " + recordID + " item " + itemID);
