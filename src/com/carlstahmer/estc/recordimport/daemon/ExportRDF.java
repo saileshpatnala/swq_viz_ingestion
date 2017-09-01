@@ -155,7 +155,6 @@ public class ExportRDF {
 		String contentType = ""; // dct:type
 		String mediaType = ""; // dct:format
 		String carrierType = ""; // dct:type
-		String associatedPlace = ""; // dc:coverage
 		String creationEpoch = ""; // dct:created
 		String estcThumbnail = ""; // collex:thumbnail rdf:resource=""
 		String dcRights = ""; // dct:rights
@@ -308,7 +307,7 @@ public class ExportRDF {
 				retValc.add(upperEc);
 				retValc.add(subAc);
 				authorArray.add(retValc);
-			} else if (fieldType.equals("111") || fieldType.equals("700")) {
+			} else if (fieldType.equals("111") || fieldType.equals("711")) {
 				String thisAuthorm = "";
 				// get subfields
 				String subAm = "";
@@ -474,6 +473,9 @@ public class ExportRDF {
 				for (int iales=0;iales < subFieldAes.size();iales++) {
 					editionStatement = fixAmper(subFieldAes.get(iales));
 				}
+				
+// TODO:  Need to look into these.  I do'nt think I'm feeding imprint correctly
+				
 			} else if (fieldType.equals("260")) {
 				// if FIELD 260 - Imprint - String editionStatement = ""; // dct:publisher
 				
@@ -493,7 +495,7 @@ public class ExportRDF {
 					}
 					
 				}			
-			} else if (fieldType.equals("260")) {
+			} else if (fieldType.equals("264")) {
 				// if FIELD 264 - Production info (like imprint for manufactured goods) - String prodInfo = ""; // dct:publisher
 				
 				ArrayList<String> retValman = new ArrayList<String>();
@@ -512,7 +514,11 @@ public class ExportRDF {
 					}
 					
 				}			
-			} else if (fieldType.equals("100") || fieldType.equals("700")) {
+			} 
+			
+// End Fix Imrpint TODO			
+			
+			else if (fieldType.equals("300")) {
 				// IF Field 300 - Physical Description - String physDesc = ""; // dct:format
 				
 				int valueBefore = 0;
@@ -605,7 +611,7 @@ public class ExportRDF {
 				for (i=0;i < subFieldAps.size();i++) {
 					formerPubFreq = fixAmper(subFieldAps.get(i));
 				}
-			} else if (fieldType.equals("100") || fieldType.equals("700")) {
+			} else if (fieldType.equals("336")) {
 				// IF Field 336 - Content Type - String contentType = ""; // dct:type
 				
 				int valueBeforeCt = 0;
@@ -1412,6 +1418,134 @@ public class ExportRDF {
 			ihr++;
 		
 		}
+		
+		
+		
+		// newly added fields
+		//ArrayList<String> uniformTitle = new ArrayList<String>(); //   rdau:titleOfResource
+		if (uniformTitle != null && uniformTitle.size() > 0) {
+			for (itn=0;itn < uniformTitle.size();itn++) {
+				rdfString = rdfString + "        <rdau:titleOfResource>" + uniformTitle.get(itn) + "</rdau:titleOfResource>\n";
+			}
+		}
+		
+		// String abrvTitle = ""; // rdau:abbreviatedTitle
+		if (abrvTitle != null && abrvTitle.length() > 0) {
+			rdfString = rdfString + "        <rdau:abbreviatedTitle>" + abrvTitle + "</rdau:abbreviatedTitle>\n";
+		}
+		
+		// String uniformTitleTwoForty = ""; // rdau:titleOfResource
+		if (uniformTitleTwoForty != null && uniformTitleTwoForty.length() > 0) {
+			rdfString = rdfString + "        <rdau:titleOfResource>" + uniformTitleTwoForty + "</rdau:titleOfResource>\n";
+		}
+		
+		//String seriesUniformTitle = ""; // rdau:titleProperOfSeries
+		if (seriesUniformTitle != null && seriesUniformTitle.length() > 0) {
+			rdfString = rdfString + "        <rdau:titleProperOfSeries>" + seriesUniformTitle + "</rdau:titleProperOfSeries>\n";
+		}
+		
+		//String variantTitle = ""; // rdau:variantTitle
+		if (variantTitle != null && variantTitle.length() > 0) {
+			rdfString = rdfString + "        <rdau:variantTitle>" + variantTitle + "</rdau:variantTitle>\n";
+		}
+		
+		//String formerTitle = ""; // rdau:earlierTitleProper
+		if (formerTitle != null && formerTitle.length() > 0) {
+			rdfString = rdfString + "        <rdau:earlierTitleProper>" + formerTitle + "</rdau:earlierTitleProper>\n";
+		}
+		
+		//String editionStatement = ""; // rdau:editionStatement
+		if (editionStatement != null && editionStatement.length() > 0) {
+			rdfString = rdfString + "        <rdau:editionStatement>" + editionStatement + "</rdau:editionStatement>\n";
+		}
+		
+		//String prodInfo = ""; // dct:publisher
+		if (prodInfo != null && prodInfo.length() > 0) {
+			rdfString = rdfString + "        <dct:publisher>" + prodInfo + "</dct:publisher>\n";
+		}
+		
+		//String formerPubFreq = ""; // rdau:noteOnFrequency
+		if (formerPubFreq != null && formerPubFreq.length() > 0) {
+			rdfString = rdfString + "        <rdau:noteOnFrequency>" + formerPubFreq + "</rdau:noteOnFrequency>\n";
+		}
+		
+		
+// TODO: There is a double up on namespaces here.  Need to revise		
+		//String physDesc = ""; // dct:format
+		if (physDesc != null && physDesc.length() > 0) {
+			rdfString = rdfString + "        <dct:format>" + physDesc + "</dct:format>\n";
+		}
+		
+		//String contentType = ""; // dct:type
+		if (contentType != null && contentType.length() > 0) {
+			rdfString = rdfString + "        <dct:type>" + contentType + "</dct:type>\n";
+		}
+		
+		//String mediaType = ""; // dct:format
+		if (mediaType != null && mediaType.length() > 0) {
+			rdfString = rdfString + "        <dct:format>" + mediaType + "</dct:format>\n";
+		}
+		
+		//String carrierType = ""; // dct:type
+		if (carrierType != null && carrierType.length() > 0) {
+			rdfString = rdfString + "        <dct:type>" + carrierType + "</dct:type>\n";
+		}
+		
+// End Todo
+
+		//String creationEpoch = ""; // dct:created
+		if (creationEpoch != null && creationEpoch.length() > 0) {
+			rdfString = rdfString + "        <dct:created>" + creationEpoch + "</dct:created>\n";
+		}
+		
+		//String estcThumbnail = ""; // collex:thumbnail rdf:resource=""
+		if (estcThumbnail != null && estcThumbnail.length() > 0) {
+			rdfString = rdfString + "        <collex:thumbnail rdf:resource=\"" + estcThumbnail + "\">\n";
+		}
+		
+		//String dcRights = ""; // dct:rights
+		if (dcRights != null && dcRights.length() > 0) {
+			rdfString = rdfString + "        <dct:rights>" + dcRights + "</dct:rights>\n";
+		}
+		
+		int itn = 0;
+		//ArrayList<String> seriesStatment = new ArrayList<String>(); //   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
+		if (seriesStatment != null && seriesStatment.size() > 0) {
+			for (itn=0;itn < seriesStatment.size();itn++) {
+				rdfString = rdfString + "        <isbdu:P1041>" + seriesStatment.get(itn) + "</isbdu:P1041>\n";
+			}
+		}
+		
+		// ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
+		if (languageCode != null && languageCode.size() > 0) {
+			for (itn=0;itn < languageCode.size();itn++) {
+				rdfString = rdfString + "        <dc:language>" + languageCode.get(itn) + "</dc:language>\n";
+			}
+		}
+		
+		// ArrayList<String> associatedPlaces = new ArrayList<String>(); //   dc:coverage	
+		if (associatedPlaces != null && associatedPlaces.size() > 0) {
+			for (itn=0;itn < associatedPlaces.size();itn++) {
+				rdfString = rdfString + "        <dc:coverage>" + associatedPlaces.get(itn) + "</dc:coverage>\n";
+			}
+		}
+		
+		
+		
+		
+// examples		
+		
+		// build the content part of the RDF
+		rdfString = rdfString + "        <dct:title>" + finalTitle + "</dct:title>\n";
+		
+		
+		if (fiveHundNotes != null && fiveHundNotes.size() > 0) {
+			for (int isn=0;isn < fiveHundNotes.size();isn++) {
+				rdfString = rdfString + "        <dct:description>" + fiveHundNotes.get(isn) + "</dct:description>\n";
+			}
+		}
+// end examples
+		
 		
 		// add child associations if any
 		int ihch = 0;
