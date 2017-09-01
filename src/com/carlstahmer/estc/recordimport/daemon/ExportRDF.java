@@ -139,7 +139,7 @@ public class ExportRDF {
 		ArrayList<String> fiveHundNotes = new ArrayList<String>();
 		ArrayList<String> fiveHundTenNotes = new ArrayList<String>();
 		ArrayList<String> surrogateSub = new ArrayList<String>();
-		String estcID = "";
+		//String estcID = "";
 		
 		
 		// newly added fields
@@ -152,16 +152,14 @@ public class ExportRDF {
 		String prodInfo = ""; // dct:publisher
 		String formerPubFreq = ""; // rdau:noteOnFrequency
 		String physDesc = ""; // dct:format
-		String contentType = ""; // dct:type
-		String mediaType = ""; // dct:format
-		String carrierType = ""; // dct:type
 		String creationEpoch = ""; // dct:created
 		String estcThumbnail = ""; // collex:thumbnail rdf:resource=""
 		String dcRights = ""; // dct:rights
 		ArrayList<String> seriesStatment = new ArrayList<String>(); //   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
 		ArrayList<String> uniformTitle = new ArrayList<String>(); //   rdau:titleOfResource
 		ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
-		ArrayList<String> associatedPlaces = new ArrayList<String>(); //   dc:coverage				
+		ArrayList<String> associatedPlaces = new ArrayList<String>(); //   dc:coverage		
+		ArrayList<String> contentCarrierTypes = new ArrayList<String>(); //   dct:type	
 		
 		
 		// Get all of the fields associated with this record
@@ -611,56 +609,18 @@ public class ExportRDF {
 				for (i=0;i < subFieldAps.size();i++) {
 					formerPubFreq = fixAmper(subFieldAps.get(i));
 				}
-			} else if (fieldType.equals("336")) {
-				// IF Field 336 - Content Type - String contentType = ""; // dct:type
-				
-				int valueBeforeCt = 0;
-				String thisCtNote = "";
+			} else if (fieldType.equals("336") || fieldType.equals("338")) {
+				// IF Field 336 - Content Type - ArrayList<String> contentCarrierTypes // dct:type
 				// get subfields
 				String subAct = "";
-				String subBct = "";
-
 				ArrayList<String> subFieldAct = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFieldAct.size();i++) {
 					subAct = subFieldAct.get(i);
-				}
-				ArrayList<String> subFieldBct = sqlObj.selectSubFieldValuesByID(fieldID, "b");
-				for (i=0;i < subFieldBct.size();i++) {
-					subBct =  subFieldBct.get(i);
-				}
-				
-				
-				if (subAct  != null && subAct.length() > 0) {
-					if (valueBeforeCt == 0) {
-						thisCtNote = thisCtNote + ". ";
+					if (subAct  != null && subAct.length() > 0) {
+						contentCarrierTypes.add(subAct);
 					}
-					thisCtNote = thisCtNote + subAct;
-					valueBeforeCt++;
 				}
-				if (subBct  != null && subBct.length() > 0) {
-					if (valueBeforeCt == 0) {
-						thisCtNote = thisCtNote + ". ";
-					}
-					thisCtNote = thisCtNote + subBct;
-					valueBeforeCt++;
-				}
-			
-				if (valueBeforeCt != 0) {
-					thisCtNote = thisCtNote + ".";
-				}
-
-				contentType = thisCtNote;
-			} else if (fieldType.equals("338")) {
-				// IF Field 338 - Carrier Type - String carrierType = ""; // dct:type
 				
-				String thisCrtNote = "";
-				ArrayList<String> subFieldAcrt = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldAcrt.size();i++) {
-					thisCrtNote = subFieldAcrt.get(i);
-				}
-				if (thisCrtNote  != null && thisCrtNote.length() > 0) {
-					carrierType = thisCrtNote;
-				}
 			} else if (fieldType.equals("362")) {
 				// IF Field 362 - Sequence Dates
 				
@@ -1420,8 +1380,9 @@ public class ExportRDF {
 		}
 		
 		
-		
 		// newly added fields
+		int itn = 0; // instantiate increment variable used for lists
+		
 		//ArrayList<String> uniformTitle = new ArrayList<String>(); //   rdau:titleOfResource
 		if (uniformTitle != null && uniformTitle.size() > 0) {
 			for (itn=0;itn < uniformTitle.size();itn++) {
@@ -1468,30 +1429,18 @@ public class ExportRDF {
 		if (formerPubFreq != null && formerPubFreq.length() > 0) {
 			rdfString = rdfString + "        <rdau:noteOnFrequency>" + formerPubFreq + "</rdau:noteOnFrequency>\n";
 		}
-		
-		
-// TODO: There is a double up on namespaces here.  Need to revise		
+	
 		//String physDesc = ""; // dct:format
 		if (physDesc != null && physDesc.length() > 0) {
 			rdfString = rdfString + "        <dct:format>" + physDesc + "</dct:format>\n";
 		}
 		
-		//String contentType = ""; // dct:type
-		if (contentType != null && contentType.length() > 0) {
-			rdfString = rdfString + "        <dct:type>" + contentType + "</dct:type>\n";
+		//ArrayList<String> contentCarrierTypes = new ArrayList<String>(); // dct:type
+		if (contentCarrierTypes != null && contentCarrierTypes.size() > 0) {
+			for (itn=0;itn < contentCarrierTypes.size();itn++) {
+				rdfString = rdfString + "        <dct:type>" + contentCarrierTypes.get(itn) + "</dct:type>\n";
+			}
 		}
-		
-		//String mediaType = ""; // dct:format
-		if (mediaType != null && mediaType.length() > 0) {
-			rdfString = rdfString + "        <dct:format>" + mediaType + "</dct:format>\n";
-		}
-		
-		//String carrierType = ""; // dct:type
-		if (carrierType != null && carrierType.length() > 0) {
-			rdfString = rdfString + "        <dct:type>" + carrierType + "</dct:type>\n";
-		}
-		
-// End Todo
 
 		//String creationEpoch = ""; // dct:created
 		if (creationEpoch != null && creationEpoch.length() > 0) {
@@ -1508,7 +1457,6 @@ public class ExportRDF {
 			rdfString = rdfString + "        <dct:rights>" + dcRights + "</dct:rights>\n";
 		}
 		
-		int itn = 0;
 		//ArrayList<String> seriesStatment = new ArrayList<String>(); //   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
 		if (seriesStatment != null && seriesStatment.size() > 0) {
 			for (itn=0;itn < seriesStatment.size();itn++) {
@@ -1529,23 +1477,6 @@ public class ExportRDF {
 				rdfString = rdfString + "        <dc:coverage>" + associatedPlaces.get(itn) + "</dc:coverage>\n";
 			}
 		}
-		
-		
-		
-		
-// examples		
-		
-		// build the content part of the RDF
-		rdfString = rdfString + "        <dct:title>" + finalTitle + "</dct:title>\n";
-		
-		
-		if (fiveHundNotes != null && fiveHundNotes.size() > 0) {
-			for (int isn=0;isn < fiveHundNotes.size();isn++) {
-				rdfString = rdfString + "        <dct:description>" + fiveHundNotes.get(isn) + "</dct:description>\n";
-			}
-		}
-// end examples
-		
 		
 		// add child associations if any
 		int ihch = 0;
