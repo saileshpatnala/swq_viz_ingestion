@@ -189,16 +189,16 @@ public class ExportRDF {
 					String seven = String.valueOf(rawZeroZeroEight.charAt(13));
 					String eight = String.valueOf(rawZeroZeroEight.charAt(14));
 					String startDate = one + two + three + four;
-					startDate = startDate.replaceAll("[^\\d.]", "");
+					//startDate = startDate.replaceAll("[^\\d.]", "");
 					String endDate = five + six + seven + eight;
-					endDate = endDate.replaceAll("[^\\d.]", "");
+					//endDate = endDate.replaceAll("[^\\d.]", "");
 
 					if (startDate  != null && startDate.length() == 4) {
 						finalDate = startDate;
 						finalDateString = finalDate;
 						if ( endDate != null && endDate.length() == 4) {
-							finalDate = finalDate + "," + endDate;
-							finalDateString = finalDate + "," + endDate;
+							finalDate = finalDate + "-" + endDate;
+							finalDateString = finalDate + "-" + endDate;
 						}
 					}
 				}
@@ -1141,26 +1141,8 @@ public class ExportRDF {
 				}
 				coverage.add(fixAmper(workingValue));
 			} else if (fieldType.equals("752")) {
-				// do 752 (subject term - Hierarchical Geographic Name)
-							
-				ArrayList<String> subFieldsToInclude = new ArrayList<String>();
-				subFieldsToInclude.add("a");
-				String thisSubjectString = getSubject(recordID, "651", subFieldsToInclude, " ");
-				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					String[] arrayPlaces = thisSubjectString.split("--");
-					for (i=0;i < arrayPlaces.length;i++) {
-						subjectTerms.add(fixAmper(arrayPlaces[i].trim()));
-						coverage.add(fixAmper(arrayPlaces[i].trim()));
-					}
-				}
-			}
-			
-			/* Original 752 - only puts in coverage, not subject terms
-			// dc:coverage - hierarchical
-			if (fieldType.equals("752")) {
-				String workingValue = "";
-				// get raw value
-				String rawValue = sqlObj.getFieldByID(fieldID);;
+				// do 752 (subject term - Hierarchical Geographic Name) - dc:coverage
+
 				// get subfields
 				String subA = "";
 				String subB = "";
@@ -1198,70 +1180,28 @@ public class ExportRDF {
 					subH = fixAmper(subFieldH.get(i));
 				}
 				
-				String seperator = "--";
-				boolean notFirst = false;
 				if (subA != null && subA.length() > 0) {
-					if (notFirst) {
-						workingValue = workingValue + seperator;
-					}
-					workingValue = workingValue + subA;
-					notFirst = true;
+					coverage.add(fixAmper(subA));
 				}
 				if (subB != null && subB.length() > 0) {
-					if (notFirst) {
-						workingValue = workingValue + seperator;
-					}
-					workingValue = workingValue + subB;
-					notFirst = true;
+					coverage.add(fixAmper(subB));
 				}
 				if (subC != null && subC.length() > 0) {
-					if (notFirst) {
-						workingValue = workingValue + seperator;
-					}
-					workingValue = workingValue + subC;
-					notFirst = true;
+					coverage.add(fixAmper(subC));
 				}
 				if (subD != null && subD.length() > 0) {
-					if (notFirst) {
-						workingValue = workingValue + seperator;
-					}
-					workingValue = workingValue + subD;
-					notFirst = true;
+					coverage.add(fixAmper(subD));
 				}
 				if (subF != null && subF.length() > 0) {
-					if (notFirst) {
-						workingValue = workingValue + seperator;
-					}
-					workingValue = workingValue + subF;
-					notFirst = true;
+					coverage.add(fixAmper(subF));
 				}
 				if (subG != null && subG.length() > 0) {
-					if (notFirst) {
-						workingValue = workingValue + seperator;
-					}
-					workingValue = workingValue + subG;
-					notFirst = true;
+					coverage.add(fixAmper(subG));
 				}
 				if (subH != null && subH.length() > 0) {
-					if (notFirst) {
-						workingValue = workingValue + seperator;
-					}
-					workingValue = workingValue + subH;
-					notFirst = true;
+					coverage.add(fixAmper(subH));
 				}
-					
-					
-				if ((workingValue != null) && (workingValue.length() == 0) && (rawValue != null) &&  (rawValue.length() > 0)) {
-					workingValue = rawValue;
-				}
-				
-				if (workingValue != null && workingValue.length() > 0) {
-					String trimmedValue = removeFinalComma(workingValue);
-					coverage.add(fixAmper(trimmedValue));
-				}
-
 			}
-			*/
 			
 			else if (fieldType.equals("856")) {
 				// digital surrogates
