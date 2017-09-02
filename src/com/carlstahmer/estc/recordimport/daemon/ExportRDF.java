@@ -101,6 +101,7 @@ public class ExportRDF {
 		rdfHeader = rdfHeader + "    xmlns:estc=\"http://estc21.ucr.edu/schema#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:dct=\"http://purl.org/dc/terms/#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:dc=\"http://purl.org/dc/elements/1.1/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:bibo=\"http://purl.org/ontology/bibo/\"\n";
 		rdfHeader = rdfHeader + "    xmlns:foaf=\"http://xmlns.com/foaf/0.1/#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:geo=\"http://www.w3.org/2003/01/geo/wgs84_pos/#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:rdau=\"http://rdaregistry.info/Elements/u/#\"\n";
@@ -155,6 +156,8 @@ public class ExportRDF {
 		String creationEpoch = ""; // dct:created
 		String estcThumbnail = ""; // collex:thumbnail rdf:resource=""
 		String dcRights = ""; // dct:rights
+		String imprintString = ""; // bibo:issuer bibo:issuer + 
+		String dublinPublisher = ""; // role publisher dct:publisher $b
 		ArrayList<String> seriesStatment = new ArrayList<String>(); //   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
 		ArrayList<String> uniformTitle = new ArrayList<String>(); //   rdau:titleOfResource
 		ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
@@ -475,24 +478,53 @@ public class ExportRDF {
 // TODO:  Need to look into these.  I do'nt think I'm feeding imprint correctly
 				
 			} else if (fieldType.equals("260")) {
-				// if FIELD 260 - Imprint - String editionStatement = ""; // dct:publisher
-				
-				ArrayList<String> retValimp = new ArrayList<String>();
+				// if FIELD 260 - Imprint - String imprintString = ""; // bibo:issuer + role publisher dct:publisher $b
+				String impSubA = "";
+				String impSubB = "";
+				String impSubC = "";
 				ArrayList<String> subFieldAimp = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (int imp=0;imp < subFieldAimp.size();imp++) {
-					editionStatement = fixAmper(subFieldAimp.get(imp));
+					impSubA = fixAmper(subFieldAimp.get(imp));
 				}
-				ArrayList<String> subFieldBimp = sqlObj.selectSubFieldValuesByID(fieldID, "a");
+				ArrayList<String> subFieldBimp = sqlObj.selectSubFieldValuesByID(fieldID, "b");
 				for (int impb=0;impb < subFieldBimp.size();impb++) {
-					String impSubB = "";
 					impSubB = fixAmper(subFieldBimp.get(impb));
-					if (impSubB  != null && impSubB.length() > 0) {
-						retValimp.add("PBL");
-						retValimp.add(impSubB);
-						authorArray.add(retValimp);
+				}
+				ArrayList<String> subFieldCimp = sqlObj.selectSubFieldValuesByID(fieldID, "c");
+				for (int impc=0;impc < subFieldCimp.size();impc++) {
+					impSubC = fixAmper(subFieldCimp.get(impc));
+				}
+				
+				int beenHereBefore = 0;
+				String impressionString = "";
+				if (impSubB  != null && impSubB.length() > 0) {
+					if (beenHereBefore > 0) {
+						impressionString = impressionString + " ";
 					}
+					impressionString = impressionString + impSubB;
+					beenHereBefore++;
+					dublinPublisher = impSubB;
+				}
+				if (impSubA  != null && impSubA.length() > 0) {
+					if (beenHereBefore > 0) {
+						impressionString = impressionString + " ";
+					}
+					impressionString = impressionString + impSubA;
+					beenHereBefore++;
+				}
+				if (impSubC  != null && impSubC.length() > 0) {
+					if (beenHereBefore > 0) {
+						impressionString = impressionString + " ";
+					}
+					impressionString = impressionString + impSubC;
+					beenHereBefore++;
+				}
+				
+				
+				
+				if (impressionString  != null && impressionString.length() > 0) {
 					
-				}			
+				}
 			} else if (fieldType.equals("264")) {
 				// if FIELD 264 - Production info (like imprint for manufactured goods) - String prodInfo = ""; // dct:publisher
 				
@@ -512,11 +544,7 @@ public class ExportRDF {
 					}
 					
 				}			
-			} 
-			
-// End Fix Imrpint TODO			
-			
-			else if (fieldType.equals("300")) {
+			} else if (fieldType.equals("300")) {
 				// IF Field 300 - Physical Description - String physDesc = ""; // dct:format
 				
 				int valueBefore = 0;
@@ -1258,6 +1286,7 @@ public class ExportRDF {
 		}
 		
 		// build the content part of the RDF
+		int itn = 0; // instantiate increment variable used for lists
 		rdfString = rdfString + "        <dct:title>" + finalTitle + "</dct:title>\n";
 		
 		for (int iat=0;iat < authorArray.size();iat++) {
@@ -1272,6 +1301,116 @@ public class ExportRDF {
 			rdfString = rdfString + "             </collex:date>\n        </dc:date>\n";
 			
 		}
+		
+		// newly added fields
+		//ArrayList<String> uniformTitle = new ArrayList<String>(); //   rdau:titleOfResource
+		if (uniformTitle != null && uniformTitle.size() > 0) {
+			for (itn=0;itn < uniformTitle.size();itn++) {
+				rdfString = rdfString + "        <rdau:titleOfResource>" + uniformTitle.get(itn) + "</rdau:titleOfResource>\n";
+			}
+		}
+		
+		// String abrvTitle = ""; // rdau:abbreviatedTitle
+		if (abrvTitle != null && abrvTitle.length() > 0) {
+			rdfString = rdfString + "        <rdau:abbreviatedTitle>" + abrvTitle + "</rdau:abbreviatedTitle>\n";
+		}
+		
+		// String uniformTitleTwoForty = ""; // rdau:titleOfResource
+		if (uniformTitleTwoForty != null && uniformTitleTwoForty.length() > 0) {
+			rdfString = rdfString + "        <rdau:titleOfResource>" + uniformTitleTwoForty + "</rdau:titleOfResource>\n";
+		}
+		
+		//String seriesUniformTitle = ""; // rdau:titleProperOfSeries
+		if (seriesUniformTitle != null && seriesUniformTitle.length() > 0) {
+			rdfString = rdfString + "        <rdau:titleProperOfSeries>" + seriesUniformTitle + "</rdau:titleProperOfSeries>\n";
+		}
+		
+		//String variantTitle = ""; // rdau:variantTitle
+		if (variantTitle != null && variantTitle.length() > 0) {
+			rdfString = rdfString + "        <rdau:variantTitle>" + variantTitle + "</rdau:variantTitle>\n";
+		}
+		
+		//String formerTitle = ""; // rdau:earlierTitleProper
+		if (formerTitle != null && formerTitle.length() > 0) {
+			rdfString = rdfString + "        <rdau:earlierTitleProper>" + formerTitle + "</rdau:earlierTitleProper>\n";
+		}
+		
+		//String editionStatement = ""; // rdau:editionStatement
+		if (editionStatement != null && editionStatement.length() > 0) {
+			rdfString = rdfString + "        <rdau:editionStatement>" + editionStatement + "</rdau:editionStatement>\n";
+		}
+		
+		//String prodInfo = ""; // dct:publisher
+		if (prodInfo != null && prodInfo.length() > 0) {
+			rdfString = rdfString + "        <dct:publisher>" + prodInfo + "</dct:publisher>\n";
+		}
+		
+		//String formerPubFreq = ""; // rdau:noteOnFrequency
+		if (formerPubFreq != null && formerPubFreq.length() > 0) {
+			rdfString = rdfString + "        <rdau:noteOnFrequency>" + formerPubFreq + "</rdau:noteOnFrequency>\n";
+		}
+	
+		//String physDesc = ""; // dct:format
+		if (physDesc != null && physDesc.length() > 0) {
+			rdfString = rdfString + "        <dct:format>" + physDesc + "</dct:format>\n";
+		}
+		
+		//ArrayList<String> contentCarrierTypes = new ArrayList<String>(); // dct:type
+		if (contentCarrierTypes != null && contentCarrierTypes.size() > 0) {
+			for (itn=0;itn < contentCarrierTypes.size();itn++) {
+				rdfString = rdfString + "        <dct:type>" + contentCarrierTypes.get(itn) + "</dct:type>\n";
+			}
+		}
+
+		//String creationEpoch = ""; // dct:created
+		if (creationEpoch != null && creationEpoch.length() > 0) {
+			rdfString = rdfString + "        <dct:created>" + creationEpoch + "</dct:created>\n";
+		}
+		
+		//String imprintString = ""; // bibo:issuer 
+		if (imprintString != null && imprintString.length() > 0) {
+			rdfString = rdfString + "        <bibo:issuer>" + imprintString + "</bibo:issuer>\n";
+		}
+		
+		//String dublinPublisher = ""; // role publisher dct:publisher $b
+		if (dublinPublisher != null && dublinPublisher.length() > 0) {
+			rdfString = rdfString + "        <dct:publisher>" + dublinPublisher + "</dct:publisher>\n";
+		}
+		
+		//String estcThumbnail = ""; // collex:thumbnail rdf:resource=""
+		if (estcThumbnail != null && estcThumbnail.length() > 0) {
+			rdfString = rdfString + "        <collex:thumbnail rdf:resource=\"" + estcThumbnail + "\">\n";
+		}
+		
+		//String dcRights = ""; // dct:rights
+		if (dcRights != null && dcRights.length() > 0) {
+			rdfString = rdfString + "        <dct:rights>" + dcRights + "</dct:rights>\n";
+		}
+		
+		//ArrayList<String> seriesStatment = new ArrayList<String>(); //   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
+		if (seriesStatment != null && seriesStatment.size() > 0) {
+			for (itn=0;itn < seriesStatment.size();itn++) {
+				rdfString = rdfString + "        <isbdu:P1041>" + seriesStatment.get(itn) + "</isbdu:P1041>\n";
+			}
+		}
+		
+		// ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
+		if (languageCode != null && languageCode.size() > 0) {
+			for (itn=0;itn < languageCode.size();itn++) {
+				rdfString = rdfString + "        <dc:language>" + languageCode.get(itn) + "</dc:language>\n";
+			}
+		}
+		
+		// ArrayList<String> associatedPlaces = new ArrayList<String>(); //   dc:coverage	
+		if (associatedPlaces != null && associatedPlaces.size() > 0) {
+			for (itn=0;itn < associatedPlaces.size();itn++) {
+				rdfString = rdfString + "        <dc:coverage>" + associatedPlaces.get(itn) + "</dc:coverage>\n";
+			}
+		}
+		// end new fields
+		
+		
+		
 		if (coverage != null && coverage.size() > 0) {
 			for (int ic=0;ic < coverage.size();ic++) {
 				rdfString = rdfString + "        <dc:coverage>" + coverage.get(ic) + "</dc:coverage>\n";
@@ -1347,7 +1486,6 @@ public class ExportRDF {
 				// now construct an rdf output for this holding:
 				String holdingRDF = rdfHeader + rdfAboutHolding + rdfString + rdfStringAdditions + parentAssoc + rdfFooter;
 
-				/*
 				// TODO: Write out Holding RDF
 				try {
 					// write out the rdf
@@ -1364,7 +1502,6 @@ public class ExportRDF {
 					System.out.println("Error exporting record " + holdingRecordID + " holding item " + uniqueHoldingID);
 					e.printStackTrace();
 				}
-				*/
 				
 				//System.out.println(holdingRDF);
 				System.out.println("Processed holding record " + holdingRecordID + " item " + uniqueHoldingID);
@@ -1378,106 +1515,7 @@ public class ExportRDF {
 			ihr++;
 		
 		}
-		
-		
-		// newly added fields
-		int itn = 0; // instantiate increment variable used for lists
-		
-		//ArrayList<String> uniformTitle = new ArrayList<String>(); //   rdau:titleOfResource
-		if (uniformTitle != null && uniformTitle.size() > 0) {
-			for (itn=0;itn < uniformTitle.size();itn++) {
-				rdfString = rdfString + "        <rdau:titleOfResource>" + uniformTitle.get(itn) + "</rdau:titleOfResource>\n";
-			}
-		}
-		
-		// String abrvTitle = ""; // rdau:abbreviatedTitle
-		if (abrvTitle != null && abrvTitle.length() > 0) {
-			rdfString = rdfString + "        <rdau:abbreviatedTitle>" + abrvTitle + "</rdau:abbreviatedTitle>\n";
-		}
-		
-		// String uniformTitleTwoForty = ""; // rdau:titleOfResource
-		if (uniformTitleTwoForty != null && uniformTitleTwoForty.length() > 0) {
-			rdfString = rdfString + "        <rdau:titleOfResource>" + uniformTitleTwoForty + "</rdau:titleOfResource>\n";
-		}
-		
-		//String seriesUniformTitle = ""; // rdau:titleProperOfSeries
-		if (seriesUniformTitle != null && seriesUniformTitle.length() > 0) {
-			rdfString = rdfString + "        <rdau:titleProperOfSeries>" + seriesUniformTitle + "</rdau:titleProperOfSeries>\n";
-		}
-		
-		//String variantTitle = ""; // rdau:variantTitle
-		if (variantTitle != null && variantTitle.length() > 0) {
-			rdfString = rdfString + "        <rdau:variantTitle>" + variantTitle + "</rdau:variantTitle>\n";
-		}
-		
-		//String formerTitle = ""; // rdau:earlierTitleProper
-		if (formerTitle != null && formerTitle.length() > 0) {
-			rdfString = rdfString + "        <rdau:earlierTitleProper>" + formerTitle + "</rdau:earlierTitleProper>\n";
-		}
-		
-		//String editionStatement = ""; // rdau:editionStatement
-		if (editionStatement != null && editionStatement.length() > 0) {
-			rdfString = rdfString + "        <rdau:editionStatement>" + editionStatement + "</rdau:editionStatement>\n";
-		}
-		
-		//String prodInfo = ""; // dct:publisher
-		if (prodInfo != null && prodInfo.length() > 0) {
-			rdfString = rdfString + "        <dct:publisher>" + prodInfo + "</dct:publisher>\n";
-		}
-		
-		//String formerPubFreq = ""; // rdau:noteOnFrequency
-		if (formerPubFreq != null && formerPubFreq.length() > 0) {
-			rdfString = rdfString + "        <rdau:noteOnFrequency>" + formerPubFreq + "</rdau:noteOnFrequency>\n";
-		}
-	
-		//String physDesc = ""; // dct:format
-		if (physDesc != null && physDesc.length() > 0) {
-			rdfString = rdfString + "        <dct:format>" + physDesc + "</dct:format>\n";
-		}
-		
-		//ArrayList<String> contentCarrierTypes = new ArrayList<String>(); // dct:type
-		if (contentCarrierTypes != null && contentCarrierTypes.size() > 0) {
-			for (itn=0;itn < contentCarrierTypes.size();itn++) {
-				rdfString = rdfString + "        <dct:type>" + contentCarrierTypes.get(itn) + "</dct:type>\n";
-			}
-		}
 
-		//String creationEpoch = ""; // dct:created
-		if (creationEpoch != null && creationEpoch.length() > 0) {
-			rdfString = rdfString + "        <dct:created>" + creationEpoch + "</dct:created>\n";
-		}
-		
-		//String estcThumbnail = ""; // collex:thumbnail rdf:resource=""
-		if (estcThumbnail != null && estcThumbnail.length() > 0) {
-			rdfString = rdfString + "        <collex:thumbnail rdf:resource=\"" + estcThumbnail + "\">\n";
-		}
-		
-		//String dcRights = ""; // dct:rights
-		if (dcRights != null && dcRights.length() > 0) {
-			rdfString = rdfString + "        <dct:rights>" + dcRights + "</dct:rights>\n";
-		}
-		
-		//ArrayList<String> seriesStatment = new ArrayList<String>(); //   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
-		if (seriesStatment != null && seriesStatment.size() > 0) {
-			for (itn=0;itn < seriesStatment.size();itn++) {
-				rdfString = rdfString + "        <isbdu:P1041>" + seriesStatment.get(itn) + "</isbdu:P1041>\n";
-			}
-		}
-		
-		// ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
-		if (languageCode != null && languageCode.size() > 0) {
-			for (itn=0;itn < languageCode.size();itn++) {
-				rdfString = rdfString + "        <dc:language>" + languageCode.get(itn) + "</dc:language>\n";
-			}
-		}
-		
-		// ArrayList<String> associatedPlaces = new ArrayList<String>(); //   dc:coverage	
-		if (associatedPlaces != null && associatedPlaces.size() > 0) {
-			for (itn=0;itn < associatedPlaces.size();itn++) {
-				rdfString = rdfString + "        <dc:coverage>" + associatedPlaces.get(itn) + "</dc:coverage>\n";
-			}
-		}
-		
 		// add child associations if any
 		int ihch = 0;
 		while (ihch < children.size()) {
