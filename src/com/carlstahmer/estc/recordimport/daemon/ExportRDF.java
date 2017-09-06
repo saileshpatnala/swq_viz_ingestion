@@ -1250,14 +1250,14 @@ public class ExportRDF {
 			}
 		}
 		
-		// String abrvTitle = ""; // rdau:abbreviatedTitle
-		if (abrvTitle != null && abrvTitle.length() > 0) {
-			rdfString = rdfString + "        <rdau:abbreviatedTitle>" + abrvTitle + "</rdau:abbreviatedTitle>\n";
-		}
-		
 		// String uniformTitleTwoForty = ""; // rdau:titleOfResource
 		if (uniformTitleTwoForty != null && uniformTitleTwoForty.length() > 0) {
 			rdfString = rdfString + "        <rdau:titleOfResource>" + uniformTitleTwoForty + "</rdau:titleOfResource>\n";
+		}
+		
+		// String abrvTitle = ""; // rdau:abbreviatedTitle
+		if (abrvTitle != null && abrvTitle.length() > 0) {
+			rdfString = rdfString + "        <rdau:abbreviatedTitle>" + abrvTitle + "</rdau:abbreviatedTitle>\n";
 		}
 		
 		//String seriesUniformTitle = ""; // rdau:titleProperOfSeries
@@ -1349,8 +1349,6 @@ public class ExportRDF {
 		}
 		// end new fields
 		
-		
-		
 		if (coverage != null && coverage.size() > 0) {
 			for (int ic=0;ic < coverage.size();ic++) {
 				rdfString = rdfString + "        <dc:coverage>" + coverage.get(ic) + "</dc:coverage>\n";
@@ -1374,6 +1372,26 @@ public class ExportRDF {
 				rdfString = rdfString + "        <dct:description>" + fiveHundNotes.get(isn) + "</dct:description>\n";
 			}
 		}
+		
+		/* TODO:
+		 * 
+		 * I modified the 'selectHoldingRecordIDs()' function in the 
+		 * SQL object so that it uses a query like the one below to
+		 * get a unique list of IDs for the holding record associated
+		 * with the ESCT ID being processed:
+		 * 
+		 *  SELECT DISTINCT `records_has_fields`.`record_id` 
+		 *  FROM `records_has_fields`
+    	 *  WHERE `records_has_fields`.`record_id` IN (SELECT `records_has_fields`.`record_id` FROM `records_has_fields` WHERE `records_has_fields`.`field` LIKE "001" AND `records_has_fields`.`value` LIKE "N72335")
+    	 *  AND `records_has_fields`.`record_id` IN (SELECT `records_has_fields`.`record_id` FROM `records_has_fields` WHERE `records_has_fields`.`field` LIKE "852");
+ 		 *
+ 		 * I tested the above in MySQL workbench, and it appears to 
+ 		 * be giving the correct result.  I need now to check the whole
+ 		 * loop below and make sure that is taking the returned ID and 
+ 		 * properly going through the 852 records and building an RDF file
+ 		 * as appropriate.
+		 * 
+		 */
 		
 		// put loop to build holding records here
 		ArrayList<String> children = new ArrayList<String>();

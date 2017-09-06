@@ -224,7 +224,7 @@ public class SqlModel {
 	 * @param  	estdID		the ESTC ID to match
 	 * @return				An array containing id's of associated holding records
 	 */
-	public ArrayList<HashMap<String,String>> selectHoldingRecordIDs(String estcID) {
+	public ArrayList<HashMap<String,String>> selectHoldingRecordIDsOld(String estcID) {
 		String strSql = "SELECT records.id FROM records " +
 							"JOIN records_has_fields ON records_has_fields.record_id = records.id " +
 							"WHERE records.type = 2 AND records_has_fields.field LIKE \"001\" " +
@@ -232,7 +232,30 @@ public class SqlModel {
 		//System.out.println("strsql: " + strSql);
 		ArrayList<HashMap<String,String>> tableResults = qSelectGeneric(strSql);
 		return tableResults;
-	}	
+	}
+	
+	/**
+	 * <p>Selects holding records associated with a bib records.</p>
+	 *
+	 * @param  	estdID		the ESTC ID to match
+	 * @return				An array containing id's of associated holding records
+	 */
+	public ArrayList<HashMap<String,String>> selectHoldingRecordIDs(String estcID) {
+		String strSql = "SELECT DISTINCT `records_has_fields`.`record_id` " +
+							"FROM `records_has_fields` " +
+							"WHERE `records_has_fields`.`record_id` IN " +
+								"(SELECT `records_has_fields`.`record_id` " +
+								"FROM `records_has_fields` " +
+								"WHERE `records_has_fields`.`field` LIKE \"001\" " +
+								"AND `records_has_fields`.`value` LIKE \"" + estcID + "\") " +
+							"AND `records_has_fields`.`record_id` IN " +
+								"(SELECT `records_has_fields`.`record_id` " +
+								"FROM `records_has_fields` " +
+								"WHERE `records_has_fields`.`field` LIKE \"852\")";
+		//System.out.println("strsql: " + strSql);
+		ArrayList<HashMap<String,String>> tableResults = qSelectGeneric(strSql);
+		return tableResults;
+	}
 	
 	/**
 	 * <p>Selects all subfields for a given field.</p>
