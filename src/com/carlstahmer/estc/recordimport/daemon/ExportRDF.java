@@ -174,7 +174,13 @@ public class ExportRDF {
 			
 			int i = 0;
 			
+			/* TODO:
+			 * Something weird is going on with the data formatting. Take a 
+			 * look at commented out line 189 and 199.  Could have something
+			 * to do with it.
+			 */
 	
+			
 			if (fieldType.equals("008")) { 
 				// if 008 date
 				// get raw value
@@ -1367,31 +1373,6 @@ public class ExportRDF {
 				rdfString = rdfString + "        <dct:isReferencedBy>" + fiveHundTenNotes.get(isn) + "</dct:isReferencedBy>\n";
 			}
 		}
-		if (fiveHundNotes != null && fiveHundNotes.size() > 0) {
-			for (int isn=0;isn < fiveHundNotes.size();isn++) {
-				rdfString = rdfString + "        <dct:description>" + fiveHundNotes.get(isn) + "</dct:description>\n";
-			}
-		}
-		
-		/* TODO:
-		 * 
-		 * I modified the 'selectHoldingRecordIDs()' function in the 
-		 * SQL object so that it uses a query like the one below to
-		 * get a unique list of IDs for the holding record associated
-		 * with the ESCT ID being processed:
-		 * 
-		 *  SELECT DISTINCT `records_has_fields`.`record_id` 
-		 *  FROM `records_has_fields`
-    	 *  WHERE `records_has_fields`.`record_id` IN (SELECT `records_has_fields`.`record_id` FROM `records_has_fields` WHERE `records_has_fields`.`field` LIKE "001" AND `records_has_fields`.`value` LIKE "N72335")
-    	 *  AND `records_has_fields`.`record_id` IN (SELECT `records_has_fields`.`record_id` FROM `records_has_fields` WHERE `records_has_fields`.`field` LIKE "852");
- 		 *
- 		 * I tested the above in MySQL workbench, and it appears to 
- 		 * be giving the correct result.  I need now to check the whole
- 		 * loop below and make sure that is taking the returned ID and 
- 		 * properly going through the 852 records and building an RDF file
- 		 * as appropriate.
-		 * 
-		 */
 		
 		// put loop to build holding records here
 		ArrayList<String> children = new ArrayList<String>();
@@ -1400,7 +1381,8 @@ public class ExportRDF {
 		while (ihr < holdingRecords.size()) {
 			String uniqueHoldingID = "";
 			HashMap<String,String> holdingRecordResults = holdingRecords.get(ihr);
-			int holdingRecordID = Integer.parseInt(holdingRecordResults.get("id"));
+			int holdingRecordID = Integer.parseInt(holdingRecordResults.get("record_id"));
+			//String holdingRecordID = holdingRecordResults.get("id");
 			// now get all the 852 fields for the record
 			ArrayList<Integer> eightFiftyTwos = sqlObj.selectEightFiftyTwoFields(holdingRecordID);
 			int ihf = 0;
@@ -1411,14 +1393,21 @@ public class ExportRDF {
 				String aVal = fixAmper(getSubfieldValue(holdingSubs, "a"));
 				// get the b subfield value (Sublocation or collection)
 				String bVal = fixAmper(getSubfieldValue(holdingSubs, "b"));
-				// get the e subfield value (Address)
-				String eVal = fixAmper(getSubfieldValue(holdingSubs, "e"));
 				// get the j subfield value (Shelving Control Number)
 				String jVal = fixAmper(getSubfieldValue(holdingSubs, "j"));
-				// get the x subfield value (non public note)
-				String xVal = fixAmper(getSubfieldValue(holdingSubs, "x"));
 				// get the r subfield value (unique id)
 				String rVal = fixAmper(getSubfieldValue(holdingSubs, "r"));
+				
+				
+				/* TODO:
+				 * Need to fix the unique ID so that it contains some kind of 
+				 * unique string in addition to the control number in the 
+				 * field as this is a local control number an could be duplicated.  
+				 * I'm not actually sure about this, so I should check.
+				 */
+				
+				
+				
 				uniqueHoldingID = rVal;
 				// get list of q values (physical location)
 				ArrayList<String> qVals = getSubfieldValueList(holdingSubs, "q");
@@ -1444,7 +1433,6 @@ public class ExportRDF {
 				// now construct an rdf output for this holding:
 				String holdingRDF = rdfHeader + rdfAboutHolding + rdfString + rdfStringAdditions + parentAssoc + rdfFooter;
 
-				// TODO: Write out Holding RDF
 				try {
 					// write out the rdf
 					PrintWriter holdingWriter = new PrintWriter( configObj.writeDir + "/hold_" + uniqueHoldingID + ".rdf", "UTF-8");
@@ -1452,11 +1440,9 @@ public class ExportRDF {
 					holdingWriter.close();
 					
 				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
 					System.out.println("Error exporting record " + holdingRecordID + " holding item " + uniqueHoldingID);
 					e.printStackTrace();
 				} catch (UnsupportedEncodingException e) {
-					// TODO Auto-generated catch block
 					System.out.println("Error exporting record " + holdingRecordID + " holding item " + uniqueHoldingID);
 					e.printStackTrace();
 				}
@@ -1473,6 +1459,12 @@ public class ExportRDF {
 			ihr++;
 		
 		}
+		
+		if (fiveHundNotes != null && fiveHundNotes.size() > 0) {
+			for (int isn=0;isn < fiveHundNotes.size();isn++) {
+				rdfString = rdfString + "        <dct:description>" + fiveHundNotes.get(isn) + "</dct:description>\n";
+			}
+		}
 
 		// add child associations if any
 		int ihch = 0;
@@ -1480,11 +1472,6 @@ public class ExportRDF {
 			rdfString = rdfString + "        <bf:hasInstance>" + children.get(ihch) + "</bf:hasInstance>\n";
 			ihch++;
 		}
-		
-		
-		/* TODO
-		 * digSur never gets set.  Need to feed field 856 into here
-		 */
 
 		// add digital surrogates
 		for (int ids=0;ids < surrogateSub.size();ids++) {
@@ -1496,21 +1483,16 @@ public class ExportRDF {
 		
 		String bibRDF = rdfHeader + rdfAbout + rdfString + rdfFooter;
 		
-		
-		// TODO: write out bib rdf
 		try {
 			PrintWriter bibWriter = new PrintWriter( configObj.writeDir + "/bib_" + itemID + ".rdf", "UTF-8");
 			bibWriter.print(bibRDF);
 			bibWriter.close();
-			// if i'm here than we didn't throw an error so 
-			// so mark the record as exported
+			// mark the record as exported
 //			sqlObj.updateExported(recordID);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			System.out.println("Error exporting record " + recordID + " holding item " + itemID);
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			System.out.println("Error exporting record " + recordID + " holding item " + itemID);
 			e.printStackTrace();
 		}
