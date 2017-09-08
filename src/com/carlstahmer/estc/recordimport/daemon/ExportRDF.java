@@ -174,13 +174,6 @@ public class ExportRDF {
 			
 			int i = 0;
 			
-			/* TODO:
-			 * Something weird is going on with the data formatting. Take a 
-			 * look at commented out line 189 and 199.  Could have something
-			 * to do with it.
-			 */
-	
-			
 			if (fieldType.equals("008")) { 
 				// if 008 date
 				// get raw value
@@ -195,9 +188,9 @@ public class ExportRDF {
 					String seven = String.valueOf(rawZeroZeroEight.charAt(13));
 					String eight = String.valueOf(rawZeroZeroEight.charAt(14));
 					String startDate = one + two + three + four;
-					//startDate = startDate.replaceAll("[^\\d.]", "");
+					startDate = startDate.replaceAll("[^\\d.]", "");
 					String endDate = five + six + seven + eight;
-					//endDate = endDate.replaceAll("[^\\d.]", "");
+					endDate = endDate.replaceAll("[^\\d.]", "");
 
 					if (startDate  != null && startDate.length() == 4) {
 						finalDate = startDate;
@@ -481,8 +474,6 @@ public class ExportRDF {
 					editionStatement = fixAmper(subFieldAes.get(iales));
 				}
 				
-// TODO:  Need to look into these.  I do'nt think I'm feeding imprint correctly
-				
 			} else if (fieldType.equals("260")) {
 				// if FIELD 260 - Imprint - String imprintString = ""; // bibo:issuer + role publisher dct:publisher $b
 				String impSubA = "";
@@ -529,8 +520,8 @@ public class ExportRDF {
 				
 				
 				if (impressionString  != null && impressionString.length() > 0) {
-					
-				}
+					imprintString = impressionString;
+				}	
 			} else if (fieldType.equals("264")) {
 				// if FIELD 264 - Production info (like imprint for manufactured goods) - String prodInfo = ""; // dct:publisher
 				
@@ -972,7 +963,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("d");
 				String thisSubjectString = getSubject(recordID, "600", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
+					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
 				}
 
 			} else if (fieldType.equals("610")) {
@@ -982,7 +973,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "610", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
+					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
 				}
 
 			} else if (fieldType.equals("611")) {
@@ -994,7 +985,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("c");
 				String thisSubjectString = getSubject(recordID, "611", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
+					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
 				}
 
 			} else if (fieldType.equals("630")) {
@@ -1004,7 +995,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "630", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
+					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
 				}
 
 			} if (fieldType.equals("648")) {
@@ -1014,7 +1005,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "648", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
+					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
 				}
 
 			} else if (fieldType.equals("650")) {
@@ -1027,7 +1018,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("d");
 				String thisSubjectString = getSubject(recordID, "650", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
+					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
 				}
 
 			} else if (fieldType.equals("651")) {
@@ -1038,7 +1029,7 @@ public class ExportRDF {
 				String thisSubjectString = getSubject(recordID, "651", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
 					subjectTerms.add(fixAmper(thisSubjectString));
-					coverage.add(fixAmper(thisSubjectString));
+					coverage.add(fixPeriods(fixAmper(thisSubjectString)));
 				}
 
 			} else if (fieldType.equals("653")) {
@@ -1048,7 +1039,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "653", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
+					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
 				}
 
 			} else if (fieldType.equals("654")) {
@@ -1059,7 +1050,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("b");
 				String thisSubjectString = getSubject(recordID, "654", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
+					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
 				}
 
 			} else if (fieldType.equals("655")) {
@@ -1089,7 +1080,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "656", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
+					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
 				}
 
 			} else if (fieldType.equals("657")) {
@@ -1099,7 +1090,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "657", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
+					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
 				}
 
 			} else if (fieldType.equals("658")) {
@@ -1110,7 +1101,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("b");
 				String thisSubjectString = getSubject(recordID, "658", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
+					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
 				}
 
 			} else if (fieldType.equals("662")) {
@@ -1126,7 +1117,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("h");
 				String thisSubjectString = getSubject(recordID, "662", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
+					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
 				}
 			} else if (fieldType.equals("751")) {
 				// dc:coverage
@@ -1145,7 +1136,7 @@ public class ExportRDF {
 				} else if (rawValue != null && rawValue.length() > 0) {
 					workingValue = rawValue;
 				}
-				coverage.add(fixAmper(workingValue));
+				coverage.add(fixPeriods(fixAmper(workingValue)));
 			} else if (fieldType.equals("752")) {
 				// do 752 (subject term - Hierarchical Geographic Name) - dc:coverage
 
@@ -1187,25 +1178,25 @@ public class ExportRDF {
 				}
 				
 				if (subA != null && subA.length() > 0) {
-					coverage.add(fixAmper(subA));
+					coverage.add(fixPeriods(fixAmper(subA)));
 				}
 				if (subB != null && subB.length() > 0) {
-					coverage.add(fixAmper(subB));
+					coverage.add(fixPeriods(fixAmper(subB)));
 				}
 				if (subC != null && subC.length() > 0) {
-					coverage.add(fixAmper(subC));
+					coverage.add(fixPeriods(fixAmper(subC)));
 				}
 				if (subD != null && subD.length() > 0) {
-					coverage.add(fixAmper(subD));
+					coverage.add(fixPeriods(fixAmper(subD)));
 				}
 				if (subF != null && subF.length() > 0) {
-					coverage.add(fixAmper(subF));
+					coverage.add(fixPeriods(fixAmper(subF)));
 				}
 				if (subG != null && subG.length() > 0) {
-					coverage.add(fixAmper(subG));
+					coverage.add(fixPeriods(fixAmper(subG)));
 				}
 				if (subH != null && subH.length() > 0) {
-					coverage.add(fixAmper(subH));
+					coverage.add(fixPeriods(fixAmper(subH)));
 				}
 			}
 			
@@ -1365,7 +1356,7 @@ public class ExportRDF {
 		}
 		if (subjectTerms != null && subjectTerms.size() > 0) {
 			for (int ist=0;ist < subjectTerms.size();ist++) {
-				rdfString = rdfString + subjectTerms.get(ist);
+				rdfString = rdfString + fixPeriods(subjectTerms.get(ist));
 			}
 		}
 		if (fiveHundTenNotes != null && fiveHundTenNotes.size() > 0) {
@@ -1398,23 +1389,14 @@ public class ExportRDF {
 				// get the r subfield value (unique id)
 				String rVal = fixAmper(getSubfieldValue(holdingSubs, "r"));
 				
-				
-				/* TODO:
-				 * Need to fix the unique ID so that it contains some kind of 
-				 * unique string in addition to the control number in the 
-				 * field as this is a local control number an could be duplicated.  
-				 * I'm not actually sure about this, so I should check.
-				 */
-				
-				
-				
-				uniqueHoldingID = rVal;
+				uniqueHoldingID = aVal + rVal;
+				uniqueHoldingID = uniqueHoldingID.replaceAll("\\s+","");
 				// get list of q values (physical location)
 				ArrayList<String> qVals = getSubfieldValueList(holdingSubs, "q");
 				
 				
 				// get the unique holding info
-				String uniqueHRI = "http://" + domainURI + "/" + rVal;
+				String uniqueHRI = "http://" + domainURI + "/" + uniqueHoldingID;
 				String rdfAboutHolding = "    <estc:estc rdf:about=\"" + uniqueHRI + "\">\n";
 				children.add(uniqueHRI);
 				String rdfStringAdditions = "";
@@ -1599,6 +1581,14 @@ public class ExportRDF {
 		String retStr = "";
 		if ( str != null && str.length() > 0) {
 			retStr = str.replace("&", "&amp;");
+		}
+		return retStr;
+	}
+	
+	public static String fixPeriods(String str) {
+		String retStr = "";
+		if ( str != null && str.length() > 0) {
+			retStr = str.replace(".", "");
 		}
 		return retStr;
 	}
