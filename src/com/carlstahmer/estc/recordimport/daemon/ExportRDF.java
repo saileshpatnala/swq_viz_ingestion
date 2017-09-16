@@ -284,7 +284,7 @@ public class ExportRDF {
 					subE = "AUT";
 				}
 				
-				String upperE = subE.toUpperCase();
+				String upperE = fixCarrots(fixAmper(subE.toUpperCase()));
 				retVal.add(upperE);
 				retVal.add(thisAuthor);
 
@@ -296,14 +296,14 @@ public class ExportRDF {
 				String subEc = "";
 				ArrayList<String> subFieldAc = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFieldAc.size();i++) {
-					subAc = subFieldAc.get(i);
+					subAc = fixCarrots(subFieldAc.get(i));
 				}
 				ArrayList<String> subFieldEc = sqlObj.selectSubFieldValuesByID(fieldID, "e");
 				for (i=0;i < subFieldEc.size();i++) {
 					subEc =  subFieldEc.get(i);
 				}
 				
-				String upperEc = subEc.toUpperCase();
+				String upperEc = fixCarrots(fixAmper(subEc.toUpperCase()));
 				retValc.add(upperEc);
 				retValc.add(subAc);
 				authorArray.add(retValc);
@@ -354,13 +354,13 @@ public class ExportRDF {
 					thisAuthorm = "Authored at Unknown Meeting";
 				}
 				
-				thisAuthorm = fixAmper(thisAuthorm);
+				thisAuthorm = fixCarrots((fixAmper(thisAuthorm)));
 				
 				if (subJm != null && subJm.length() == 0) {
 					subJm = "AUT";
 				}
 				
-				String upperJm = subJm.toUpperCase();
+				String upperJm = fixCarrots(fixAmper(subJm.toUpperCase()));
 				retValm.add(upperJm);
 				retValm.add(thisAuthorm);
 
@@ -369,7 +369,7 @@ public class ExportRDF {
 				// if 130 & 730 & 240 - Uniform Title - uniformTitle - rdau:titleOfResource
 				ArrayList<String> subFieldAut = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFieldAut.size();i++) {
-					uniformTitle.add(fixAmper(subFieldAut.get(i)));
+					uniformTitle.add(fixCarrots(fixAmper(subFieldAut.get(i))));
 				}
 			} else if (fieldType.equals("210")) {
 				// if 210  abbreviated title - rdau:abbreviatedTitle
@@ -380,19 +380,19 @@ public class ExportRDF {
 				String abrevTitleA = "";
 				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFieldA.size();i++) {
-					abrevTitleA = fixAmper(subFieldA.get(i));
+					abrevTitleA = fixCarrots(fixAmper(subFieldA.get(i)));
 				}
 				if (abrevTitleA != null && abrevTitleA.length() > 0) {
 					abrvTitle = abrevTitleA;
 				} else if (rawAbrevTitleValue != null && rawAbrevTitleValue.length() > 0) {
-					finalTitle = rawAbrevTitleValue;
+					finalTitle = fixCarrots(fixAmper(rawAbrevTitleValue));
 				}
 			} else if (fieldType.equals("243")) {
 				// if 243 - Collective Uniform Title - String seriesUniformTitle = ""; // rdau:titleProperOfSeries
 				
 				ArrayList<String> subFieldtps = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFieldtps.size();i++) {
-					seriesUniformTitle = fixAmper(subFieldtps.get(i));
+					seriesUniformTitle = fixCarrots(fixAmper(subFieldtps.get(i)));
 				}
 			} else if (fieldType.equals("245")) {
 				// if 245 title
@@ -404,11 +404,11 @@ public class ExportRDF {
 				String titleB = "";
 				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFieldA.size();i++) {
-					titleA = fixAmper(subFieldA.get(i));
+					titleA = fixCarrots(fixAmper(subFieldA.get(i)));
 				}
 				ArrayList<String> subFieldB = sqlObj.selectSubFieldValuesByID(fieldID, "b");
 				for (i=0;i < subFieldB.size();i++) {
-					titleB =  fixAmper(subFieldB.get(i));
+					titleB =  fixCarrots(fixAmper(subFieldB.get(i)));
 				}
 				
 				if (titleA != null && titleA.length() > 0) {
@@ -417,7 +417,7 @@ public class ExportRDF {
 						finalTitle = finalTitle + " " + titleB;
 					}
 				} else if (rawValue != null && rawValue.length() > 0) {
-					finalTitle = rawValue;
+					finalTitle = fixCarrots(fixAmper(rawValue));
 				} else {
 					finalTitle = "Utitled or Title not Known";
 				}
@@ -431,18 +431,18 @@ public class ExportRDF {
 				String finalVTitle = "";
 				ArrayList<String> subFieldAv = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFieldAv.size();i++) {
-					varTitleA = fixAmper(subFieldAv.get(i));
+					varTitleA = fixCarrots(fixAmper(subFieldAv.get(i)));
 				}
 				ArrayList<String> subFielBv = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFielBv.size();i++) {
-					varTitleB = fixAmper(subFielBv.get(i));
+					varTitleB = fixCarrots(fixAmper(subFielBv.get(i)));
 				}
 				if (varTitleA != null && varTitleA.length() > 0) {
 					finalVTitle = varTitleA;
 					if (varTitleB != null && varTitleB.length() > 0) {
 						finalVTitle = finalVTitle + " - " + varTitleB;
 					}
-					variantTitle = finalVTitle;
+					variantTitle = fixCarrots(fixAmper(finalVTitle));
 				}
 			} else if (fieldType.equals("247")) {
 				// if 247 - Former Title - String formerTitle = ""; // rdau:earlierTitleProper
@@ -453,25 +453,25 @@ public class ExportRDF {
 				String finalFTitle = "";
 				ArrayList<String> subFieldAf = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFieldAf.size();i++) {
-					fTitleA = fixAmper(subFieldAf.get(i));
+					fTitleA = fixCarrots(fixAmper(subFieldAf.get(i)));
 				}
 				ArrayList<String> subFielBf = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFielBf.size();i++) {
-					fTitleB = fixAmper(subFielBf.get(i));
+					fTitleB = fixCarrots(fixAmper(subFielBf.get(i)));
 				}
 				if (fTitleA != null && fTitleA.length() > 0) {
 					finalFTitle = fTitleA;
 					if (fTitleB != null && fTitleB.length() > 0) {
 						finalFTitle = finalFTitle + " - " + fTitleB;
 					}
-					formerTitle = finalFTitle;
+					formerTitle = fixCarrots(fixAmper(finalFTitle));
 				}
 			} else if (fieldType.equals("250")) {
 				// if FIELD 250 - Edition Statement - String editionStatement = ""; // rdau:editionStatement
 				
 				ArrayList<String> subFieldAes = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (int iales=0;iales < subFieldAes.size();iales++) {
-					editionStatement = fixAmper(subFieldAes.get(iales));
+					editionStatement = fixCarrots(fixAmper(subFieldAes.get(iales)));
 				}
 				
 			} else if (fieldType.equals("260")) {
@@ -500,7 +500,7 @@ public class ExportRDF {
 					}
 					impressionString = impressionString + impSubB;
 					beenHereBefore++;
-					dublinPublisher = impSubB;
+					dublinPublisher = fixCarrots(fixAmper(impSubB));
 				}
 				if (impSubA  != null && impSubA.length() > 0) {
 					if (beenHereBefore > 0) {
@@ -520,7 +520,7 @@ public class ExportRDF {
 				
 				
 				if (impressionString  != null && impressionString.length() > 0) {
-					imprintString = impressionString;
+					imprintString = fixCarrots(fixAmper(impressionString));
 				}	
 			} else if (fieldType.equals("264")) {
 				// if FIELD 264 - Production info (like imprint for manufactured goods) - String prodInfo = ""; // dct:publisher
@@ -528,12 +528,12 @@ public class ExportRDF {
 				ArrayList<String> retValman = new ArrayList<String>();
 				ArrayList<String> subFieldAman = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (int impman=0;impman < subFieldAman.size();impman++) {
-					prodInfo = fixAmper(subFieldAman.get(impman));
+					prodInfo = fixCarrots(fixAmper(subFieldAman.get(impman)));
 				}
 				ArrayList<String> subFieldBman = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (int impmanb=0;impmanb < subFieldBman.size();impmanb++) {
 					String manSubB = "";
-					manSubB = fixAmper(subFieldBman.get(impmanb));
+					manSubB = fixCarrots(fixAmper(subFieldBman.get(impmanb)));
 					if (manSubB  != null && manSubB.length() > 0) {
 						retValman.add("CRE");
 						retValman.add(manSubB);
@@ -626,13 +626,13 @@ public class ExportRDF {
 					thisPDNote = thisPDNote + ".";
 				}
 
-				physDesc = thisPDNote;
+				physDesc = fixCarrots(fixAmper(thisPDNote));
 			} else if (fieldType.equals("321")) {
 				// if FIELD 321 - Former Publication Frequency - String formerPubFreq = ""; // rdau:noteOnFrequency
 				
 				ArrayList<String> subFieldAps = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFieldAps.size();i++) {
-					formerPubFreq = fixAmper(subFieldAps.get(i));
+					formerPubFreq = fixCarrots(fixAmper(subFieldAps.get(i)));
 				}
 			} else if (fieldType.equals("336") || fieldType.equals("338")) {
 				// IF Field 336 - Content Type - ArrayList<String> contentCarrierTypes // dct:type
@@ -642,7 +642,7 @@ public class ExportRDF {
 				for (i=0;i < subFieldAct.size();i++) {
 					subAct = subFieldAct.get(i);
 					if (subAct  != null && subAct.length() > 0) {
-						contentCarrierTypes.add(subAct);
+						contentCarrierTypes.add(fixCarrots(fixAmper(subAct)));
 					}
 				}
 				
@@ -659,7 +659,7 @@ public class ExportRDF {
 						seqNote = " Source: " + subFieldZsq.get(i) + ".";
 					}
 					if (seqNote != null && seqNote.length() > 0) {
-						fiveHundNotes.add(fixAmper(seqNote));
+						fiveHundNotes.add(fixCarrots(fixAmper(seqNote)));
 					}
 				}
 			} else if (fieldType.equals("370")) {
@@ -710,7 +710,7 @@ public class ExportRDF {
 					}
 					thisApNote = thisApNote + "Associated Country: " + subCap;
 					didBefore++;
-					associatedPlaces.add(fixAmper(subCap));
+					associatedPlaces.add(fixCarrots((fixAmper(subCap))));
 				}
 				if (subFap  != null && subFap.length() > 0) {
 					if (didBefore != 0) {
@@ -718,7 +718,7 @@ public class ExportRDF {
 					}
 					thisApNote = thisApNote + "Other Associated Place: " + subFap;
 					didBefore++;
-					associatedPlaces.add(fixAmper(subFap));
+					associatedPlaces.add(fixCarrots(fixAmper(subFap)));
 				}	
 				if (subGap  != null && subGap.length() > 0) {
 					if (didBefore != 0) {
@@ -726,7 +726,7 @@ public class ExportRDF {
 					}
 					thisApNote = thisApNote + "Place of Origin: " + subGap;
 					didBefore++;
-					associatedPlaces.add(fixAmper(subGap));
+					associatedPlaces.add(fixCarrots(fixAmper(subGap)));
 				}	
 				if (subIap  != null && subIap.length() > 0) {
 					if (didBefore != 0) {
@@ -760,7 +760,7 @@ public class ExportRDF {
 					thisApNote = thisApNote + ".";
 				}
 				
-				fiveHundNotes.add(fixAmper(thisApNote));
+				fiveHundNotes.add(fixCarrots(fixAmper(thisApNote)));
 			
 			} else if (fieldType.equals("388")) {
 				// If Field 388 - Time Period of Creation - String creationEpoch = ""; // dct:created
@@ -832,7 +832,7 @@ public class ExportRDF {
 				
 				
 				if (thisSsNote  != null && thisSsNote.length() > 0) {
-					seriesStatment.add(fixAmper(thisSsNote));
+					seriesStatment.add(fixCarrots(fixAmper(thisSsNote)));
 				}
 			
 			} else if (fieldType.matches("5\\d\\d")) {	
@@ -846,7 +846,7 @@ public class ExportRDF {
 				}
 				
 				if (note != null && note.length() > 0) {
-					String baseNote = fixAmper(note);
+					String baseNote = fixCarrots(fixAmper(note));
 					if (fieldType.equals("504")) {
 						baseNote = "Bibliography: " + baseNote;
 					} else if (fieldType.equals("505")) {
@@ -946,12 +946,12 @@ public class ExportRDF {
 					}
 					
 					if (fieldType.equals("540")) {
-						dcRights = fixAmper(baseNote);
+						dcRights = baseNote;
 						baseNote = "";
 					}
 					
 					if (baseNote != null && baseNote.length() > 0) {
-						fiveHundNotes.add(fixAmper(baseNote));
+						fiveHundNotes.add(baseNote);
 					}
 				}
 			} else if (fieldType.equals("600")) {
@@ -963,7 +963,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("d");
 				String thisSubjectString = getSubject(recordID, "600", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
+					subjectTerms.add(thisSubjectString);
 				}
 
 			} else if (fieldType.equals("610")) {
@@ -973,7 +973,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "610", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
+					subjectTerms.add(thisSubjectString);
 				}
 
 			} else if (fieldType.equals("611")) {
@@ -985,7 +985,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("c");
 				String thisSubjectString = getSubject(recordID, "611", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
+					subjectTerms.add(thisSubjectString);
 				}
 
 			} else if (fieldType.equals("630")) {
@@ -995,7 +995,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "630", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
+					subjectTerms.add(thisSubjectString);
 				}
 
 			} if (fieldType.equals("648")) {
@@ -1005,7 +1005,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "648", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
+					subjectTerms.add(thisSubjectString);
 				}
 
 			} else if (fieldType.equals("650")) {
@@ -1018,7 +1018,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("d");
 				String thisSubjectString = getSubject(recordID, "650", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
+					subjectTerms.add(thisSubjectString);
 				}
 
 			} else if (fieldType.equals("651")) {
@@ -1028,7 +1028,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "651", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixAmper(thisSubjectString));
+					subjectTerms.add(thisSubjectString);
 					// coverage.add(fixPeriods(fixAmper(thisSubjectString)));
 				}
 
@@ -1039,7 +1039,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "653", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
+					subjectTerms.add(thisSubjectString);
 				}
 
 			} else if (fieldType.equals("654")) {
@@ -1050,7 +1050,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("b");
 				String thisSubjectString = getSubject(recordID, "654", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
+					subjectTerms.add(thisSubjectString);
 				}
 
 			} else if (fieldType.equals("655")) {
@@ -1072,7 +1072,7 @@ public class ExportRDF {
 				}
 				
 				// remove trailing period
-				genre = fixAmper(workingValue);
+				genre = fixCarrots(fixPeriods(fixAmper(workingValue)));
 			} else if (fieldType.equals("656")) {
 				// do 656 (subject term - Occupation)
 				
@@ -1080,7 +1080,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "656", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
+					subjectTerms.add(thisSubjectString);
 				}
 
 			} else if (fieldType.equals("657")) {
@@ -1090,7 +1090,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("a");
 				String thisSubjectString = getSubject(recordID, "657", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
+					subjectTerms.add(thisSubjectString);
 				}
 
 			} else if (fieldType.equals("658")) {
@@ -1101,7 +1101,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("b");
 				String thisSubjectString = getSubject(recordID, "658", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
+					subjectTerms.add(thisSubjectString);
 				}
 
 			} else if (fieldType.equals("662")) {
@@ -1117,7 +1117,7 @@ public class ExportRDF {
 				subFieldsToInclude.add("h");
 				String thisSubjectString = getSubject(recordID, "662", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
-					subjectTerms.add(fixPeriods(fixAmper(thisSubjectString)));
+					subjectTerms.add(thisSubjectString);
 				}
 			} else if (fieldType.equals("751")) {
 				// dc:coverage
@@ -1136,7 +1136,7 @@ public class ExportRDF {
 				} else if (rawValue != null && rawValue.length() > 0) {
 					workingValue = rawValue;
 				}
-				coverage.add(fixPeriods(fixAmper(workingValue)));
+				coverage.add(fixCarrots(fixPeriods(fixAmper(workingValue))));
 			} else if (fieldType.equals("752")) {
 				// do 752 (subject term - Hierarchical Geographic Name) - dc:coverage
 
@@ -1150,67 +1150,61 @@ public class ExportRDF {
 				String subH = "";
 				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFieldA.size();i++) {
-					subA = fixAmper(subFieldA.get(i));
+					subA = subFieldA.get(i);
 				}
 				ArrayList<String> subFieldB = sqlObj.selectSubFieldValuesByID(fieldID, "b");
 				for (i=0;i < subFieldB.size();i++) {
-					subB = fixAmper(subFieldB.get(i));
+					subB = subFieldB.get(i);
 				}
 				ArrayList<String> subFieldC = sqlObj.selectSubFieldValuesByID(fieldID, "c");
 				for (i=0;i < subFieldC.size();i++) {
-					subC = fixAmper(subFieldC.get(i));
+					subC = subFieldC.get(i);
 				}	
 				ArrayList<String> subFieldD = sqlObj.selectSubFieldValuesByID(fieldID, "d");
 				for (i=0;i < subFieldD.size();i++) {
-					subD = fixAmper(subFieldD.get(i));
+					subD = subFieldD.get(i);
 				}
 				ArrayList<String> subFieldF = sqlObj.selectSubFieldValuesByID(fieldID, "f");
 				for (i=0;i < subFieldF.size();i++) {
-					subF = fixAmper(subFieldF.get(i));
+					subF = subFieldF.get(i);
 				}
 				ArrayList<String> subFieldG = sqlObj.selectSubFieldValuesByID(fieldID, "g");
 				for (i=0;i < subFieldG.size();i++) {
-					subG = fixAmper(subFieldG.get(i));
+					subG = subFieldG.get(i);
 				}
 				ArrayList<String> subFieldH = sqlObj.selectSubFieldValuesByID(fieldID, "h");
 				for (i=0;i < subFieldH.size();i++) {
-					subH = fixAmper(subFieldH.get(i));
+					subH = subFieldH.get(i);
 				}
 				
 				if (subA != null && subA.length() > 0) {
-					coverage.add(fixPeriods(fixAmper(subA)));
+					coverage.add(fixCarrots(fixPeriods(fixAmper(subA))));
 				}
 				if (subB != null && subB.length() > 0) {
-					coverage.add(fixPeriods(fixAmper(subB)));
+					coverage.add(fixCarrots(fixPeriods(fixAmper(subB))));
 				}
 				if (subC != null && subC.length() > 0) {
-					coverage.add(fixPeriods(fixAmper(subC)));
+					coverage.add(fixCarrots(fixPeriods(fixAmper(subC))));
 				}
 				if (subD != null && subD.length() > 0) {
-					coverage.add(fixPeriods(fixAmper(subD)));
+					coverage.add(fixCarrots(fixPeriods(fixAmper(subD))));
 				}
 				if (subF != null && subF.length() > 0) {
-					coverage.add(fixPeriods(fixAmper(subF)));
+					coverage.add(fixCarrots(fixPeriods(fixAmper(subF))));
 				}
 				if (subG != null && subG.length() > 0) {
-					coverage.add(fixPeriods(fixAmper(subG)));
+					coverage.add(fixCarrots(fixPeriods(fixAmper(subG))));
 				}
 				if (subH != null && subH.length() > 0) {
-					coverage.add(fixPeriods(fixAmper(subH)));
+					coverage.add(fixCarrots(fixPeriods(fixAmper(subH))));
 				}
 			}
 			
 			else if (fieldType.equals("856")) {
 				// digital surrogates
-				
 				surrogateSub = sqlObj.selectSubFieldValuesByID(fieldID, "u");
+				
 			}
-			
-			/* TODO
-			 * thumbnail -> <collex:thumbnail rdf:resource="">  
-			 * String estcThumbnail
-			 * eg -> <collex:thumbnail rdf:resource="http://YOUR_PUBLICATION.ORG/THUMBNAIL.JPG"/>
-			 */
 			String rawThumbnail = sqlObj.selectImageRecord(recordID);
 			if (rawThumbnail != null && rawThumbnail.length() > 0) {
 				estcThumbnail = "http://estc21.ucr.edu/assets" + rawThumbnail;
@@ -1377,13 +1371,13 @@ public class ExportRDF {
 				int eightFiftyTwofieldID = eightFiftyTwos.get(ihf);
 				ArrayList<HashMap<String,String>> holdingSubs  = sqlObj.selectAllSubfields(eightFiftyTwofieldID);
 				// get the a subfield value (Location - in form of library code)
-				String aVal = fixAmper(getSubfieldValue(holdingSubs, "a"));
+				String aVal = fixCarrots(fixAmper(getSubfieldValue(holdingSubs, "a")));
 				// get the b subfield value (Sublocation or collection)
-				String bVal = fixAmper(getSubfieldValue(holdingSubs, "b"));
+				String bVal = fixCarrots(fixAmper(getSubfieldValue(holdingSubs, "b")));
 				// get the j subfield value (Shelving Control Number)
-				String jVal = fixAmper(getSubfieldValue(holdingSubs, "j"));
+				String jVal = fixCarrots(fixAmper(getSubfieldValue(holdingSubs, "j")));
 				// get the r subfield value (unique id)
-				String rVal = fixAmper(getSubfieldValue(holdingSubs, "r"));
+				String rVal = fixCarrots(fixAmper(getSubfieldValue(holdingSubs, "r")));
 				uniqueHoldingID = aVal + rVal;
 				uniqueHoldingID = uniqueHoldingID.replaceAll("\\s+","");
 				// get list of q values (physical location)
@@ -1399,7 +1393,7 @@ public class ExportRDF {
 				while (ihq < qVals.size()) {
 					String subLocationValue = qVals.get(ihq);
 					if (subLocationValue != null && subLocationValue.length() > 0) {
-						rdfStringAdditions = rdfStringAdditions + "        <dct:description>" + subLocationValue + "</dct:description>\n";
+						rdfStringAdditions = rdfStringAdditions + "        <dct:description>" + fixCarrots(fixAmper(subLocationValue)) + "</dct:description>\n";
 					}
 					ihq++;
 				}
@@ -1454,7 +1448,7 @@ public class ExportRDF {
 		for (int ids=0;ids < surrogateSub.size();ids++) {
 			String digSur = surrogateSub.get(ids);
 			if (digSur != null && digSur.length() > 0) {
-				rdfString = rdfString + "        <scm:url>" + fixAmper(digSur) + "</scm:url>\n";
+				rdfString = rdfString + "        <scm:url>" + fixCarrots(fixAmper(digSur)) + "</scm:url>\n";
 			}
 		}
 		
@@ -1520,10 +1514,18 @@ public class ExportRDF {
 		}
 		
 		if (workingString != null && workingString.length() > 0) {
+			
+			
+			// fix collapseString so that it is an id from a subjects table
+			// in the db
+			
 			String collapseString = workingString.replaceAll("[^\\s]", "");
+			
+		
+			
 			ret = ret + "        <dct:subject>\n";
 			ret = ret + "                <scm:about rdfs:resource=\"http://estc.bl.uk/subjects/" + collapseString + "\">\n";
-			ret = ret + "                     <rdfs:label>" + workingString + "</rdfs:label>\n";
+			ret = ret + "                     <rdfs:label>" + fixCarrots(fixPeriods(fixAmper(workingString))) + "</rdfs:label>\n";
 			ret = ret + "                </scm:about>\n";
 			ret = ret + "        </dct:subject>\n";
 		}
