@@ -1296,13 +1296,13 @@ public class ExportRDF {
 		
 		//String imprintString = ""; // bibo:issuer 
 		if (imprintString != null && imprintString.length() > 0) {
-			rdfString = rdfString + "        <bibo:issuer>" + imprintString + "</bibo:issuer>\n";
+			rdfString = rdfString + "        <dct:publisher>" + imprintString + "</dct:publisher>\n";
 		}
 		
 		//String dublinPublisher = ""; // role publisher dct:publisher $b
-		if (dublinPublisher != null && dublinPublisher.length() > 0) {
-			rdfString = rdfString + "        <dct:publisher>" + dublinPublisher + "</dct:publisher>\n";
-		}
+		//if (dublinPublisher != null && dublinPublisher.length() > 0) {
+		//	rdfString = rdfString + "        <dct:publisher>" + dublinPublisher + "</dct:publisher>\n";
+		//}
 		
 		//String estcThumbnail = ""; // collex:thumbnail rdf:resource=""
 		if (estcThumbnail != null && estcThumbnail.length() > 0) {
@@ -1537,8 +1537,16 @@ public class ExportRDF {
 		if (relator != null && relator.length() > 0) {
 			if (!relator.contains(" ")) {
 				if (value != null && value.length() > 0) {
-					String cleanedRelator = fixPeriods(relator);
-					ret = "        <role:" + cleanedRelator + ">" + value + "</role:" + cleanedRelator + ">\n";
+					// get unique ESTC agent ID
+					String estcAgents = sqlObj.selectAgentID(value);
+					if (estcAgents != null && estcAgents.length() > 0) {
+						ret = "        <dct:creator>\n";
+						String cleanedRelator = fixPeriods(relator);
+						ret = ret + "            <scm:contributor rdfs:resource=\"http://estcbluk/agents/" + estcAgents + "\">\n";
+						ret = ret + "                <role:" + cleanedRelator + ">" + value + "</role:" + cleanedRelator + ">\n";
+						ret = ret + "            </scm:contributor>\n";
+						ret = ret + "        </dct:creator>\n";
+					}
 				}	
 			}
 		}
@@ -1600,8 +1608,8 @@ public class ExportRDF {
 	public static String fixCarrots(String str) {
 		String retStr = "";
 		if ( str != null && str.length() > 0) {
-			retStr = str.replace("<", "&lt;");
-			retStr = str.replace(">", "&gt;");
+			retStr = str.replaceAll("<", "&lt;");
+			retStr = str.replaceAll(">", "&gt;");
 		}
 		return retStr;
 	}
