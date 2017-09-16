@@ -207,7 +207,7 @@ public class ExportRDF {
 				String fCode = "";
 				ArrayList<String> subFieldAl = sqlObj.selectSubFieldValuesByID(fieldID, "a");
 				for (i=0;i < subFieldAl.size();i++) {
-					fCode = fixAmper(subFieldAl.get(i));
+					fCode = fixCarrots(fixAmper(subFieldAl.get(i)));
 				}
 				if (fCode != null && fCode.length() > 0) {
 					languageCode.add(fCode);
@@ -278,7 +278,7 @@ public class ExportRDF {
 					thisAuthor = rawValue;
 				}
 				
-				thisAuthor = fixAmper(thisAuthor);
+				thisAuthor = fixCarrots(fixAmper(thisAuthor));
 				
 				if (subE != null && subE.length() == 0) {
 					subE = "AUT";
@@ -1029,7 +1029,7 @@ public class ExportRDF {
 				String thisSubjectString = getSubject(recordID, "651", subFieldsToInclude, " ");
 				if (thisSubjectString != null && thisSubjectString.length() > 0) {
 					subjectTerms.add(fixAmper(thisSubjectString));
-					coverage.add(fixPeriods(fixAmper(thisSubjectString)));
+					// coverage.add(fixPeriods(fixAmper(thisSubjectString)));
 				}
 
 			} else if (fieldType.equals("653")) {
@@ -1207,17 +1207,13 @@ public class ExportRDF {
 			}
 			
 			/* TODO
-			 * saved as field 1000
-			 * OR 856 $z
-			 * OR 856 $s and $f
 			 * thumbnail -> <collex:thumbnail rdf:resource="">  
 			 * String estcThumbnail
 			 * eg -> <collex:thumbnail rdf:resource="http://YOUR_PUBLICATION.ORG/THUMBNAIL.JPG"/>
 			 */
-			// if 1000 Thumbnail image
-			else if (fieldType.equals("1000")) {
-				// get raw value
-				estcThumbnail = sqlObj.getFieldByID(fieldID);;
+			String rawThumbnail = sqlObj.selectImageRecord(recordID);
+			if (rawThumbnail != null && rawThumbnail.length() > 0) {
+				estcThumbnail = "http://estc21.ucr.edu/assets" + rawThumbnail;
 			}
 
 		}
@@ -1316,7 +1312,7 @@ public class ExportRDF {
 		
 		//String estcThumbnail = ""; // collex:thumbnail rdf:resource=""
 		if (estcThumbnail != null && estcThumbnail.length() > 0) {
-			rdfString = rdfString + "        <collex:thumbnail rdf:resource=\"" + estcThumbnail + "\">\n";
+			rdfString = rdfString + "        <collex:thumbnail rdf:resource=\"" + estcThumbnail + "\" />\n";
 		}
 		
 		//String dcRights = ""; // dct:rights
@@ -1388,7 +1384,6 @@ public class ExportRDF {
 				String jVal = fixAmper(getSubfieldValue(holdingSubs, "j"));
 				// get the r subfield value (unique id)
 				String rVal = fixAmper(getSubfieldValue(holdingSubs, "r"));
-				
 				uniqueHoldingID = aVal + rVal;
 				uniqueHoldingID = uniqueHoldingID.replaceAll("\\s+","");
 				// get list of q values (physical location)
@@ -1459,7 +1454,7 @@ public class ExportRDF {
 		for (int ids=0;ids < surrogateSub.size();ids++) {
 			String digSur = surrogateSub.get(ids);
 			if (digSur != null && digSur.length() > 0) {
-				rdfString = rdfString + "        <scm:url>" + digSur + "</scm:url>\n";
+				rdfString = rdfString + "        <scm:url>" + fixAmper(digSur) + "</scm:url>\n";
 			}
 		}
 		
@@ -1537,7 +1532,15 @@ public class ExportRDF {
 	}
 	
 	public String formatContributor(String relator, String value) {
-		String ret = "        <role:" + relator + ">" + value + "</role:" + relator + ">\n";		
+		String ret="";
+		if (relator != null && relator.length() > 0) {
+			if (!relator.contains(" ")) {
+				if (value != null && value.length() > 0) {
+					String cleanedRelator = fixPeriods(relator);
+					ret = "        <role:" + cleanedRelator + ">" + value + "</role:" + cleanedRelator + ">\n";
+				}	
+			}
+		}
 		return ret;
 	}
 	
@@ -1589,6 +1592,15 @@ public class ExportRDF {
 		String retStr = "";
 		if ( str != null && str.length() > 0) {
 			retStr = str.replace(".", "");
+		}
+		return retStr;
+	}
+	
+	public static String fixCarrots(String str) {
+		String retStr = "";
+		if ( str != null && str.length() > 0) {
+			retStr = str.replace("<", "&lt;");
+			retStr = str.replace(">", "&gt;");
 		}
 		return retStr;
 	}

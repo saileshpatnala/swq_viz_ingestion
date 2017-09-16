@@ -167,6 +167,19 @@ public class SqlModel {
 	}
 	
 	/**
+	 * <p>Selects a "record has images" record from the database.  </p>
+	 *
+	 * @param  	record_id	the record id
+	 * @return				a vector of values
+	 */
+	public String selectImageRecord(int record_id) {
+		String strSql = "SELECT image_old_path FROM records_has_images" +
+				" WHERE records_id = " + record_id + ";";
+		String recordId = qSelectString(strSql);	
+		return recordId;
+	}
+	
+	/**
 	 * <p>Selects a "file" record from the database.  Checks the institutional code
 	 * and filename only to see if this is a file that is already in the system.  Ignores
 	 * file modification date.  Simply a check of filename and institution.  If it does 
@@ -623,7 +636,7 @@ public class SqlModel {
 		// define query
 		String strSql = "SELECT records.id FROM records" +
 				" WHERE records.exported = 0" +
-				" AND records.type = 1" +
+				" AND records.type IN (1,3)" +
 				" ORDER BY records.id ASC LIMIT 1000";
 		
 		if (!connOpen) {
