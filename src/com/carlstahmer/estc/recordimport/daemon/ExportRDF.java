@@ -1519,12 +1519,11 @@ public class ExportRDF {
 			// fix collapseString so that it is an id from a subjects table
 			// in the db
 			
-			String collapseString = workingString.replaceAll("[^\\s]", "");
-			
-		
+			//String collapseString = workingString.replaceAll("[^\\s]", "");
+			String estcTermId = sqlObj.selectSubjectID(workingString);
 			
 			ret = ret + "        <dct:subject>\n";
-			ret = ret + "                <scm:about rdfs:resource=\"http://estc.bl.uk/subjects/" + collapseString + "\">\n";
+			ret = ret + "                <scm:about rdfs:resource=\"http://estc.bl.uk/subjects/" + estcTermId + "\">\n";
 			ret = ret + "                     <rdfs:label>" + fixCarrots(fixPeriods(fixAmper(workingString))) + "</rdfs:label>\n";
 			ret = ret + "                </scm:about>\n";
 			ret = ret + "        </dct:subject>\n";

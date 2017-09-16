@@ -180,6 +180,30 @@ public class SqlModel {
 	}
 	
 	/**
+	 * <p>Selects or creates subject ID from the estc_subject_terms table</p>
+	 *
+	 * @param  	record_id	the record id
+	 * @return				a vector of values
+	 */
+	public String selectSubjectID(String subjectLiteral) {
+		String strSql = "SELECT id FROM estc_subject_terms" +
+				" WHERE term LIKE \"" + subjectLiteral + "\";";
+		String recordId = qSelectString(strSql);	
+		if (recordId != null && recordId.length() > 0) {
+			return recordId;
+		} else {
+			int retRecordID = 0;
+			String strInsertSql = "INSERT INTO estc_subject_terms " +
+					"(term)" +
+					" VALUES" + 
+					" (\"" + subjectLiteral + "\");";
+			retRecordID  = qInsert(strInsertSql);
+			recordId = String.valueOf(retRecordID);
+			return recordId;
+		}
+	}
+	
+	/**
 	 * <p>Selects a "file" record from the database.  Checks the institutional code
 	 * and filename only to see if this is a file that is already in the system.  Ignores
 	 * file modification date.  Simply a check of filename and institution.  If it does 
