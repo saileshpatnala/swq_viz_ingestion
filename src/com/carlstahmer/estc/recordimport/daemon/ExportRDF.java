@@ -98,23 +98,22 @@ public class ExportRDF {
 		
 		// make header
 		rdfHeader = "<rdf:RDF xmlns:gl=\"http://bl.uk.org/schema#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:estc=\"http://estc21.ucr.edu/schema#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:dct=\"http://purl.org/dc/terms/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:bf=\"http://bibframe.org/vocab/\"\n";
+		rdfHeader = rdfHeader + "    xmlns:collex=\"http://www.collex.org/schema#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:dc=\"http://purl.org/dc/elements/1.1/#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:bibo=\"http://purl.org/ontology/bibo/\"\n";
+		rdfHeader = rdfHeader + "    xmlns:dct=\"http://purl.org/dc/terms/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:estc=\"http://estc21.ucr.edu/schema#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:foaf=\"http://xmlns.com/foaf/0.1/#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:geo=\"http://www.w3.org/2003/01/geo/wgs84_pos/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:isbdu=\"http://iflastandards.info/ns/isbd/unc/elements/\"\n";
 		rdfHeader = rdfHeader + "    xmlns:rdau=\"http://rdaregistry.info/Elements/u/#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema/#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:reg=\"http://metadataregistry.org/uri/profile/RegAp/#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:role=\"http://www.loc.gov/loc.terms/relators/\"\n";
-		rdfHeader = rdfHeader + "    xmlns:bf=\"http://bibframe.org/vocab/\"\n";
-		rdfHeader = rdfHeader + "    xmlns:isbdu=\"http://iflastandards.info/ns/isbd/unc/elements/\"\n";
 		rdfHeader = rdfHeader + "    xmlns:relators=\"http://id.loc.gov/vocabulary/relators/\"\n";
-		rdfHeader = rdfHeader + "    xmlns:collex=\"http://www.collex.org/schema#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:skos=\"http://www.w3.org/2004/02/skos/core#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:scm=\"http://schema.org/\" >\n";
+		rdfHeader = rdfHeader + "    xmlns:role=\"http://www.loc.gov/loc.terms/relators/\"\n";
+		rdfHeader = rdfHeader + "    xmlns:scm=\"http://schema.org/\"\n";
+		rdfHeader = rdfHeader + "    xmlns:skos=\"http://www.w3.org/2004/02/skos/core#\" >\n";
 		
 		// make footer
 		rdfFooter = "    </estc:estc>\n";
@@ -655,7 +654,7 @@ public class ExportRDF {
 				ArrayList<String> subFieldZsq = sqlObj.selectSubFieldValuesByID(fieldID, "z");
 				for (i=0;i < subFieldAsq.size();i++) {
 					seqNote = "Date Sequence: " + subFieldAsq.get(i) + ".";
-					if (subFieldZsq.size() >= i) {
+					if (subFieldZsq.size() >= subFieldAsq.size()) {
 						seqNote = " Source: " + subFieldZsq.get(i) + ".";
 					}
 					if (seqNote != null && seqNote.length() > 0) {
@@ -1609,7 +1608,7 @@ public class ExportRDF {
 		String retStr = "";
 		if ( str != null && str.length() > 0) {
 			retStr = str.replaceAll("<", "&lt;");
-			retStr = str.replaceAll(">", "&gt;");
+			retStr = retStr.replaceAll(">", "&gt;");
 		}
 		return retStr;
 	}
