@@ -1425,7 +1425,7 @@ public class ExportRDF {
 			}
 			
 			// mark the holding record as exported
-//			sqlObj.updateExported(holdingRecordID);
+			sqlObj.updateExported(holdingRecordID);
 			ihr++;
 		
 		}
@@ -1458,7 +1458,7 @@ public class ExportRDF {
 			bibWriter.print(bibRDF);
 			bibWriter.close();
 			// mark the record as exported
-//			sqlObj.updateExported(recordID);
+			sqlObj.updateExported(recordID);
 		} catch (FileNotFoundException e) {
 			System.out.println("Error exporting record " + recordID + " holding item " + itemID);
 			e.printStackTrace();
