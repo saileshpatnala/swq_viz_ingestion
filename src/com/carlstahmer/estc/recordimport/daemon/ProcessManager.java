@@ -225,27 +225,30 @@ public class ProcessManager {
 			
 		} else {
 			
+			// BEGIN OUTPUT PART
 			System.out.println("Start of Export");
-		
-			// NEXT COMES THE OUTPUT PART
-			
+
+			// Run the apopropriate export process based on
+			// command line argument
+			if (runType == 1) {
+				ExportRDF rdfExporter = new ExportRDF(config, sqlObj);
+				rdfExporter.makeRDFAllBibs(config.sitedomain);				
+			} else if (runType == 2) {
+				ExportJenaRDF rdfExporter = new ExportJenaRDF(config, sqlObj);
+				rdfExporter.makeJenaRDFAllBibs(config.sitedomain);
+			} else {
+				logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Unrecognized Export Type.");
+				logger.log(1, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Aborting applicaiton!");
+				System.out.println("Aborting operation for runType " + runType);
+				System.exit(0);
+			}
 	
-			// when I've gotten to here, I have broken down all the files from this directory,
-			// so now I can go ahead and write the good MARC out
-			//
-			// filter for date and language
-			// check for ESTC numbers
-			
-			// System.out.println("I'm here");
-			
 			// The scope checker code below has been checked and is working
+			// but is temporarily disabled
 			// ScopeChecker myScopeCheck = new ScopeChecker(config, sqlObj);
 			// boolean thisScopeCheck = myScopeCheck.applyScopeFilter();
-			
-			ExportRDF rdfExporter = new ExportRDF(config, sqlObj);
-			rdfExporter.makeRDFAllBibs("estc.bl.uk");
-			
-			
+
+			// The below code is depricated.
 			// MergeHoldings myMergeHoldings = new MergeHoldings(config, sqlObj);
 			// boolean thisMergeHoldings = myMergeHoldings.doMerge();
 			

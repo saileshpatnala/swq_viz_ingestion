@@ -42,7 +42,7 @@ import java.util.HashMap;
  * to an RDF file.</p>
  */
 
-public class ExportRDF {
+public class ExportJenaRDF {
 	
 	Conf configObj;
 	SqlModel sqlObj;
@@ -52,117 +52,69 @@ public class ExportRDF {
 	String rdfString;
 	String rdfFooter;
 
-	public ExportRDF(Conf config, SqlModel sqlModObj) {
+	public ExportJenaRDF(Conf config, SqlModel sqlModObj) {
 		configObj = config;
 		sqlObj = sqlModObj;
 		logger = new Logger(config);
 	}
 	
-	public boolean makeRDFAllBibs(String domainURI) {
+	public boolean makeJenaRDFAllBibs(String domainURI) {
 		boolean success = false;
 		
-		// loop through all bib records and send to makeRDF for each
-		
+		// Get all records for this domain and process
 		ArrayList<Integer> recordsQueue = sqlObj.selectUnExportedBibs();
 		for (int i=0;i < recordsQueue.size();i++) {
 			int workingRecordID = recordsQueue.get(i);
-			makeRDF(workingRecordID, domainURI);
+			makeJennaRDF(workingRecordID, domainURI);
 		}
 		
 		return success;
 	}
 	
-	// create an RDF string for a resource
-	public boolean makeRDF(int recordID, String domainURI) {
+	// create an RDF representation of a resource and write it 
+	// to a file
+	public boolean makeJennaRDF(int recordID, String domainURI) {
 		boolean ret = false;
 		
-		// get the record type holding/bib
-		int recordType = sqlObj.getRecordType(recordID);
-		
-		// set the id for the item.  ESTCID for bibs and record IDs for holdings
+		// set the id for the item.  Right now we're using the record control
+		// id as the id.  Before we are done we'll convert this to an
+		// OCLC Identifier.  (You don't need to worry about what that is
+		// right now.  Just want you to know that we'll be changing this
+		// bit of code in the near future to load a different field in the
+		// itemID variable.)
 		String itemID;
-		if (recordType == 1) {
-			itemID = sqlObj.selectRecordControlId(recordID);
-		} else {
-			itemID = String.valueOf(recordID);
-		}
+		itemID = sqlObj.selectRecordControlId(recordID);
+
 		
 		System.out.println("Processing record " + recordID + " item " + itemID);
 
-		// get the library code for the record
-		ArrayList<HashMap<String,String>> tableResults = sqlObj.selectFileInfoById(sqlObj.selectRecordFileId(recordID));
-		HashMap<String,String> recordInfoRecord = tableResults.get(0);
-		String instCode = recordInfoRecord.get("institution_code");
-	
-		//String itemID = "use an ESTC ID if this is a bib record, otherwise use the record ID";
-		
-		// make header
-		rdfHeader = "<rdf:RDF xmlns:gl=\"http://bl.uk.org/schema#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:bf=\"http://bibframe.org/vocab/\"\n";
-		rdfHeader = rdfHeader + "    xmlns:collex=\"http://www.collex.org/schema#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:dc=\"http://purl.org/dc/elements/1.1/#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:dct=\"http://purl.org/dc/terms/#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:estc=\"http://estc21.ucr.edu/schema#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:foaf=\"http://xmlns.com/foaf/0.1/#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:geo=\"http://www.w3.org/2003/01/geo/wgs84_pos/#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:isbdu=\"http://iflastandards.info/ns/isbd/unc/elements/\"\n";
-		rdfHeader = rdfHeader + "    xmlns:rdau=\"http://rdaregistry.info/Elements/u/#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema/#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:reg=\"http://metadataregistry.org/uri/profile/RegAp/#\"\n";
-		rdfHeader = rdfHeader + "    xmlns:relators=\"http://id.loc.gov/vocabulary/relators/\"\n";
-		rdfHeader = rdfHeader + "    xmlns:role=\"http://www.loc.gov/loc.terms/relators/\"\n";
-		rdfHeader = rdfHeader + "    xmlns:scm=\"http://schema.org/\"\n";
-		rdfHeader = rdfHeader + "    xmlns:skos=\"http://www.w3.org/2004/02/skos/core#\" >\n";
-		
-		// make footer
-		rdfFooter = "    </estc:estc>\n";
-		rdfFooter = rdfFooter + "</rdf:RDF>";
-		
-		// make unique identifier for about and parent associations
+		// construct unique identifier (URI) for the item
 		String uniqueRI = "http://" + domainURI + "/" + itemID;
-		String parentAssoc = "        <bf:instanceOf>" + uniqueRI + "</bf:instanceOf>\n";
-		
-		// make the record itself
-		rdfAbout = "    <estc:estc rdf:about=\"" + uniqueRI + "\">\n";
-		rdfString = "        <collex:federation>ESTC</collex:federation>\n";
-		rdfString = rdfString + "        <collex:archive>" + instCode + "</collex:archive>\n";
 		
 		// setup needed output variables
-		String finalTitle = "Utitled or Title not Known";
 		String finalDate = "";
 		String finalDateString = "";
+		String finalTitle = "Utitled or Title not Known";
 		ArrayList<String> subjectTerms = new ArrayList<String>();
-		String genre = "";
 		ArrayList<String> coverage = new ArrayList<String>();
 		ArrayList<ArrayList<String>> authorArray = new ArrayList<ArrayList<String>>();
 		ArrayList<String> fiveHundNotes = new ArrayList<String>();
 		ArrayList<String> fiveHundTenNotes = new ArrayList<String>();
 		ArrayList<String> surrogateSub = new ArrayList<String>();
-		//String estcID = "";
-		
-		
-		// newly added fields
-		String abrvTitle = ""; // rdau:abbreviatedTitle
-		String uniformTitleTwoForty = ""; // rdau:titleOfResource
-		String seriesUniformTitle = ""; // rdau:titleProperOfSeries
-		String variantTitle = ""; // rdau:variantTitle
-		String formerTitle = ""; // rdau:earlierTitleProper
-		String editionStatement = ""; // rdau:editionStatement
 		String prodInfo = ""; // dct:publisher
-		String formerPubFreq = ""; // rdau:noteOnFrequency
-		String physDesc = ""; // dct:format
 		String creationEpoch = ""; // dct:created
-		String estcThumbnail = ""; // collex:thumbnail rdf:resource=""
-		String dcRights = ""; // dct:rights
-		String imprintString = ""; // bibo:issuer bibo:issuer + 
-		String dublinPublisher = ""; // role publisher dct:publisher $b
-		ArrayList<String> seriesStatment = new ArrayList<String>(); //   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
-		ArrayList<String> uniformTitle = new ArrayList<String>(); //   rdau:titleOfResource
 		ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
 		ArrayList<String> associatedPlaces = new ArrayList<String>(); //   dc:coverage		
 		ArrayList<String> contentCarrierTypes = new ArrayList<String>(); //   dct:type	
 		
+		
+		/*
+		 * All of the code from here until indicated shouldn't need
+		 * to be touched.  It will load and pre-process all values
+		 * needed and put them into the variables initialized above.
+		 * All you need to do is figure out to write the values of
+		 * These variables out to a Jena style RDF.
+		 */
 		
 		// Get all of the fields associated with this record
 		ArrayList<Integer> fieldsArray = sqlObj.selectRecordFieldIds(recordID);
@@ -364,35 +316,6 @@ public class ExportRDF {
 				retValm.add(thisAuthorm);
 
 				authorArray.add(retValm);
-			} else if (fieldType.equals("130") || fieldType.equals("730") || fieldType.equals("240")) {
-				// if 130 & 730 & 240 - Uniform Title - uniformTitle - rdau:titleOfResource
-				ArrayList<String> subFieldAut = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldAut.size();i++) {
-					uniformTitle.add(fixCarrots(fixAmper(subFieldAut.get(i))));
-				}
-			} else if (fieldType.equals("210")) {
-				// if 210  abbreviated title - rdau:abbreviatedTitle
-				
-				// get raw value
-				String rawAbrevTitleValue = sqlObj.getFieldByID(fieldID);;
-				// get subfields
-				String abrevTitleA = "";
-				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldA.size();i++) {
-					abrevTitleA = fixCarrots(fixAmper(subFieldA.get(i)));
-				}
-				if (abrevTitleA != null && abrevTitleA.length() > 0) {
-					abrvTitle = abrevTitleA;
-				} else if (rawAbrevTitleValue != null && rawAbrevTitleValue.length() > 0) {
-					finalTitle = fixCarrots(fixAmper(rawAbrevTitleValue));
-				}
-			} else if (fieldType.equals("243")) {
-				// if 243 - Collective Uniform Title - String seriesUniformTitle = ""; // rdau:titleProperOfSeries
-				
-				ArrayList<String> subFieldtps = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldtps.size();i++) {
-					seriesUniformTitle = fixCarrots(fixAmper(subFieldtps.get(i)));
-				}
 			} else if (fieldType.equals("245")) {
 				// if 245 title
 				
@@ -421,218 +344,6 @@ public class ExportRDF {
 					finalTitle = "Utitled or Title not Known";
 				}
 
-			} else if (fieldType.equals("246")) {
-				// if 246 - Varying Form of Title - String variantTitle = ""; // rdau:variantTitle
-				
-				// get subfields
-				String varTitleA = "";
-				String varTitleB = "";
-				String finalVTitle = "";
-				ArrayList<String> subFieldAv = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldAv.size();i++) {
-					varTitleA = fixCarrots(fixAmper(subFieldAv.get(i)));
-				}
-				ArrayList<String> subFielBv = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFielBv.size();i++) {
-					varTitleB = fixCarrots(fixAmper(subFielBv.get(i)));
-				}
-				if (varTitleA != null && varTitleA.length() > 0) {
-					finalVTitle = varTitleA;
-					if (varTitleB != null && varTitleB.length() > 0) {
-						finalVTitle = finalVTitle + " - " + varTitleB;
-					}
-					variantTitle = fixCarrots(fixAmper(finalVTitle));
-				}
-			} else if (fieldType.equals("247")) {
-				// if 247 - Former Title - String formerTitle = ""; // rdau:earlierTitleProper
-				
-				// get subfields
-				String fTitleA = "";
-				String fTitleB = "";
-				String finalFTitle = "";
-				ArrayList<String> subFieldAf = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldAf.size();i++) {
-					fTitleA = fixCarrots(fixAmper(subFieldAf.get(i)));
-				}
-				ArrayList<String> subFielBf = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFielBf.size();i++) {
-					fTitleB = fixCarrots(fixAmper(subFielBf.get(i)));
-				}
-				if (fTitleA != null && fTitleA.length() > 0) {
-					finalFTitle = fTitleA;
-					if (fTitleB != null && fTitleB.length() > 0) {
-						finalFTitle = finalFTitle + " - " + fTitleB;
-					}
-					formerTitle = fixCarrots(fixAmper(finalFTitle));
-				}
-			} else if (fieldType.equals("250")) {
-				// if FIELD 250 - Edition Statement - String editionStatement = ""; // rdau:editionStatement
-				
-				ArrayList<String> subFieldAes = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int iales=0;iales < subFieldAes.size();iales++) {
-					editionStatement = fixCarrots(fixAmper(subFieldAes.get(iales)));
-				}
-				
-			} else if (fieldType.equals("260")) {
-				// if FIELD 260 - Imprint - String imprintString = ""; // bibo:issuer + role publisher dct:publisher $b
-				String impSubA = "";
-				String impSubB = "";
-				String impSubC = "";
-				ArrayList<String> subFieldAimp = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int imp=0;imp < subFieldAimp.size();imp++) {
-					impSubA = fixAmper(subFieldAimp.get(imp));
-				}
-				ArrayList<String> subFieldBimp = sqlObj.selectSubFieldValuesByID(fieldID, "b");
-				for (int impb=0;impb < subFieldBimp.size();impb++) {
-					impSubB = fixAmper(subFieldBimp.get(impb));
-				}
-				ArrayList<String> subFieldCimp = sqlObj.selectSubFieldValuesByID(fieldID, "c");
-				for (int impc=0;impc < subFieldCimp.size();impc++) {
-					impSubC = fixAmper(subFieldCimp.get(impc));
-				}
-				
-				int beenHereBefore = 0;
-				String impressionString = "";
-				if (impSubB  != null && impSubB.length() > 0) {
-					if (beenHereBefore > 0) {
-						impressionString = impressionString + " ";
-					}
-					impressionString = impressionString + impSubB;
-					beenHereBefore++;
-					dublinPublisher = fixCarrots(fixAmper(impSubB));
-				}
-				if (impSubA  != null && impSubA.length() > 0) {
-					if (beenHereBefore > 0) {
-						impressionString = impressionString + " ";
-					}
-					impressionString = impressionString + impSubA;
-					beenHereBefore++;
-				}
-				if (impSubC  != null && impSubC.length() > 0) {
-					if (beenHereBefore > 0) {
-						impressionString = impressionString + " ";
-					}
-					impressionString = impressionString + impSubC;
-					beenHereBefore++;
-				}
-				
-				
-				
-				if (impressionString  != null && impressionString.length() > 0) {
-					imprintString = fixCarrots(fixAmper(impressionString));
-				}	
-			} else if (fieldType.equals("264")) {
-				// if FIELD 264 - Production info (like imprint for manufactured goods) - String prodInfo = ""; // dct:publisher
-				
-				ArrayList<String> retValman = new ArrayList<String>();
-				ArrayList<String> subFieldAman = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int impman=0;impman < subFieldAman.size();impman++) {
-					prodInfo = fixCarrots(fixAmper(subFieldAman.get(impman)));
-				}
-				ArrayList<String> subFieldBman = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (int impmanb=0;impmanb < subFieldBman.size();impmanb++) {
-					String manSubB = "";
-					manSubB = fixCarrots(fixAmper(subFieldBman.get(impmanb)));
-					if (manSubB  != null && manSubB.length() > 0) {
-						retValman.add("CRE");
-						retValman.add(manSubB);
-						authorArray.add(retValman);
-					}
-					
-				}			
-			} else if (fieldType.equals("300")) {
-				// IF Field 300 - Physical Description - String physDesc = ""; // dct:format
-				
-				int valueBefore = 0;
-				String thisPDNote = "";
-				// get subfields
-				String subApd = "";
-				String subBpd = "";
-				String subCpd = "";
-				String subEpd = "";
-				String subFpd = "";
-				String subGpd = "";
-				
-				ArrayList<String> subFieldApd = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldApd.size();i++) {
-					subApd = subFieldApd.get(i);
-				}
-				ArrayList<String> subFieldBpd = sqlObj.selectSubFieldValuesByID(fieldID, "b");
-				for (i=0;i < subFieldBpd.size();i++) {
-					subBpd =  subFieldBpd.get(i);
-				}
-				ArrayList<String> subFieldCpd = sqlObj.selectSubFieldValuesByID(fieldID, "c");
-				for (i=0;i < subFieldCpd.size();i++) {
-					subCpd =  subFieldCpd.get(i);
-				}
-				ArrayList<String> subFieldEpd = sqlObj.selectSubFieldValuesByID(fieldID, "e");
-				for (i=0;i < subFieldEpd.size();i++) {
-					subEpd =  subFieldEpd.get(i);
-				}
-				ArrayList<String> subFieldFpd = sqlObj.selectSubFieldValuesByID(fieldID, "f");
-				for (i=0;i < subFieldFpd.size();i++) {
-					subFpd =  subFieldFpd.get(i);
-				}
-				ArrayList<String> subFieldGpd = sqlObj.selectSubFieldValuesByID(fieldID, "g");
-				for (i=0;i < subFieldGpd.size();i++) {
-					subGpd =  subFieldGpd.get(i);
-				}
-				
-				
-				if (subApd  != null && subApd.length() > 0) {
-					if (valueBefore != 0) {
-						thisPDNote = thisPDNote + ". ";
-					}
-					thisPDNote = thisPDNote + subApd;
-					valueBefore++;
-				}
-				if (subBpd  != null && subBpd.length() > 0) {
-					if (valueBefore != 0) {
-						thisPDNote = thisPDNote + ". ";
-					}
-					thisPDNote = thisPDNote + subBpd;
-					valueBefore++;
-				}
-				if (subCpd  != null && subCpd.length() > 0) {
-					if (valueBefore != 0) {
-						thisPDNote = thisPDNote + ". ";
-					}
-					thisPDNote = thisPDNote + "Dimensions: " + subCpd;
-					valueBefore++;
-				}
-				if (subEpd  != null && subEpd.length() > 0) {
-					if (valueBefore != 0) {
-						thisPDNote = thisPDNote + ". ";
-					}
-					thisPDNote = thisPDNote + "Accompanying material: " + subEpd;
-					valueBefore++;
-				}	
-				if (subFpd  != null && subFpd.length() > 0) {
-					if (valueBefore != 0) {
-						thisPDNote = thisPDNote + ". ";
-					}
-					thisPDNote = thisPDNote + "Type of unit: " + subFpd;
-					valueBefore++;
-				}
-				if (subGpd  != null && subGpd.length() > 0) {
-					if (valueBefore != 0) {
-						thisPDNote = thisPDNote + ". ";
-					}
-					thisPDNote = thisPDNote + "Size of unit: " + subGpd;
-					valueBefore++;
-				}				
-				if (valueBefore != 0) {
-					thisPDNote = thisPDNote + ".";
-				}
-
-				physDesc = fixCarrots(fixAmper(thisPDNote));
-			} else if (fieldType.equals("321")) {
-				// if FIELD 321 - Former Publication Frequency - String formerPubFreq = ""; // rdau:noteOnFrequency
-				
-				ArrayList<String> subFieldAps = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldAps.size();i++) {
-					formerPubFreq = fixCarrots(fixAmper(subFieldAps.get(i)));
-				}
 			} else if (fieldType.equals("336") || fieldType.equals("338")) {
 				// IF Field 336 - Content Type - ArrayList<String> contentCarrierTypes // dct:type
 				// get subfields
@@ -772,68 +483,6 @@ public class ExportRDF {
 				if (thisTPC  != null && thisTPC.length() > 0) {
 					creationEpoch = thisTPC;
 				}
-			} else if (fieldType.equals("490")) {
-				// IF Field 490 - Series Statement -- Array<String> seriesStatment   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
-				
-				String subAss = "";
-				String subLss = "";
-				String subVss = "";
-				String subXss = "";
-
-				ArrayList<String> subFieldAss = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldAss.size();i++) {
-					subAss = subFieldAss.get(i);
-				}
-				ArrayList<String> subFieldLss = sqlObj.selectSubFieldValuesByID(fieldID, "l");
-				for (i=0;i < subFieldLss.size();i++) {
-					subLss =  subFieldLss.get(i);
-				}
-				ArrayList<String> subFieldVss = sqlObj.selectSubFieldValuesByID(fieldID, "v");
-				for (i=0;i < subFieldVss.size();i++) {
-					subVss =  subFieldVss.get(i);
-				}
-				ArrayList<String> subFieldXss = sqlObj.selectSubFieldValuesByID(fieldID, "x");
-				for (i=0;i < subFieldXss.size();i++) {
-					subXss =  subFieldXss.get(i);
-				}
-				
-				int didBeforeSs = 0;
-				String thisSsNote = "";
-				if (subAss  != null && subAss.length() > 0) {
-					if (didBeforeSs != 0) {
-						thisSsNote = thisSsNote + ". ";
-					}
-					thisSsNote = thisSsNote + "Series Statement: " + subAss;
-					didBeforeSs++;
-				}
-				if (subLss  != null && subLss.length() > 0) {
-					if (didBeforeSs != 0) {
-						thisSsNote = thisSsNote + ". ";
-					}
-					thisSsNote = thisSsNote + "Library of Congress Call Number: " + subLss;
-					didBeforeSs++;
-				}
-				if (subVss  != null && subVss.length() > 0) {
-					if (didBeforeSs != 0) {
-						thisSsNote = thisSsNote + ". ";
-					}
-					thisSsNote = thisSsNote + "Volume/Sequence Number: " + subVss;
-					didBeforeSs++;
-				}
-				
-				if (subXss  != null && subXss.length() > 0) {
-					if (didBeforeSs != 0) {
-						thisSsNote = thisSsNote + ". ";
-					}
-					thisSsNote = thisSsNote + "International Standard Serial Number: " + subXss;
-					didBeforeSs++;
-				}
-				
-				
-				if (thisSsNote  != null && thisSsNote.length() > 0) {
-					seriesStatment.add(fixCarrots(fixAmper(thisSsNote)));
-				}
-			
 			} else if (fieldType.matches("5\\d\\d")) {	
 				// 5xx notes
 				
@@ -944,11 +593,6 @@ public class ExportRDF {
 						baseNote = "Local Note: " + baseNote;
 					}
 					
-					if (fieldType.equals("540")) {
-						dcRights = baseNote;
-						baseNote = "";
-					}
-					
 					if (baseNote != null && baseNote.length() > 0) {
 						fiveHundNotes.add(baseNote);
 					}
@@ -1052,26 +696,6 @@ public class ExportRDF {
 					subjectTerms.add(thisSubjectString);
 				}
 
-			} else if (fieldType.equals("655")) {
-				// collex:genre
-				
-				String workingValue = "";
-				// get raw value
-				String rawValue = sqlObj.getFieldByID(fieldID);;
-				// get subfields
-				String subA = "";
-				ArrayList<String> subFieldA = sqlObj.selectSubFieldValuesByID(fieldID, "a");
-				for (i=0;i < subFieldA.size();i++) {
-					subA = subFieldA.get(i);
-				}
-				if (subA != null && subA.length() > 0) {
-					workingValue = subA;
-				} else if (rawValue != null && rawValue.length() > 0) {
-					workingValue = rawValue;
-				}
-				
-				// remove trailing period
-				genre = fixCarrots(fixPeriods(fixAmper(workingValue)));
 			} else if (fieldType.equals("656")) {
 				// do 656 (subject term - Occupation)
 				
@@ -1204,14 +828,30 @@ public class ExportRDF {
 				surrogateSub = sqlObj.selectSubFieldValuesByID(fieldID, "u");
 				
 			}
-			String rawThumbnail = sqlObj.selectImageRecord(recordID);
-			if (rawThumbnail != null && rawThumbnail.length() > 0) {
-				estcThumbnail = "http://estc21.ucr.edu/assets" + rawThumbnail;
-			}
 
 		}
 		
-		// build the content part of the RDF
+		/*
+		 * This is the end of the read-in part of the code.  The
+		 * part you'll be working on most is below here, where you
+		 * control the format of the output.  This is where
+		 * you'll have to modify things so that it writes out to
+		 * the Jena specification.
+		 */
+
+		// construct header - you may need to add stuff here depending
+		// on the Jena RDF specification
+		rdfHeader = "<rdf:RDF xmlns:gl=\"http://bl.uk.org/schema#\">\n";
+		
+		// construct the rdf:about.  You may need to change this 
+		// to work with the Jena RDF syntax.  
+		rdfAbout = "    <rdf:Description rdf:about=\"" + uniqueRI + "\">\n";
+		
+		// construct footer - you may need to add stuff here depending
+		// on the Jena RDF specification
+		rdfFooter = rdfFooter + "     </rdf:Description>\n</rdf:RDF>";
+		
+		
 		int itn = 0; // instantiate increment variable used for lists
 		rdfString = rdfString + "        <dct:title>" + finalTitle + "</dct:title>\n";
 		
@@ -1228,57 +868,9 @@ public class ExportRDF {
 			
 		}
 		
-		// newly added fields
-		//ArrayList<String> uniformTitle = new ArrayList<String>(); //   rdau:titleOfResource
-		if (uniformTitle != null && uniformTitle.size() > 0) {
-			for (itn=0;itn < uniformTitle.size();itn++) {
-				rdfString = rdfString + "        <rdau:titleOfResource>" + uniformTitle.get(itn) + "</rdau:titleOfResource>\n";
-			}
-		}
-		
-		// String uniformTitleTwoForty = ""; // rdau:titleOfResource
-		if (uniformTitleTwoForty != null && uniformTitleTwoForty.length() > 0) {
-			rdfString = rdfString + "        <rdau:titleOfResource>" + uniformTitleTwoForty + "</rdau:titleOfResource>\n";
-		}
-		
-		// String abrvTitle = ""; // rdau:abbreviatedTitle
-		if (abrvTitle != null && abrvTitle.length() > 0) {
-			rdfString = rdfString + "        <rdau:abbreviatedTitle>" + abrvTitle + "</rdau:abbreviatedTitle>\n";
-		}
-		
-		//String seriesUniformTitle = ""; // rdau:titleProperOfSeries
-		if (seriesUniformTitle != null && seriesUniformTitle.length() > 0) {
-			rdfString = rdfString + "        <rdau:titleProperOfSeries>" + seriesUniformTitle + "</rdau:titleProperOfSeries>\n";
-		}
-		
-		//String variantTitle = ""; // rdau:variantTitle
-		if (variantTitle != null && variantTitle.length() > 0) {
-			rdfString = rdfString + "        <rdau:variantTitle>" + variantTitle + "</rdau:variantTitle>\n";
-		}
-		
-		//String formerTitle = ""; // rdau:earlierTitleProper
-		if (formerTitle != null && formerTitle.length() > 0) {
-			rdfString = rdfString + "        <rdau:earlierTitleProper>" + formerTitle + "</rdau:earlierTitleProper>\n";
-		}
-		
-		//String editionStatement = ""; // rdau:editionStatement
-		if (editionStatement != null && editionStatement.length() > 0) {
-			rdfString = rdfString + "        <rdau:editionStatement>" + editionStatement + "</rdau:editionStatement>\n";
-		}
-		
 		//String prodInfo = ""; // dct:publisher
 		if (prodInfo != null && prodInfo.length() > 0) {
 			rdfString = rdfString + "        <dct:publisher>" + prodInfo + "</dct:publisher>\n";
-		}
-		
-		//String formerPubFreq = ""; // rdau:noteOnFrequency
-		if (formerPubFreq != null && formerPubFreq.length() > 0) {
-			rdfString = rdfString + "        <rdau:noteOnFrequency>" + formerPubFreq + "</rdau:noteOnFrequency>\n";
-		}
-	
-		//String physDesc = ""; // dct:format
-		if (physDesc != null && physDesc.length() > 0) {
-			rdfString = rdfString + "        <dct:format>" + physDesc + "</dct:format>\n";
 		}
 		
 		//ArrayList<String> contentCarrierTypes = new ArrayList<String>(); // dct:type
@@ -1292,34 +884,7 @@ public class ExportRDF {
 		if (creationEpoch != null && creationEpoch.length() > 0) {
 			rdfString = rdfString + "        <dct:created>" + creationEpoch + "</dct:created>\n";
 		}
-		
-		//String imprintString = ""; // bibo:issuer 
-		if (imprintString != null && imprintString.length() > 0) {
-			rdfString = rdfString + "        <dct:publisher>" + imprintString + "</dct:publisher>\n";
-		}
-		
-		//String dublinPublisher = ""; // role publisher dct:publisher $b
-		//if (dublinPublisher != null && dublinPublisher.length() > 0) {
-		//	rdfString = rdfString + "        <dct:publisher>" + dublinPublisher + "</dct:publisher>\n";
-		//}
-		
-		//String estcThumbnail = ""; // collex:thumbnail rdf:resource=""
-		if (estcThumbnail != null && estcThumbnail.length() > 0) {
-			rdfString = rdfString + "        <collex:thumbnail rdf:resource=\"" + estcThumbnail + "\" />\n";
-		}
-		
-		//String dcRights = ""; // dct:rights
-		if (dcRights != null && dcRights.length() > 0) {
-			rdfString = rdfString + "        <dct:rights>" + dcRights + "</dct:rights>\n";
-		}
-		
-		//ArrayList<String> seriesStatment = new ArrayList<String>(); //   isbdu:P1041  hasNoteOnSeriesAndMultipartMonographicResources
-		if (seriesStatment != null && seriesStatment.size() > 0) {
-			for (itn=0;itn < seriesStatment.size();itn++) {
-				rdfString = rdfString + "        <isbdu:P1041>" + seriesStatment.get(itn) + "</isbdu:P1041>\n";
-			}
-		}
-		
+
 		// ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
 		if (languageCode != null && languageCode.size() > 0) {
 			for (itn=0;itn < languageCode.size();itn++) {
@@ -1340,9 +905,7 @@ public class ExportRDF {
 				rdfString = rdfString + "        <dc:coverage>" + coverage.get(ic) + "</dc:coverage>\n";
 			}
 		}
-		if (genre != null && genre.length() > 0) {
-			rdfString = rdfString + "        <collex:genre>" + genre + "</collex:genre>\n";
-		}
+
 		if (subjectTerms != null && subjectTerms.size() > 0) {
 			for (int ist=0;ist < subjectTerms.size();ist++) {
 				rdfString = rdfString + fixPeriods(subjectTerms.get(ist));
@@ -1354,95 +917,10 @@ public class ExportRDF {
 			}
 		}
 		
-		// put loop to build holding records here
-		ArrayList<String> children = new ArrayList<String>();
-		ArrayList<HashMap<String,String>> holdingRecords = sqlObj.selectHoldingRecordIDs(itemID);
-		int ihr = 0;
-		while (ihr < holdingRecords.size()) {
-			String uniqueHoldingID = "";
-			HashMap<String,String> holdingRecordResults = holdingRecords.get(ihr);
-			int holdingRecordID = Integer.parseInt(holdingRecordResults.get("record_id"));
-			//String holdingRecordID = holdingRecordResults.get("id");
-			// now get all the 852 fields for the record
-			ArrayList<Integer> eightFiftyTwos = sqlObj.selectEightFiftyTwoFields(holdingRecordID);
-			int ihf = 0;
-			while (ihf < eightFiftyTwos.size()) {
-				int eightFiftyTwofieldID = eightFiftyTwos.get(ihf);
-				ArrayList<HashMap<String,String>> holdingSubs  = sqlObj.selectAllSubfields(eightFiftyTwofieldID);
-				// get the a subfield value (Location - in form of library code)
-				String aVal = fixCarrots(fixAmper(getSubfieldValue(holdingSubs, "a")));
-				// get the b subfield value (Sublocation or collection)
-				String bVal = fixCarrots(fixAmper(getSubfieldValue(holdingSubs, "b")));
-				// get the j subfield value (Shelving Control Number)
-				String jVal = fixCarrots(fixAmper(getSubfieldValue(holdingSubs, "j")));
-				// get the r subfield value (unique id)
-				String rVal = fixCarrots(fixAmper(getSubfieldValue(holdingSubs, "r")));
-				uniqueHoldingID = aVal + rVal;
-				uniqueHoldingID = uniqueHoldingID.replaceAll("\\s+","");
-				// get list of q values (physical location)
-				ArrayList<String> qVals = getSubfieldValueList(holdingSubs, "q");
-				
-				
-				// get the unique holding info
-				String uniqueHRI = "http://" + domainURI + "/" + uniqueHoldingID;
-				String rdfAboutHolding = "    <estc:estc rdf:about=\"" + uniqueHRI + "\">\n";
-				children.add(uniqueHRI);
-				String rdfStringAdditions = "";
-				int ihq = 0;
-				while (ihq < qVals.size()) {
-					String subLocationValue = qVals.get(ihq);
-					if (subLocationValue != null && subLocationValue.length() > 0) {
-						rdfStringAdditions = rdfStringAdditions + "        <dct:description>" + fixCarrots(fixAmper(subLocationValue)) + "</dct:description>\n";
-					}
-					ihq++;
-				}
-				rdfStringAdditions = "        <role:OWN>" + aVal + "</role:OWN>\n";
-				rdfStringAdditions = rdfStringAdditions + "        <role:RPS>" + bVal + "</role:RPS>\n";
-				rdfStringAdditions = rdfStringAdditions + "        <bf:shelfMark>" + jVal + "</bf:shelfMark>\n";
-								
-				// now construct an rdf output for this holding:
-				String holdingRDF = rdfHeader + rdfAboutHolding + rdfString + rdfStringAdditions + parentAssoc + rdfFooter;
-
-				try {
-					// write out the rdf
-					String writeFileName = configObj.writeDir + "/hold_" + uniqueHoldingID + ".rdf";
-					System.out.println("File Write Directory: " + writeFileName);
-					PrintWriter holdingWriter = new PrintWriter( configObj.writeDir + "/hold_" + uniqueHoldingID + ".rdf", "UTF-8");
-					holdingWriter.print(holdingRDF);
-					holdingWriter.close();
-					
-				} catch (FileNotFoundException e) {
-					System.out.println("Error exporting record " + holdingRecordID + " holding item " + uniqueHoldingID);
-					e.printStackTrace();
-				} catch (UnsupportedEncodingException e) {
-					System.out.println("Error exporting record " + holdingRecordID + " holding item " + uniqueHoldingID);
-					e.printStackTrace();
-				}
-				
-				//System.out.println(holdingRDF);
-				System.out.println("Processed holding record " + holdingRecordID + " item " + uniqueHoldingID);
-
-				// need to keep this so that the loop works right
-				ihf++;
-			}
-			
-			// mark the holding record as exported
-			sqlObj.updateExported(holdingRecordID);
-			ihr++;
-		
-		}
-		
 		if (fiveHundNotes != null && fiveHundNotes.size() > 0) {
 			for (int isn=0;isn < fiveHundNotes.size();isn++) {
 				rdfString = rdfString + "        <dct:description>" + fiveHundNotes.get(isn) + "</dct:description>\n";
 			}
-		}
-
-		// add child associations if any
-		int ihch = 0;
-		while (ihch < children.size()) {
-			rdfString = rdfString + "        <bf:hasInstance>" + children.get(ihch) + "</bf:hasInstance>\n";
-			ihch++;
 		}
 
 		// add digital surrogates
@@ -1454,6 +932,18 @@ public class ExportRDF {
 		}
 		
 		String bibRDF = rdfHeader + rdfAbout + rdfString + rdfFooter;
+
+		/*
+		 * As a debug function I've currently commented out the 
+		 * code that writes the actual file to disk, and I'm just
+		 * printing the rdf output to the console for viewing.  Once
+		 * it's working you'll want to delete the system.write and 
+		 * uncomment the codet to save to file.
+		 */
+		
+		System.out.println(bibRDF);
+		
+		/*
 		
 		try {
 			PrintWriter bibWriter = new PrintWriter( configObj.writeDir + "/bib_" + itemID + ".rdf", "UTF-8");
@@ -1468,6 +958,8 @@ public class ExportRDF {
 			System.out.println("Error exporting record " + recordID + " holding item " + itemID);
 			e.printStackTrace();
 		}
+		
+		*/
 		
 		
 		// System.out.println(bibRDF);

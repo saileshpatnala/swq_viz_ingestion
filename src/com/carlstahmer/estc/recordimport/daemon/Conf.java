@@ -54,6 +54,10 @@ public class Conf {
 
 	String listenDir;
 	String writeDir;
+	int processType;
+	String export;
+	String exportJena;
+	String daemon;
 	int runInterval;
 	String orgcode;
 	String dbserver;
@@ -68,12 +72,17 @@ public class Conf {
 	int lDateScopeBound;
 	int uDateScopebound;
 	ArrayList<String> fiveHundyDateFields = new ArrayList<String>();
-	String[] estcCodes;
-	String estcCodesCSV;
+	String[] libcodes;
+	String libcodesCSV;
+	String sitedomain;
 	
 	public Conf() {
 		listenDir = "";
 		writeDir = "";
+		processType = 0;
+		export = "";
+		exportJena = "";
+		daemon = "";
 		runInterval = 10000000;
 		orgcode = "";
 		dbserver = "";
@@ -89,7 +98,8 @@ public class Conf {
 		fiveHundyDateFields.add("500");
 		fiveHundyDateFields.add("501");
 		fiveHundyDateFields.add("504");
-		estcCodesCSV = "estcstar,estc";
+		libcodesCSV = "estcstar,estc";
+		sitedomain = "estc.bl.uk";
 		
 	}
 	
@@ -129,8 +139,9 @@ public class Conf {
 			if (liberalvalue == 1) {
 				liberal = true;
 			}
-			estcCodesCSV = (String) map.get("estccodes");
-			estcCodes = estcCodesCSV.split("\\s*,\\s*");
+			libcodesCSV = (String) map.get("estccodes");
+			libcodes = libcodesCSV.split("\\s*,\\s*");
+			sitedomain = (String) map.get("sitedomain");
 			
 			loaded = true;
 		
@@ -157,7 +168,11 @@ public class Conf {
 			Options options = new Options();
 			options.addOption("listendir", true, "full directory path to listen directory");
 			options.addOption("writedir", true, "full directory path to write output records");
+			options.addOption("export", false, "run ESTC RDF export process");
+			options.addOption("exportJena", false, "run Jena RDF export process");
+			options.addOption("daemon", false, "run as daemon process");
 			options.addOption("orgcode", true, "the marc orgcode of the cataloge owner");
+			options.addOption("sitedomain", true, "the domain to use for URI minting for objects");
 			options.addOption("runinterval", true, "the time to wait between process spawning");
 			options.addOption("dbserver", true, "the sql server");
 			options.addOption("dbname", true, "the sql server database name");
@@ -167,7 +182,7 @@ public class Conf {
 			options.addOption("debug", false, "run in debug mode - verbose logging");
 			options.addOption("console", false, "write log to console instead of database");
 			options.addOption("liberal", false, "keep records with missing control data");
-			options.addOption("estccodes", false, "csv list of institutional codes that represent ESTC bib records");
+			options.addOption("libcodes", false, "csv list of institutional codes that represent ESTC bib records");
 			options.addOption("help", false, "get help");
 							
 			
@@ -185,6 +200,15 @@ public class Conf {
 					writeDir = wdirVal;
 				}
 			}
+			if (cmd.hasOption("export")) {
+				processType = 1;
+			}
+			if (cmd.hasOption("exportJena")) {
+				processType = 2;
+			}
+			if (cmd.hasOption("daemon")) {
+				processType = 3;
+			}			
 			if (cmd.hasOption("orgcode")) {
 				String ocVal = cmd.getOptionValue("orgcode");
 				if(ocVal != null) {
@@ -238,9 +262,15 @@ public class Conf {
 				}
 			}
 			if (cmd.hasOption("estccodes")) {
-				String langscopeVal = cmd.getOptionValue("estccodes");
-				if(langscopeVal != null) {
-					estcCodesCSV = langscopeVal;
+				String libcodesVal = cmd.getOptionValue("estccodes");
+				if(libcodesVal != null) {
+					libcodesCSV = libcodesVal;
+				}
+			}
+			if (cmd.hasOption("sitedomain")) {
+				String sitedomainVal = cmd.getOptionValue("sitedomain");
+				if(sitedomainVal != null) {
+					sitedomain = sitedomain;
 				}
 			}
 			if (cmd.hasOption("help")) {

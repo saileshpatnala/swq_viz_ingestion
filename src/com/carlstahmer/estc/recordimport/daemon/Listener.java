@@ -54,6 +54,8 @@ public class Listener {
 	 *
 	 * @param  	-listendir		/full/directory/path/of/listen/directory
 	 * @param  	-writedir  		/full/directory/path/of/output/directory (Deprecated)
+	 * @param	-export			flag to run in ESTC RDF export mode
+	 * @param	-exportJena		flag to run in Jena RDF export mode
 	 * @param 	-orgcode		the marc org code to use in constructing the new records
 	 * @param	-runinterval	the interval to wait between listening attempts
 	 * @param 	-dbserver		the name of the database server
@@ -68,19 +70,6 @@ public class Listener {
 		
 		// Welcome Message
 		System.out.println("Starting ESTC Marc Import/Export Server...");
-		
-		// Get input arguments and process accordingly
-		int processType = 0;
-		for (String s: args) {
-            if (s.matches("export")) {
-            	processType = 1;
-            } 
-        }
-		if (processType > 0) {
-			System.out.println("Running in Export mode");
-		} else {
-			System.out.println("Running in Import mode");
-		}
 		
 		// Load required configuration YML file
 		Conf config = new Conf();
@@ -121,7 +110,13 @@ public class Listener {
 	    	config.listenDir = config.listenDir.substring(0, config.listenDir.length() - 1);
 	    }
 	    System.out.println("Listen Directory: " + config.listenDir);
-	    
+
+		// Check write directory for proper formatting of trailing slash	
+	    if (config.writeDir.substring(config.writeDir.length() - 1).equals("/")) {
+	    	config.writeDir = config.writeDir.substring(0, config.writeDir.length() - 1);
+	    }
+	    System.out.println("Write Directory: " + config.writeDir);
+
 	    // Start the process manager
 	    ProcessManager pm = new ProcessManager(config, sqlObj);
 	    logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Listening at: "+config.listenDir);
@@ -130,7 +125,21 @@ public class Listener {
 	    // need to fix the actual daemon listener and change this.
 	    // I should probably make it a config / command line option
 	    
-	    pm.runOnce(processType);
+		// Call appropriate process from process manager based on
+	    // command line process argument
+		if (config.processType == 1) {
+			System.out.println("Running in ESTC RDF export mode");
+			pm.runOnce(1);
+		} else if (config.processType == 2) {
+			System.out.println("Running in Jena RDF export mode");
+			pm.runOnce(2);
+		} else if (config.processType == 3) {
+			System.out.println("Running in daemon mode");
+			pm.runAsDaemon();
+		} else {
+			System.out.println("Running in input mode");
+			pm.runOnce(0);
+		}
 	    		
 		sqlObj.closeConnection();
 		logger.log(2, Thread.currentThread().getStackTrace()[1].getFileName(), Thread.currentThread().getStackTrace()[1].getLineNumber(), "Process Completed");
