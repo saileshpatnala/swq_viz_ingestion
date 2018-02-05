@@ -18,9 +18,15 @@
 1. Stopping MySQL server: ```mysql.server stop```
 1. Running MySQL: ```mysql -u root -p```
 1. It will ask you to enter the password you set for the server
-1. ```create database estcimport_dev;``` to create the database
-1. Importing single .sql file into MySQL database: ```mysql -u root -p estcimport_dev < estcimport_dev_estc_agents.sql ```
-1. Importing multiple .sql files into MySQL database: ```cat *.sql | mysql -u root -p estcimport_dev```
+1. Create the database ```create database estcimport_dev;```
+1. cd into folder with sql files
+1. Importing single .sql file into MySQL database: ```mysql -u root -p estcimport_dev < <name>.sql```
+1. Importing multiple .sql files into MySQL database (from unix command line): ```cat *.sql | mysql -u root -p estcimport_dev```
+
+**MySQL commands:**
+1. show database;
+1. show table;
+1. exit;
 
 ## Java App Ingestion
 
@@ -38,7 +44,7 @@ sure it is on a server that is accessible to the java app.)
 
 When you run, run with these arguments passed in:
 
--debug -exportJena
+```-debug -exportJena```
 
 The overall process works like:
 

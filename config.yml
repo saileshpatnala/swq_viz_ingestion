@@ -26,10 +26,10 @@ dbserver: localhost
 dbname: estcimport_dev
 
 #	The SQL User
-dbuser: estcimporter
+dbuser: root
 
 #	The SQL Password
-dbpass: estcpassword
+dbpass: later101sister
 
 #	Marc Language codes for inScope languages - separated by commas with no spaces
 langscope: eng,enm
