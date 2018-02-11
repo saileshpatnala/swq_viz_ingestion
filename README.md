@@ -59,6 +59,9 @@ WHERE {
 
 ```
 
+## Setting up write directory in Java App
+1. update ```config.yml``` and set ```writedir: <file_path>/swq_viz_ingestion/testrdf```
+
 ## Java App Ingestion
 
 Before you run, you'll need to properly configure the
