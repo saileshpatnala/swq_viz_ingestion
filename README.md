@@ -23,10 +23,41 @@
 1. Importing single .sql file into MySQL database: ```mysql -u root -p estcimport_dev < <name>.sql```
 1. Importing multiple .sql files into MySQL database (from unix command line): ```cat *.sql | mysql -u root -p estcimport_dev```
 
-**MySQL commands:**
-1. show database;
-1. show table;
-1. exit;
+## Running Java App to export RDF files -> Port into Jena Fuseki
+**Using Eclipse for Java App**
+1. clear your ```testrdf``` write directory in your workspace folder of java app, create one if not already done so
+1. start up sql server: ```mysql.server start```
+1. run java app via eclipse IDE
+1. quit partway ```ctrl+C``` (for testing purposes, don't want to export all RDF files)
+1. start up Apache Jena Fuseki
+1. upload RDF files into Apache Jena Fuseki 
+1. add all prefixes into SPARQL query (example below)
+1. Run SPARQL query **(fixes still need to be made)**
+```SPARQL
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix gl: <http://bl.uk.org/schema#>
+prefix bf: <http://bibframe.org/vocab/>
+prefix collex: <http://www.collex.org/schema#>
+prefix dc: <http://purl.org/dc/elements/1.1/#>
+prefix dct: <http://purl.org/dc/terms/#>
+prefix estc: <http://estc21.ucr.edu/schema#>
+prefix foaf: <http://xmlns.com/foaf/0.1/#>
+prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos/#>
+prefix isbdu: <http://iflastandards.info/ns/isbd/unc/elements/>
+prefix rdau: <http://rdaregistry.info/Elements/u/#>
+prefix reg: <http://metadataregistry.org/uri/profile/RegAp/#>
+prefix relators: <http://id.loc.gov/vocabulary/relators/>
+prefix role: <http://www.loc.gov/loc.terms/relators/>
+prefix scm: <http://schema.org/>
+prefix skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT ?subject ?predicate ?object
+WHERE {
+ ?subject ?predicate ?object
+}
+
+```
 
 ## Java App Ingestion
 
