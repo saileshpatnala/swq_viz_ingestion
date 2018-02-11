@@ -62,7 +62,8 @@ public class ExportJenaRDF {
 		boolean success = false;
 		
 		// Get all records for this domain and process
-		ArrayList<Integer> recordsQueue = sqlObj.selectUnExportedBibs();
+		ArrayList<Integer> recordsQueue = sqlObj.selectAllBibs();
+		//ArrayList<Integer> recordsQueue = sqlObj.selectUnExportedBibs();
 		for (int i=0;i < recordsQueue.size();i++) {
 			int workingRecordID = recordsQueue.get(i);
 			makeJennaRDF(workingRecordID, domainURI);

@@ -668,6 +668,62 @@ public class SqlModel {
 		return resultSetList;
 	}
 	
+	/**
+	 * <p>Select all BIB record in the records table</>
+	 * 
+	 * @return an ArrayList of record.id(s)
+	 */
+	public ArrayList<Integer> selectAllBibs() {
+		
+		// initialized required objects
+		ArrayList<Integer> resultSetList = new ArrayList<Integer>();
+		
+		// define query
+		String strSql = "SELECT records.id FROM records" + 
+				" WHERE records.type IN (1,3)" + 
+				" ORDER BY records.id ASC LIMIT 2";
+		
+		if (!connOpen) {
+			this.openConnection();
+		}
+		
+		// initialize required objects
+				Statement stmt = null;
+				ResultSet resultSet = null;
+			
+				// run query
+				try {
+					stmt = conn.createStatement();
+			        resultSet = stmt.executeQuery(strSql);
+
+			        while (resultSet.next()) {
+			        		resultSetList.add(resultSet.getInt(1));
+			        }
+
+			        try {
+			        	resultSet.close();
+			        } catch (SQLException sqlEx) { } // ignore
+				    
+				
+				} catch (SQLException ex){
+				    // handle any errors
+				    System.out.println("SQLException SqlModel.java qSelectString: " + ex.getMessage());
+				    System.out.println("SQLState: " + ex.getSQLState());
+				    System.out.println("VendorError: " + ex.getErrorCode());
+				} finally {
+				    try {
+				    	stmt.close();
+				    } catch (SQLException sqlEx) { } // ignore
+
+				}
+				
+				if (connOpen) {
+					this.closeConnection();
+				}
+
+		        // return result
+				return resultSetList;
+	}
 	
 	/**
 	 * <p>Select all BIB records in the records table 

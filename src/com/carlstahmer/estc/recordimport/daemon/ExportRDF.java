@@ -62,7 +62,7 @@ public class ExportRDF {
 		boolean success = false;
 		
 		// loop through all bib records and send to makeRDF for each
-		
+		//ArrayList<Integer> recordsQueue = sqlObj.selectAllBibs();
 		ArrayList<Integer> recordsQueue = sqlObj.selectUnExportedBibs();
 		for (int i=0;i < recordsQueue.size();i++) {
 			int workingRecordID = recordsQueue.get(i);
