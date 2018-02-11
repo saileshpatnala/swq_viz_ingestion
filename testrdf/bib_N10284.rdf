@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?> 
+ <rdf:RDF xmlns:gl="http://bl.uk.org/schema#"
+    xmlns:bf="http://bibframe.org/vocab/"
+    xmlns:collex="http://www.collex.org/schema#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/#"
+    xmlns:dct="http://purl.org/dc/terms/#"
+    xmlns:estc="http://estc21.ucr.edu/schema#"
+    xmlns:foaf="http://xmlns.com/foaf/0.1/#"
+    xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos/#"
+    xmlns:isbdu="http://iflastandards.info/ns/isbd/unc/elements/"
+    xmlns:rdau="http://rdaregistry.info/Elements/u/#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema/#"
+    xmlns:reg="http://metadataregistry.org/uri/profile/RegAp/#"
+    xmlns:relators="http://id.loc.gov/vocabulary/relators/"
+    xmlns:role="http://www.loc.gov/loc.terms/relators/"
+    xmlns:scm="http://schema.org/"
+    xmlns:skos="http://www.w3.org/2004/02/skos/core#" >
+    <rdf:Description rdf:about="http://estc.bl.uk/N10284">
+        <collex:federation>ESTC</collex:federation>
+        <collex:archive>estcstar</collex:archive>
+        <dct:title>The last speech and confession of Nicol Muschet of Boghal, who was execute [sic] in the Grass Market of Edinburgh, the sixth day of January 1721. Containing a brief narrative of his life, ... Together with, reflections upon the preceeding passages of his life, ... All written and signed by his own hand. ...</dct:title>
+        <dct:creator>
+            <scm:contributor rdfs:resource="http://estcbluk/agents/208">
+                <role:AUT>Muschet, Nicol, -1721.</role:AUT>
+            </scm:contributor>
+        </dct:creator>
+        <dc:date>
+             <collex:date>
+                  <rdfs:label>1721</rdfs:label>
+                  <rdfs:value>1721</rdfs:value>
+             </collex:date>
+        </dc:date>
+        <dc:coverage>Great Britain</dc:coverage>
+        <dc:coverage>Scotland</dc:coverage>
+        <dc:coverage>Edinburgh</dc:coverage>
+        <dct:subject>
+                <scm:about rdfs:resource="http://estcbluk/subjects/2">
+                     <rdfs:label>1701-1800</rdfs:label>
+                </scm:about>
+        </dct:subject>
+        <dct:subject>
+                <scm:about rdfs:resource="http://estcbluk/subjects/231">
+                     <rdfs:label>Last words</rdfs:label>
+                </scm:about>
+        </dct:subject>
+        <dct:description>Page 24 bears "Carmen acrosticum" by Alexander Pennecuik; a variant lacks it.</dct:description>
+        <dct:description>Imprint place and printer from colophon.</dct:description>
+        <dct:description>Reproduction: Microfilm.</dct:description>
+        <scm:url>http://galenet.galegroup.com/servlet/ECCO?c=1&amp;stp=Author&amp;ste=11&amp;af=BN&amp;ae=N010284&amp;tiPG=1&amp;dd=0&amp;dc=flc&amp;docNum=CW123770256&amp;vrsn=1.0&amp;srchtp=a&amp;d4=0.33&amp;n=10&amp;SU=0LRJ ^ |</scm:url>
+      </rdf:Description>
+</rdf:RDF>

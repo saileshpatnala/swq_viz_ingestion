@@ -49,7 +49,7 @@ public class ExportJenaRDF {
 	Logger logger;
 	String rdfHeader;
 	String rdfAbout;
-	String rdfString;
+	String rdfString = "";
 	String rdfFooter;
 
 	public ExportJenaRDF(Conf config, SqlModel sqlModObj) {
@@ -841,7 +841,25 @@ public class ExportJenaRDF {
 
 		// construct header - you may need to add stuff here depending
 		// on the Jena RDF specification
-		rdfHeader = "<rdf:RDF xmlns:gl=\"http://bl.uk.org/schema#\">\n";
+		
+		rdfHeader = "<?xml version=\"1.0\" encoding=\"utf-8\"?> \n <rdf:RDF xmlns:gl=\"http://bl.uk.org/schema#\"\n";
+		//rdfHeader = "<?xml version=\"1.0\" encoding=\"utf-8\"?> <rdf:RDF xmlns:gl=\"http://bl.uk.org/schema#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:bf=\"http://bibframe.org/vocab/\"\n";
+		rdfHeader = rdfHeader + "    xmlns:collex=\"http://www.collex.org/schema#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:dc=\"http://purl.org/dc/elements/1.1/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:dct=\"http://purl.org/dc/terms/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:estc=\"http://estc21.ucr.edu/schema#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:foaf=\"http://xmlns.com/foaf/0.1/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:geo=\"http://www.w3.org/2003/01/geo/wgs84_pos/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:isbdu=\"http://iflastandards.info/ns/isbd/unc/elements/\"\n";
+		rdfHeader = rdfHeader + "    xmlns:rdau=\"http://rdaregistry.info/Elements/u/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:reg=\"http://metadataregistry.org/uri/profile/RegAp/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:relators=\"http://id.loc.gov/vocabulary/relators/\"\n";
+		rdfHeader = rdfHeader + "    xmlns:role=\"http://www.loc.gov/loc.terms/relators/\"\n";
+		rdfHeader = rdfHeader + "    xmlns:scm=\"http://schema.org/\"\n";
+		rdfHeader = rdfHeader + "    xmlns:skos=\"http://www.w3.org/2004/02/skos/core#\" >\n";
 		
 		// construct the rdf:about.  You may need to change this 
 		// to work with the Jena RDF syntax.  
@@ -849,9 +867,16 @@ public class ExportJenaRDF {
 		
 		// construct footer - you may need to add stuff here depending
 		// on the Jena RDF specification
-		rdfFooter = rdfFooter + "     </rdf:Description>\n</rdf:RDF>";
+		rdfFooter = "    </estc:estc>\n";
+		rdfFooter = " "+ "     </rdf:Description>\n</rdf:RDF>";
 		
-		
+		ArrayList<HashMap<String,String>> tableResults = sqlObj.selectFileInfoById(sqlObj.selectRecordFileId(recordID));
+		HashMap<String,String> recordInfoRecord = tableResults.get(0);
+		String instCode = recordInfoRecord.get("institution_code");
+		rdfString = "        <collex:federation>ESTC</collex:federation>\n";
+		rdfString = rdfString + "        <collex:archive>" + instCode + "</collex:archive>\n";
+
+				
 		int itn = 0; // instantiate increment variable used for lists
 		rdfString = rdfString + "        <dct:title>" + finalTitle + "</dct:title>\n";
 		
@@ -941,9 +966,9 @@ public class ExportJenaRDF {
 		 * uncomment the codet to save to file.
 		 */
 		
-		System.out.println(bibRDF);
+		//System.out.println(bibRDF);
 		
-		/*
+		
 		
 		try {
 			PrintWriter bibWriter = new PrintWriter( configObj.writeDir + "/bib_" + itemID + ".rdf", "UTF-8");
@@ -959,7 +984,7 @@ public class ExportJenaRDF {
 			e.printStackTrace();
 		}
 		
-		*/
+		
 		
 		
 		// System.out.println(bibRDF);
