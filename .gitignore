@@ -1,3 +1,5 @@
-/bin
+bin/
+.DS_Store/
 config.yml
-/.DS_STORE 
+.project
+.classpath
