@@ -62,7 +62,7 @@ public class ExportRDF {
 		boolean success = false;
 		
 		// loop through all bib records and send to makeRDF for each
-		
+		//ArrayList<Integer> recordsQueue = sqlObj.selectAllBibs();
 		ArrayList<Integer> recordsQueue = sqlObj.selectUnExportedBibs();
 		for (int i=0;i < recordsQueue.size();i++) {
 			int workingRecordID = recordsQueue.get(i);
@@ -97,7 +97,7 @@ public class ExportRDF {
 		//String itemID = "use an ESTC ID if this is a bib record, otherwise use the record ID";
 		
 		// make header
-		rdfHeader = "<rdf:RDF xmlns:gl=\"http://bl.uk.org/schema#\"\n";
+		rdfHeader = "<?xml version=\"1.0\" encoding=\"utf-8\"?> <rdf:RDF xmlns:gl=\"http://bl.uk.org/schema#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:bf=\"http://bibframe.org/vocab/\"\n";
 		rdfHeader = rdfHeader + "    xmlns:collex=\"http://www.collex.org/schema#\"\n";
 		rdfHeader = rdfHeader + "    xmlns:dc=\"http://purl.org/dc/elements/1.1/#\"\n";

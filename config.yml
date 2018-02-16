@@ -9,7 +9,8 @@
 listendir: /Users/cstahmer/Documents/estc_record_importer_dev
 #   The directory where the daemon should write rdf files
 #   writedir: /Users/cstahmer/Documents/estc_record_importer_dev/unmatched_RDF
-writedir: /Users/cstahmer/Documents/estc_record_importer_dev/testrdf
+#writedir: /Users/cstahmer/Documents/estc_record_importer_dev/testrdf
+writedir: /Users/wonheepark/GitHub/swq_viz_ingestion/testrdf
 
 #   The MARC organization code that will be used as the indentifier for
 #   the owner/originator of the converted records
@@ -26,10 +27,10 @@ dbserver: localhost
 dbname: estcimport_dev
 
 #	The SQL User
-dbuser: estcimporter
+dbuser: root
 
 #	The SQL Password
-dbpass: estcpassword
+dbpass: later101sister
 
 #	Marc Language codes for inScope languages - separated by commas with no spaces
 langscope: eng,enm

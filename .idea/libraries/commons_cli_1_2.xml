@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="commons-cli-1.2">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/commons-cli-1.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/marc4j-2.6.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/mysql-connector-java-5.1.29-bin.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/snakeyaml-1.11.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

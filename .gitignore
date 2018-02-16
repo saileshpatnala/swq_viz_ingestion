@@ -1,2 +1,2 @@
-# ignoring idea files
-.idea/*
+/bin
+/.DS_STORE	 

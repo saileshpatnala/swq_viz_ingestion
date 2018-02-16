@@ -49,7 +49,7 @@ public class ExportJenaRDF {
 	Logger logger;
 	String rdfHeader;
 	String rdfAbout;
-	String rdfString;
+	String rdfString = "";
 	String rdfFooter;
 
 	public ExportJenaRDF(Conf config, SqlModel sqlModObj) {
@@ -62,7 +62,8 @@ public class ExportJenaRDF {
 		boolean success = false;
 		
 		// Get all records for this domain and process
-		ArrayList<Integer> recordsQueue = sqlObj.selectUnExportedBibs();
+		ArrayList<Integer> recordsQueue = sqlObj.selectAllBibs();
+		//ArrayList<Integer> recordsQueue = sqlObj.selectUnExportedBibs();
 		for (int i=0;i < recordsQueue.size();i++) {
 			int workingRecordID = recordsQueue.get(i);
 			makeJennaRDF(workingRecordID, domainURI);
@@ -841,7 +842,25 @@ public class ExportJenaRDF {
 
 		// construct header - you may need to add stuff here depending
 		// on the Jena RDF specification
-		rdfHeader = "<rdf:RDF xmlns:gl=\"http://bl.uk.org/schema#\">\n";
+		
+		rdfHeader = "<?xml version=\"1.0\" encoding=\"utf-8\"?> \n <rdf:RDF xmlns:gl=\"http://bl.uk.org/schema#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema/#\"\n";
+		rdfHeader = rdfHeader + "    xmlns:scm=\"http://schema.org/\"\n";
+		rdfHeader = rdfHeader + "    xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n";
+		//rdfHeader = rdfHeader + "    xmlns:collex=\"http://www.collex.org/schema#\"\n";
+		//rdfHeader = rdfHeader + "    xmlns:estc=\"http://estc21.ucr.edu/schema#\"\n";
+		
+		//rdfHeader = rdfHeader + "    xmlns:bf=\"http://bibframe.org/vocab/\"\n";
+		//rdfHeader = rdfHeader + "    xmlns:dc=\"http://purl.org/dc/elements/1.1/#\"\n";
+		//rdfHeader = rdfHeader + "    xmlns:dct=\"http://purl.org/dc/terms/#\"\n";
+		//rdfHeader = rdfHeader + "    xmlns:foaf=\"http://xmlns.com/foaf/0.1/#\"\n";
+		//rdfHeader = rdfHeader + "    xmlns:geo=\"http://www.w3.org/2003/01/geo/wgs84_pos/#\"\n";
+		//rdfHeader = rdfHeader + "    xmlns:isbdu=\"http://iflastandards.info/ns/isbd/unc/elements/\"\n";
+		//rdfHeader = rdfHeader + "    xmlns:rdau=\"http://rdaregistry.info/Elements/u/#\"\n";
+		//rdfHeader = rdfHeader + "    xmlns:reg=\"http://metadataregistry.org/uri/profile/RegAp/#\"\n";
+		//rdfHeader = rdfHeader + "    xmlns:relators=\"http://id.loc.gov/vocabulary/relators/\"\n";
+		rdfHeader = rdfHeader + "    xmlns:role=\"http://www.loc.gov/loc.terms/relators/\" >\n";
+		//rdfHeader = rdfHeader + "    xmlns:skos=\"http://www.w3.org/2004/02/skos/core#\" >\n";
 		
 		// construct the rdf:about.  You may need to change this 
 		// to work with the Jena RDF syntax.  
@@ -849,60 +868,68 @@ public class ExportJenaRDF {
 		
 		// construct footer - you may need to add stuff here depending
 		// on the Jena RDF specification
-		rdfFooter = rdfFooter + "     </rdf:Description>\n</rdf:RDF>";
 		
+		//rdfFooter = "    </estc:estc>\n";
+		rdfFooter = " "+ "     </rdf:Description>\n</rdf:RDF>";
 		
+		//ArrayList<HashMap<String,String>> tableResults = sqlObj.selectFileInfoById(sqlObj.selectRecordFileId(recordID));
+		//HashMap<String,String> recordInfoRecord = tableResults.get(0);
+		//String instCode = recordInfoRecord.get("institution_code");
+		//rdfString = "        <collex:federation>ESTC</collex:federation>\n";  // federation = scholarly community that reviewed resource = English Short Title Catalog
+		//rdfString = rdfString + "        <collex:archive>" + instCode + "</collex:archive>\n";
+
+				
 		int itn = 0; // instantiate increment variable used for lists
-		rdfString = rdfString + "        <dct:title>" + finalTitle + "</dct:title>\n";
+		rdfString = rdfString + "        <scm:title>" + finalTitle + "</scm:title>\n";
 		
 		for (int iat=0;iat < authorArray.size();iat++) {
 			ArrayList<String> thisCont = authorArray.get(iat);
 			rdfString = rdfString + formatContributor(thisCont.get(0), thisCont.get(1));
 		}
 		
+
 		if (finalDate != null && finalDate.length() > 0) {
-			rdfString = rdfString + "        <dc:date>\n             <collex:date>\n";
+			rdfString = rdfString + "        <scm:date>\n             <scm:date>\n";
 			rdfString = rdfString + "                  <rdfs:label>" + finalDateString + "</rdfs:label>\n";
 			rdfString = rdfString + "                  <rdfs:value>" + finalDateString + "</rdfs:value>\n";
-			rdfString = rdfString + "             </collex:date>\n        </dc:date>\n";
-			
+			rdfString = rdfString + "             </scm:date>\n        </scm:date>\n";
 		}
 		
 		//String prodInfo = ""; // dct:publisher
 		if (prodInfo != null && prodInfo.length() > 0) {
-			rdfString = rdfString + "        <dct:publisher>" + prodInfo + "</dct:publisher>\n";
+			rdfString = rdfString + "        <scm:publisher>" + prodInfo + "</scm:publisher>\n";
 		}
 		
 		//ArrayList<String> contentCarrierTypes = new ArrayList<String>(); // dct:type
 		if (contentCarrierTypes != null && contentCarrierTypes.size() > 0) {
 			for (itn=0;itn < contentCarrierTypes.size();itn++) {
-				rdfString = rdfString + "        <dct:type>" + contentCarrierTypes.get(itn) + "</dct:type>\n";
+				rdfString = rdfString + "        <scm:genre>" + contentCarrierTypes.get(itn) + "</scm:genre>\n";
 			}
 		}
 
 		//String creationEpoch = ""; // dct:created
 		if (creationEpoch != null && creationEpoch.length() > 0) {
-			rdfString = rdfString + "        <dct:created>" + creationEpoch + "</dct:created>\n";
+			rdfString = rdfString + "        <scm:dateCreated>" + creationEpoch + "</scm:dateCreated>\n";
 		}
 
 		// ArrayList<String> languageCode = new ArrayList<String>(); //   dc:language
 		if (languageCode != null && languageCode.size() > 0) {
 			for (itn=0;itn < languageCode.size();itn++) {
-				rdfString = rdfString + "        <dc:language>" + languageCode.get(itn) + "</dc:language>\n";
+				rdfString = rdfString + "        <scm:inLanguage>" + languageCode.get(itn) + "</scm:inLanguage>\n";
 			}
 		}
 		
 		// ArrayList<String> associatedPlaces = new ArrayList<String>(); //   dc:coverage	
 		if (associatedPlaces != null && associatedPlaces.size() > 0) {
 			for (itn=0;itn < associatedPlaces.size();itn++) {
-				rdfString = rdfString + "        <dc:coverage>" + associatedPlaces.get(itn) + "</dc:coverage>\n";
+				rdfString = rdfString + "        <scm:temporalCoverage>" + associatedPlaces.get(itn) + "</scm:temporalCoverage>\n"; //location of subject
 			}
 		}
 		// end new fields
 		
 		if (coverage != null && coverage.size() > 0) {
 			for (int ic=0;ic < coverage.size();ic++) {
-				rdfString = rdfString + "        <dc:coverage>" + coverage.get(ic) + "</dc:coverage>\n";
+				rdfString = rdfString + "        <scm:spatialCoverage>" + coverage.get(ic) + "</scm:spatialCoverage>\n"; //location of subject
 			}
 		}
 
@@ -913,13 +940,13 @@ public class ExportJenaRDF {
 		}
 		if (fiveHundTenNotes != null && fiveHundTenNotes.size() > 0) {
 			for (int isn=0;isn < fiveHundTenNotes.size();isn++) {
-				rdfString = rdfString + "        <dct:isReferencedBy>" + fiveHundTenNotes.get(isn) + "</dct:isReferencedBy>\n";
+				rdfString = rdfString + "        <scm:citation>" + fiveHundTenNotes.get(isn) + "</scm:citation>\n";
 			}
 		}
 		
 		if (fiveHundNotes != null && fiveHundNotes.size() > 0) {
 			for (int isn=0;isn < fiveHundNotes.size();isn++) {
-				rdfString = rdfString + "        <dct:description>" + fiveHundNotes.get(isn) + "</dct:description>\n";
+				rdfString = rdfString + "        <scm:description>" + fiveHundNotes.get(isn) + "</scm:description>\n";
 			}
 		}
 
@@ -941,9 +968,9 @@ public class ExportJenaRDF {
 		 * uncomment the codet to save to file.
 		 */
 		
-		System.out.println(bibRDF);
+		//System.out.println(bibRDF);
 		
-		/*
+		
 		
 		try {
 			PrintWriter bibWriter = new PrintWriter( configObj.writeDir + "/bib_" + itemID + ".rdf", "UTF-8");
@@ -959,7 +986,7 @@ public class ExportJenaRDF {
 			e.printStackTrace();
 		}
 		
-		*/
+		
 		
 		
 		// System.out.println(bibRDF);
@@ -1015,11 +1042,11 @@ public class ExportJenaRDF {
 			//String collapseString = workingString.replaceAll("[^\\s]", "");
 			String estcTermId = sqlObj.selectSubjectID(workingString);
 			
-			ret = ret + "        <dct:subject>\n";
+			ret = ret + "        <scm:subjectOf>\n";
 			ret = ret + "                <scm:about rdfs:resource=\"http://estc.bl.uk/subjects/" + estcTermId + "\">\n";
 			ret = ret + "                     <rdfs:label>" + fixCarrots(fixPeriods(fixAmper(workingString))) + "</rdfs:label>\n";
 			ret = ret + "                </scm:about>\n";
-			ret = ret + "        </dct:subject>\n";
+			ret = ret + "        </scm:subjectOf>\n";
 		}
 
 		return ret;
@@ -1033,12 +1060,12 @@ public class ExportJenaRDF {
 					// get unique ESTC agent ID
 					String estcAgents = sqlObj.selectAgentID(value);
 					if (estcAgents != null && estcAgents.length() > 0) {
-						ret = "        <dct:creator>\n";
+						ret = "        <scm:creator>\n";
 						String cleanedRelator = fixPeriods(relator);
 						ret = ret + "            <scm:contributor rdfs:resource=\"http://estcbluk/agents/" + estcAgents + "\">\n";
 						ret = ret + "                <role:" + cleanedRelator + ">" + value + "</role:" + cleanedRelator + ">\n";
 						ret = ret + "            </scm:contributor>\n";
-						ret = ret + "        </dct:creator>\n";
+						ret = ret + "        </scm:creator>\n";
 					}
 				}	
 			}
